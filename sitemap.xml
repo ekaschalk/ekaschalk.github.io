@@ -2,29 +2,29 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://ekaschalk.github.io/post/hello-world/</loc>
+    <loc>/post/hello-world/</loc>
     <lastmod>2017-02-15T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>http://ekaschalk.github.io/categories/</loc>
+    <loc>/categories/</loc>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://ekaschalk.github.io/</loc>
-    <lastmod>2017-02-15T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>http://ekaschalk.github.io/categories/meta/</loc>
+    <loc>/</loc>
     <lastmod>2017-02-15T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>http://ekaschalk.github.io/post/</loc>
+    <loc>/categories/meta/</loc>
+    <lastmod>2017-02-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/post/</loc>
     <lastmod>2017-02-15T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
