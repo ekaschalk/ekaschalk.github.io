@@ -165,24 +165,7 @@ goes to ∨, and <code>lambda</code> goes to λ.</p>
 <p>Some changes are aggressive, mix and match codes to your taste.</p>
 
 <p>The command <code>insert-char</code>, <code>C-x 8 RET</code> prompts for Unicode characters by name
-and inserts at point. Use in conjunction with eg. <a href="https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode">Math Unicode Symbols
-List</a>
-to explore your options.</p>
-
-<p><code>describe-char</code>, <code>M-m h d c</code> in Spacemacs, gives information on the character
-at point. Running it on alpha yields:</p>
-             position: 4938 of 8890 (56%), column: 43
-            character: α (displayed as α) (codepoint 945, #o1661, #x3b1)
-    preferred charset: unicode (Unicode (ISO10646))
-code point in charset: 0x03B1
-               script: greek
-               syntax: w    which means: word
-             category: .:Base, G:2-byte Greek, L:Left-to-right (strong), c:Chinese, g:Greek, h:Korean, j:Japanese
-             to input: type "C-x 8 RET 3b1" or "C-x 8 RET GREEK SMALL LETTER ALPHA"
-          buffer code: #xCE #xB1
-            file code: #xCE #xB1 (encoded by coding system utf-8-dos)
-              display: by this font (glyph code)
-    uniscribe:-outline-Fira Code-normal-normal-normal-mono-29-*-*-*-c-*-iso10646-1 (#x2CB)
+and inserts at point. There is also <code>describe-char</code>, <code>M-m h d c</code> which gives information on the character at point. Use in conjunction with eg. <a href="https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode">Math Unicode Symbols List</a> to explore your options.</p>
 
 <p>You may encounter some Unicode symbols not rendering despite having a
 containing font installed.</p>

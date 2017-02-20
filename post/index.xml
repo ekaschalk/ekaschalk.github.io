@@ -102,24 +102,7 @@ goes to ∨, and &lt;code&gt;lambda&lt;/code&gt; goes to λ.&lt;/p&gt;
 &lt;p&gt;Some changes are aggressive, mix and match codes to your taste.&lt;/p&gt;
 
 &lt;p&gt;The command &lt;code&gt;insert-char&lt;/code&gt;, &lt;code&gt;C-x 8 RET&lt;/code&gt; prompts for Unicode characters by name
-and inserts at point. Use in conjunction with eg. &lt;a href=&#34;https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode&#34;&gt;Math Unicode Symbols
-List&lt;/a&gt;
-to explore your options.&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;describe-char&lt;/code&gt;, &lt;code&gt;M-m h d c&lt;/code&gt; in Spacemacs, gives information on the character
-at point. Running it on alpha yields:&lt;/p&gt;
-             position: 4938 of 8890 (56%), column: 43
-            character: α (displayed as α) (codepoint 945, #o1661, #x3b1)
-    preferred charset: unicode (Unicode (ISO10646))
-code point in charset: 0x03B1
-               script: greek
-               syntax: w    which means: word
-             category: .:Base, G:2-byte Greek, L:Left-to-right (strong), c:Chinese, g:Greek, h:Korean, j:Japanese
-             to input: type &#34;C-x 8 RET 3b1&#34; or &#34;C-x 8 RET GREEK SMALL LETTER ALPHA&#34;
-          buffer code: #xCE #xB1
-            file code: #xCE #xB1 (encoded by coding system utf-8-dos)
-              display: by this font (glyph code)
-    uniscribe:-outline-Fira Code-normal-normal-normal-mono-29-*-*-*-c-*-iso10646-1 (#x2CB)
+and inserts at point. There is also &lt;code&gt;describe-char&lt;/code&gt;, &lt;code&gt;M-m h d c&lt;/code&gt; which gives information on the character at point. Use in conjunction with eg. &lt;a href=&#34;https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode&#34;&gt;Math Unicode Symbols List&lt;/a&gt; to explore your options.&lt;/p&gt;
 
 &lt;p&gt;You may encounter some Unicode symbols not rendering despite having a
 containing font installed.&lt;/p&gt;
