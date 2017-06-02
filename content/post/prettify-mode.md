@@ -25,7 +25,8 @@ Sequences of characters are now represented as a single token using:
     Pro](https://github.com/fabrizioschiavi/pragmatapro) fonts)
 
 Any combination of these tools may be chosen; Fira Code is not required to
-utilize prettify-symbols or pretty-mode.
+utilize prettify-symbols or pretty-mode. Similarly, the entire Fira Code
+font is not required to use Fira's ligatures.
 
 # Pretty mode
 
