@@ -17,7 +17,7 @@
       <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/prettify-mode/</guid>
-      <description>Sequences of characters are now represented as a single token using:
+      <description>Sequences of characters are represented as a single token using:
  Pretty-mode Pretty-mode provides Greeks, subscripts, and more symbols. Prettify-symbols-mode Prettify Symbols ships with Emacs as of 24.4 and adds support for custom Unicode replacement of symbols. Ligatures Unicode replacements of common operators (see Fira Code, the font I use, and Pragmata Pro fonts)  Any combination of these tools may be chosen; Fira Code is not required to utilize prettify-symbols or pretty-mode.</description>
     </item>
     
