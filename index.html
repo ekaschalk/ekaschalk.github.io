@@ -30,9 +30,11 @@
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather%7CRoboto+Mono">
   <link rel="stylesheet" href="/css/hugo-academic.css">
   
+  <link rel="stylesheet" href="/css/custom.css">
+  
 
-  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Eric Kaschalk on Emacs">
-  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Eric Kaschalk on Emacs">
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
 
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
@@ -41,7 +43,7 @@
 
   
 
-  <title>Eric Kaschalk on Emacs</title>
+  <title>Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -58,7 +60,7 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="/">Eric Kaschalk on Emacs</a>
+      <a class="navbar-brand" href="/">Modern Emacs</a>
     </div>
 
     
@@ -74,6 +76,18 @@
           <a href="/#posts" data-target="#posts">
             
             <span>Posts</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#about" data-target="#about">
+            
+            <span>About</span>
           </a>
         </li>
 
@@ -105,7 +119,7 @@
 <div class="row">
   <div class="col-xs-12 col-md-4 section-heading">
 
-    <h1></h1>
+    <h1>Recent Posts</h1>
     
     
 
@@ -182,6 +196,88 @@
     </div>
   </section>
 
+  
+  
+  <section id="about" class="home-section">
+    <div class="container">
+      
+
+
+
+<div class="row" itemprop="author" itemscope itemtype="http://schema.org/Person" itemref="person-email">
+  <div class="col-xs-12 col-md-4">
+    <div id="profile">
+
+      
+      <div class="portrait" style="background-image: url('https://ekaschalk.github.io/img/portrait.jpg');"></div>
+      <meta itemprop="image" content="https://ekaschalk.github.io/img/portrait.jpg">
+      
+
+      <div class="portrait-title">
+        <h2 itemprop="name">Eric Kaschalk</h2>
+        <h3 itemprop="jobTitle"></h3>
+        
+      </div>
+
+      <link itemprop="url" href="https://ekaschalk.github.io/">
+
+      <ul class="social-icon" aria-hidden="true">
+        
+        
+        <li>
+          <a itemprop="sameAs" href="mailto:ekaschalk@gmail.com" target="_blank">
+            <i class="fa fa-envelope big-icon"></i>
+          </a>
+        </li>
+        
+        
+        <li>
+          <a itemprop="sameAs" href="//github.com/ekaschalk" target="_blank">
+            <i class="fa fa-github big-icon"></i>
+          </a>
+        </li>
+        
+      </ul>
+
+    </div>
+  </div>
+  <div class="col-xs-12 col-md-8" itemprop="description">
+
+    <p>Software Engineer practicing scientific computing.</p>
+
+<!-- contributing back to the (Spac)emacs community. -->
+
+<!-- <img src="~/dev/blog/static/img/portrait.jpg" alt="Mountain View" style="width:304px;height:228px;"> -->
+
+
+    <div class="row">
+
+      
+      <div class="col-sm-5">
+        <h3>Interests</h3>
+        <ul class="ul-interests">
+          
+          <li>Emacs</li>
+          
+          <li>Lisps</li>
+          
+          <li>Scientific Computing</li>
+          
+          <li>Mathematics</li>
+          
+        </ul>
+      </div>
+      
+
+      
+
+    </div>
+  </div>
+</div>
+
+    </div>
+  </section>
+
 
 
 <footer class="site-footer">
@@ -216,6 +312,26 @@
     <script src="/js/hugo-academic.js"></script>
     
 
+    
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-101190730-1', 'auto');
+        ga('send', 'pageview');
+
+         
+        var links = document.querySelectorAll('a');
+        Array.prototype.map.call(links, function(item) {
+            if (item.host != document.location.host) {
+                item.addEventListener('click', function() {
+                    var action = item.getAttribute('data-action') || 'follow';
+                    ga('send', 'event', 'outbound', action, item.href);
+                });
+            }
+        });
+    </script>
     
 
     
