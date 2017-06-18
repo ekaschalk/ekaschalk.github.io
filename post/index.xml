@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Modern Emacs</title>
+    <link>https://ekaschalk.github.io/post/</link>
+    <description>Recent content in Posts on Modern Emacs</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
+    <lastBuildDate>Sun, 01 Jan 2017 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/post/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Mathematical Notation in Emacs</title>
+      <link>https://ekaschalk.github.io/2017/02/19/prettify-mode/</link>
+      <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/2017/02/19/prettify-mode/</guid>
+      <description>
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/prettify-mode.png&#34; width=&#34;660&#34; height=&#34;830&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Sequences of characters are represented as a single token using:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;&lt;strong&gt;Pretty-mode&lt;/strong&gt;&lt;/dt&gt;
+&lt;dd&gt;&lt;a href=&#34;https://github.com/akatov/pretty-mode&#34;&gt;Pretty-mode&lt;/a&gt; provides Greeks,
+subscripts, and more symbols.&lt;/dd&gt;
+&lt;dt&gt;&lt;strong&gt;Prettify-symbols-mode&lt;/strong&gt;&lt;/dt&gt;
+&lt;dd&gt;&lt;a href=&#34;http://emacsredux.com/blog/2014/08/25/a-peek-at-emacs-24-dot-4-prettify-symbols-mode/&#34;&gt;Prettify
+Symbols&lt;/a&gt;
+ships with Emacs as of 24.4 and adds support for custom Unicode replacement
+of symbols.&lt;/dd&gt;
+&lt;dt&gt;&lt;strong&gt;Ligatures&lt;/strong&gt;&lt;/dt&gt;
+&lt;dd&gt;Unicode replacements of common operators (see &lt;a href=&#34;https://github.com/tonsky/FiraCode&#34;&gt;Fira
+Code&lt;/a&gt;, the font I use, and &lt;a href=&#34;https://github.com/fabrizioschiavi/pragmatapro&#34;&gt;Pragmata
+Pro&lt;/a&gt; fonts)&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Any combination of these tools may be chosen; Fira Code is not required to
+utilize prettify-symbols or pretty-mode. Similarly, the entire Fira Code
+font is not required to use Fira&amp;rsquo;s ligatures.&lt;/p&gt;
+
+&lt;p&gt;The replacements are purely visual - searching for &amp;ldquo;for&amp;rdquo; will find the for all symbol.&lt;/p&gt;
+
+&lt;h1 id=&#34;pretty-mode&#34;&gt;Pretty mode&lt;/h1&gt;
+
+&lt;p&gt;The package &lt;a href=&#34;https://github.com/akatov/pretty-mode&#34;&gt;pretty-mode&lt;/a&gt; provides
+default symbol replacements including in, not in, and, or, and greek letters.&lt;/p&gt;
+
+&lt;p&gt;Overlap with Fira Code operators can be handled by deactivating the operator,
+equality, and arrow groups. Sub/superscripts, greek letters, and the sigma
+summation must be manually activated.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;:logic&lt;/code&gt; group overlaps/interferes with prettify-symbols and is disabled.
+The &lt;code&gt;:sets&lt;/code&gt; group interferes with the &lt;code&gt;int&lt;/code&gt; symbol replacement for unknown
+reasons. We redefine its symbols in prettify-symbols-mode later.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;pretty-mode)
+(global-pretty-mode t)
+
+(pretty-deactivate-groups
+ &#39;(:equality :ordering :ordering-double :ordering-triple
+             :arrows :arrows-twoheaded :punctuation
+             :logic :sets))
+
+(pretty-activate-groups
+ &#39;(:sub-and-superscripts :greek :arithmetic-nary))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Commented symbols are not replaced, so &lt;code&gt;and&lt;/code&gt; and &lt;code&gt;or&lt;/code&gt; are fine within
+docstrings and comments.&lt;/p&gt;
+
+&lt;p&gt;The replacements are entirely visual - searching the buffer for &lt;code&gt;lambda&lt;/code&gt; will
+find λ.&lt;/p&gt;
+
+&lt;p&gt;Check &lt;code&gt;pretty-mode.el&lt;/code&gt; for the full list of groups, symbols and supported
+modes.&lt;/p&gt;
+
+&lt;h1 id=&#34;prettify-symbols-mode&#34;&gt;Prettify symbols mode&lt;/h1&gt;
+
+&lt;p&gt;Prettify mode can be enabled by setting &lt;code&gt;(global-prettify-symbols-mode 1)&lt;/code&gt;. The
+default replacements are major-mode specific. For python, &lt;code&gt;and&lt;/code&gt; goes to ∧, &lt;code&gt;or&lt;/code&gt;
+goes to ∨, and &lt;code&gt;lambda&lt;/code&gt; goes to λ.&lt;/p&gt;
+
+&lt;p&gt;Additional symbols can be added through &lt;code&gt;prettify-symbols-alist&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(global-prettify-symbols-mode 1)
+
+(add-hook
+ &#39;python-mode-hook
+ (lambda ()
+   (mapc (lambda (pair) (push pair prettify-symbols-alist))
+         &#39;(;; Syntax
+           (&amp;quot;def&amp;quot; .      #x2131)
+           (&amp;quot;not&amp;quot; .      #x2757)
+           (&amp;quot;in&amp;quot; .       #x2208)
+           (&amp;quot;not in&amp;quot; .   #x2209)
+           (&amp;quot;return&amp;quot; .   #x27fc)
+           (&amp;quot;yield&amp;quot; .    #x27fb)
+           (&amp;quot;for&amp;quot; .      #x2200)
+           ;; Base Types
+           (&amp;quot;int&amp;quot; .      #x2124)
+           (&amp;quot;float&amp;quot; .    #x211d)
+           (&amp;quot;str&amp;quot; .      #x1d54a)
+           (&amp;quot;True&amp;quot; .     #x1d54b)
+           (&amp;quot;False&amp;quot; .    #x1d53d)
+           ;; Mypy
+           (&amp;quot;Dict&amp;quot; .     #x1d507)
+           (&amp;quot;List&amp;quot; .     #x2112)
+           (&amp;quot;Tuple&amp;quot; .    #x2a02)
+           (&amp;quot;Set&amp;quot; .      #x2126)
+           (&amp;quot;Iterable&amp;quot; . #x1d50a)
+           (&amp;quot;Any&amp;quot; .      #x2754)
+           (&amp;quot;Union&amp;quot; .    #x22c3)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Some changes are aggressive, mix and match codes to your taste.&lt;/p&gt;
+
+&lt;p&gt;The command &lt;code&gt;insert-char&lt;/code&gt;, &lt;code&gt;C-x 8 RET&lt;/code&gt; prompts for Unicode characters by name
+and inserts at point. There is also &lt;code&gt;describe-char&lt;/code&gt;, &lt;code&gt;M-m h d c&lt;/code&gt; which gives information on the character at point. Use in conjunction with eg. &lt;a href=&#34;https://en.wikipedia.org/wiki/Mathematical_operators_and_symbols_in_Unicode&#34;&gt;Math Unicode Symbols List&lt;/a&gt; to explore your options.&lt;/p&gt;
+
+&lt;p&gt;You may encounter some Unicode symbols not rendering despite having a
+containing font installed.&lt;/p&gt;
+
+&lt;p&gt;Use &lt;code&gt;(set-fontset-font &amp;quot;fontset-default&amp;quot; &#39;(#x1d4d0 . #x1d4e2) &amp;quot;Symbola&amp;quot;)&lt;/code&gt; to
+force a font for particular characters. Here I&amp;rsquo;ve set &lt;code&gt;MATHEMATICAL BOLD SCRIPT
+CAPITAL A/S&lt;/code&gt; to use &lt;code&gt;Symbola&lt;/code&gt;. You can check which fonts support which
+characters &lt;a href=&#34;http://www.fileformat.info/info/unicode/index.htm&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;ligatures&#34;&gt;Ligatures&lt;/h1&gt;
+
+&lt;p&gt;See &lt;a href=&#34;https://github.com/tonsky/FiraCode&#34;&gt;Fira Code&lt;/a&gt; font for examples and
+installation. &lt;a href=&#34;https://gist.github.com/mordocai/50783defab3c3d1650e068b4d1c91495&#34;&gt;This
+snippet&lt;/a&gt;
+must go into your config. Make sure you install the &lt;code&gt;Fira Code Symbol font&lt;/code&gt;
+linked at the top of the gist &lt;em&gt;in addition&lt;/em&gt; to the fonts linked on the Github.
+The gist should work for both Linux and Windows.&lt;/p&gt;
+
+&lt;p&gt;Some of the asterisk ligatures can conflict with org-mode headers and others I
+just did not like. I have disabled ligatures for
+&lt;code&gt;#Xe101,102,103,104,105,109,12a,12b,14b,14c,16b&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;caveats&#34;&gt;Caveats&lt;/h1&gt;
+
+&lt;p&gt;For ligatures, the number of visual points composing the replacement is the
+same as its composing characters. For instance, the ligature for -&amp;gt; occupies
+two spaces.&lt;/p&gt;
+
+&lt;p&gt;But this is not the case for prettify-symbols or pretty-mode. Both &lt;code&gt;alpha&lt;/code&gt; and
+&lt;code&gt;not in&lt;/code&gt; are reduced to one character.&lt;/p&gt;
+
+&lt;p&gt;So the line width you see may not be the same as its actual width.&lt;/p&gt;
+
+&lt;p&gt;This has two effects:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;A line could then exceed 80 characters with prettify-mode disabled.&lt;/li&gt;
+&lt;li&gt;Indentation is performed using the &lt;em&gt;Unicode replacements&lt;/em&gt;, not actual
+spacing.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To circumvent these problems I would recommend:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Using a linter like pylint which shows infractions for actual line width.&lt;/li&gt;
+&lt;li&gt;A pre/post-processing hook that disables prettify, indents the buffer,
+saves/exports/commits, then re-enables prettify and indents.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Also only ligatures will export to html.&lt;/p&gt;
+
+&lt;h1 id=&#34;my-experience&#34;&gt;My experience&lt;/h1&gt;
+
+&lt;p&gt;I have found these changes to improve code readability significantly.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;I can instantly tell the exit points of a function and distinguish if it is
+a generator.&lt;/li&gt;
+&lt;li&gt;Logicals and comparisons are easy to parse. Similarly, distinguishing
+between in and not in is now instantaneous.&lt;/li&gt;
+&lt;li&gt;Lambdas are less cumbersome.&lt;/li&gt;
+&lt;li&gt;Mypy types are debatably more natural to read as symbols.&lt;/li&gt;
+&lt;li&gt;True, False, and None stand out.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Then there is subjective eye-candy considerations.&lt;/p&gt;
+
+&lt;p&gt;Besides the discussed caveats, the main downside is the disassociation between
+what you see and what you type. In my experience this has not been an issue and
+the adjustment has been quick.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
