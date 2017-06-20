@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Math on Eric Kaschalk on Emacs</title>
+    <title>Math on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/math/</link>
-    <description>Recent content in Math on Eric Kaschalk on Emacs</description>
+    <description>Recent content in Math on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Mathematical Notation in Emacs</title>
-      <link>https://ekaschalk.github.io/2017/02/19/prettify-mode/</link>
+      <link>https://ekaschalk.github.io/post/prettify-mode/</link>
       <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
       
-      <guid>https://ekaschalk.github.io/2017/02/19/prettify-mode/</guid>
+      <guid>https://ekaschalk.github.io/post/prettify-mode/</guid>
       <description>
 
 &lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/prettify-mode.png&#34; width=&#34;660&#34; height=&#34;830&#34; /&gt;&lt;/p&gt;
