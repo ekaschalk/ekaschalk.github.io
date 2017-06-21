@@ -84,6 +84,19 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 (spacemacs/set-leader-keys (kbd &amp;quot;aa&amp;quot;) &#39;start-blog-server)
 (spacemacs/set-leader-keys (kbd &amp;quot;ae&amp;quot;) &#39;end-blog-server)
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For reference, this blog post is an ordinary org file with just the headers:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-org&#34;&gt;
+#+TITLE: An Emacs Blogging Workflow
+#+SLUG: org-mode-blogging
+#+DATE: 2017-06-20
+#+CATEGORIES: emacs org-mode
+#+SUMMARY: Easy org-mode blogging with Hugo
+#+DRAFT: false
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And hugo takes care of the rest.&lt;/p&gt;
 </description>
     </item>
     
