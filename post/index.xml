@@ -11,6 +11,83 @@
     <atom:link href="/post/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>An Emacs Blogging Workflow</title>
+      <link>https://ekaschalk.github.io/post/org-mode-blogging/</link>
+      <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/org-mode-blogging/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://gohugo.io/&#34; title=&#34;Hugo&#34;&gt;Hugo&lt;/a&gt; is a static site generator. It natively supports org-mode, builds fast, and
+has live reloading.&lt;/p&gt;
+
+&lt;p&gt;I have two repos for &lt;a href=&#34;https://github.com/ekaschalk/blog&#34; title=&#34;blog content and settings&#34;&gt;blog content and settings&lt;/a&gt; and &lt;a href=&#34;https://github.com/ekaschalk/ekaschalk.github.io&#34; title=&#34;hugo output&#34;&gt;hugo output&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I have defined some emacs lisp utilities to make interacting with Hugo easier.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;deploy-blog&lt;/code&gt; will goto your blog content, run &lt;code&gt;hugo&lt;/code&gt;, cleanup old html, and
+push the updates.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;start-blog-server&lt;/code&gt; will run &lt;code&gt;hugo server&lt;/code&gt; if not already running, and open the
+webpage in your browser.&lt;/p&gt;
+
+&lt;p&gt;My blog workflow is then to startup the server (SPC a a), write some content in
+org-mode and see it reflected in the browser on each save, and deploy (SPC a b).&lt;/p&gt;
+
+&lt;p&gt;All the code:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(require &#39;cl)
+(require &#39;dash)
+
+(setq blog-dir &amp;quot;~/dev/blog&amp;quot;
+      public-blog-dir &amp;quot;~/dev/public-blog&amp;quot;
+      hugo-process &amp;quot;Hugo Server&amp;quot;
+      hugo-server-site &amp;quot;http://localhost:1313/&amp;quot;)
+
+(defmacro with-dir (DIR &amp;amp;rest FORMS)
+  &amp;quot;Execute FORMS in DIR.&amp;quot;
+  (let ((orig-dir (gensym)))
+    `(progn (setq ,orig-dir default-directory)
+            (cd ,DIR) ,@FORMS (cd ,orig-dir))))
+
+(defun deploy-blog ()
+  &amp;quot;Run hugo and push changes upstream.&amp;quot;
+  (interactive)
+  (with-dir public-blog-dir
+            (shell-command &amp;quot;git rm -rf .&amp;quot;)
+            (shell-command &amp;quot;git clean -fxd&amp;quot;)
+
+            (with-dir blog-dir (-&amp;gt;&amp;gt; public-blog-dir
+                                    (concat &amp;quot;hugo -d &amp;quot;)
+                                    shell-command))
+
+            (shell-command &amp;quot;git add .&amp;quot;)
+            (--&amp;gt; (current-time-string)
+                 (concat &amp;quot;git commit -m \&amp;quot;&amp;quot; it &amp;quot;\&amp;quot;&amp;quot;)
+                 (shell-command it))
+            (magit-push-current-to-upstream nil)))
+
+(defun start-blog-server ()
+  &amp;quot;Run hugo server if not already running and open its webpage.&amp;quot;
+  (interactive)
+  (with-dir blog-dir
+            (unless (get-process hugo-process)
+              (start-process hugo-process nil &amp;quot;hugo&amp;quot; &amp;quot;server&amp;quot;))
+            (browse-url hugo-server-site)))
+
+(defun end-blog-server ()
+  &amp;quot;End hugo server process if running.&amp;quot;
+  (interactive)
+  (--when-let (get-process hugo-process)
+    (delete-process it)))
+
+(spacemacs/set-leader-keys (kbd &amp;quot;ab&amp;quot;) &#39;deploy-blog)
+(spacemacs/set-leader-keys (kbd &amp;quot;aa&amp;quot;) &#39;start-blog-server)
+(spacemacs/set-leader-keys (kbd &amp;quot;ae&amp;quot;) &#39;end-blog-server)
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Unicode Python Infix Operators</title>
       <link>https://ekaschalk.github.io/post/python-infix/</link>
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>

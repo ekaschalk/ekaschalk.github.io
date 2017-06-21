@@ -33,17 +33,17 @@
   <link rel="stylesheet" href="/css/custom.css">
   
 
-  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
-  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="alternate" href="https://ekaschalk.github.io/categories/org-mode/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/categories/org-mode/index.xml" type="application/rss+xml" title="Modern Emacs">
 
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
 
-  <link rel="canonical" href="https://ekaschalk.github.io/post/python-infix/">
+  <link rel="canonical" href="https://ekaschalk.github.io/categories/org-mode/">
 
   
 
-  <title>Unicode Python Infix Operators | Modern Emacs</title>
+  <title>Org Mode | Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -102,179 +102,31 @@
 </nav>
 
 
-<article class="article" itemscope itemtype="http://schema.org/Article">
-
-  
 
 
-  <div class="article-container">
-    <h1 itemprop="name">Unicode Python Infix Operators</h1>
-    
 
-<div class="article-metadata">
+<div class="universal-wrapper">
 
-  <span class="article-date">
-    <time datetime="2017-06-19 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Mon, Jun 19, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/math">math</a
-    >, 
-    
-    <a href="/categories/python">python</a
-    >
-    
-  </span>
-  
-  
+  <h1>Org Mode</h1>
 
   
 
   
   
-<div class="share-box" aria-hidden="true">
-  <ul class="share">
-    <li>
-      <a class="facebook"
-         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fpython-infix%2f"
-         target="_blank">
-        <i class="fa fa-facebook"></i>
-      </a>
-    </li>
-    <li>
-      <a class="twitter"
-         href="https://twitter.com/intent/tweet?text=Unicode%20Python%20Infix%20Operators&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpython-infix%2f"
-         target="_blank">
-        <i class="fa fa-twitter"></i>
-      </a>
-    </li>
-    <li>
-      <a class="linkedin"
-         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpython-infix%2f&amp;title=Unicode%20Python%20Infix%20Operators"
-         target="_blank">
-        <i class="fa fa-linkedin"></i>
-      </a>
-    </li>
-    <li>
-      <a class="weibo"
-         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpython-infix%2f&amp;title=Unicode%20Python%20Infix%20Operators"
-         target="_blank">
-        <i class="fa fa-weibo"></i>
-      </a>
-    </li>
-    <li>
-      <a class="email"
-         href="mailto:?subject=Unicode%20Python%20Infix%20Operators&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fpython-infix%2f">
-        <i class="fa fa-envelope"></i>
-      </a>
-    </li>
-  </ul>
-</div>
-
-
-  
-
-</div>
-
-    <div class="article-style" itemprop="articleBody">
-      <p>Custom infix operators can be emulated in Python using <strong>prettify-symbols-mode</strong>.</p>
-
-<p><img src="/img/python-infix.png" width=700px></p>
-<!-- [[file:/img/python-infix.png]] -->
-
-<p>In your emacs config include:</p>
-
-<pre><code class="language-lisp">
-(global-prettify-symbols-mode 1)
-(add-hook 'python-mode-hook
-          (lambda ()
-            (mapc (lambda (pair) (push pair prettify-symbols-alist))
-                  '((&quot;@compose@&quot;  . #X2218)
-                    (&quot;@pipe@&quot;     . #Xe135)))))
-</code></pre>
-
-<p>Now <code>pip install infix</code>.</p>
-
-<p>Optionally <code>pip install toolz</code>, a functional programming library, otherwise you
-can define the infix operations yourself.</p>
-
-<pre><code class="language-python">
-import toolz.curried as tz
-from infix import custom_infix as infix
-
-@infix('__rmatmul__', '__matmul__')
-def compose(a, b):
-    return tz.compose(a, b)
-
-@infix('__rmatmul__', '__matmul__')
-def pipe(a, b):
-    return tz.pipe(a, b)
-
-[1, 2, 3] @pipe@ (tuple @compose@ tz.map(lambda x: x+1))
-</code></pre>
-
-<p>Other interesting functions - cons as ':' and concatv/itertools.chain as '++'.</p>
-
-<p>I do not recommend using this trick in production but it is certainly cool to see
-emacs enabling these shenanigans.</p>
-
+  <div>
+    <h2><a href="https://ekaschalk.github.io/post/org-mode-blogging/">An Emacs Blogging Workflow</a></h2>
+    <div class="article-style">
+      
+      Easy org-mode blogging with Hugo
+      
     </div>
   </div>
-
-</article>
-
-<div class="container">
-  <nav>
-  <ul class="pager">
-    
-    <li class="previous"><a href="https://ekaschalk.github.io/post/prettify-mode/"><span
-      aria-hidden="true">&larr;</span> Mathematical Notation in Emacs</a></li>
-    
-
-    
-    <li class="next"><a href="https://ekaschalk.github.io/post/org-mode-blogging/">An Emacs Blogging Workflow <span
-      aria-hidden="true">&rarr;</span></a></li>
-    
-  </ul>
-</nav>
-
-</div>
-
-<div class="article-container">
   
-<section id="comments">
-  <div id="disqus_thread">
-    <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/python-infix\/';
-    var disqus_title = 'Unicode Python Infix Operators';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/python-infix\/';
 
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
-</script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-  </div>
-</section>
+  
 
 
 </div>
-
 <footer class="site-footer">
   <div class="container">
     <p class="powered-by">
