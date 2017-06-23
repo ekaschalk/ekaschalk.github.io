@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/post/xi-macro/</loc>
+      <lastmod>2017-06-23T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/org-mode-blogging/</loc>
       <lastmod>2017-06-20T00:00:00+00:00</lastmod>
     </url>
@@ -60,7 +69,17 @@
     <url>
     
       <loc>https://ekaschalk.github.io/categories/emacs/</loc>
-      <lastmod>2017-06-20T00:00:00+00:00</lastmod>
+      <lastmod>2017-06-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/emacs-lisp/</loc>
+      <lastmod>2017-06-23T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     

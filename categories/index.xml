@@ -12,9 +12,18 @@
     <item>
       <title>Emacs</title>
       <link>https://ekaschalk.github.io/categories/emacs/</link>
-      <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/categories/emacs/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Emacs Lisp</title>
+      <link>https://ekaschalk.github.io/categories/emacs-lisp/</link>
+      <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/emacs-lisp/</guid>
       <description></description>
     </item>
     

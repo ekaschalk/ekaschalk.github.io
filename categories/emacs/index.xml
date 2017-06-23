@@ -7,8 +7,66 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <lastBuildDate>Tue, 20 Jun 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 23 Jun 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/categories/emacs/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Anonymous function macro in elisp</title>
+      <link>https://ekaschalk.github.io/post/xi-macro/</link>
+      <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/xi-macro/</guid>
+      <description>&lt;p&gt;Clojure has anonymous functions with the reader macro &lt;code&gt;#(&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-clojure&#34;&gt;
+(#(print %2 %1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Emacs Lisp doesn&#39;t have reader macros, but we can take direction from Hylang, a
+lisp dialect similar to Clojure inter-oping with Python.&lt;/p&gt;
+
+&lt;p&gt;It implements the anonymous functions as the aptly named &lt;code&gt;xi&lt;/code&gt; macro, where the
+lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt; .&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can implement the &lt;code&gt;xi&lt;/code&gt; macro in Emacs Lisp roughly as:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(require &#39;dash)
+(require &#39;s)
+
+(defmacro xi (&amp;amp;rest FORMS)
+  `(lambda ,(--filter (s-contains? (symbol-name it)
+                             (prin1-to-string FORMS))
+                &#39;(x1 x2 x3 x4 x5))
+     ,FORMS))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This enables:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(funcall (xi print (concat x2 x1)) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+;; expands to
+(funcall (lambda (x1 x2) (print (concat x2 x1))) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This implementation could be improved - the above example works with &lt;code&gt;(xi x3 x1)&lt;/code&gt;,
+it doesn&#39;t actually validate that the xi are contiguous. It also doesn&#39;t cover
+all numbers of arguments, though over 5 arguments would be questionable anyway.&lt;/p&gt;
+
+&lt;p&gt;This macro is especially useful for lambdas without arguments, like adding hooks
+and keybindings.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(add-hook &#39;eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
+;; Becomes
+(add-hook &#39;eshell-exit-hook (xi setq esh-prompt-num 0))
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>An Emacs Blogging Workflow</title>
