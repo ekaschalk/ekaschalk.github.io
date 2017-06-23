@@ -196,7 +196,7 @@ lisp dialect similar to Clojure inter-oping with Python.</p>
 <p>It implements the anonymous functions as the aptly named <code>xi</code> macro, where the
 lambda has arguments determined by presence of <code>x1 ... xi</code> .</p>
 
-<pre><code class="language-python">
+<pre><code class="language-lisp">
 ((xi print x2 x1) &quot;there&quot; &quot;hi&quot;)
 </code></pre>
 
@@ -208,8 +208,8 @@ lambda has arguments determined by presence of <code>x1 ... xi</code> .</p>
 
 (defmacro xi (&amp;rest FORMS)
   `(lambda ,(--filter (s-contains? (symbol-name it)
-                             (prin1-to-string FORMS))
-                '(x1 x2 x3 x4 x5))
+                                   (prin1-to-string FORMS))
+                      '(x1 x2 x3 x4 x5))
      ,FORMS))
 </code></pre>
 

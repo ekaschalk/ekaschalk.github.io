@@ -28,7 +28,7 @@ lisp dialect similar to Clojure inter-oping with Python.&lt;/p&gt;
 &lt;p&gt;It implements the anonymous functions as the aptly named &lt;code&gt;xi&lt;/code&gt; macro, where the
 lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt; .&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
 ((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -40,8 +40,8 @@ lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt
 
 (defmacro xi (&amp;amp;rest FORMS)
   `(lambda ,(--filter (s-contains? (symbol-name it)
-                             (prin1-to-string FORMS))
-                &#39;(x1 x2 x3 x4 x5))
+                                   (prin1-to-string FORMS))
+                      &#39;(x1 x2 x3 x4 x5))
      ,FORMS))
 &lt;/code&gt;&lt;/pre&gt;
 
