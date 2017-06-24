@@ -55,7 +55,8 @@ lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt
 
 &lt;p&gt;This implementation could be improved - the above example works with &lt;code&gt;(xi x3 x1)&lt;/code&gt;,
 it doesn&#39;t actually validate that the xi are contiguous. It also doesn&#39;t cover
-all numbers of arguments, though over 5 arguments would be questionable anyway.&lt;/p&gt;
+all numbers of arguments, though over 5 arguments would be questionable anyway.
+Lastly it does not distinguish xis as part of say strings.&lt;/p&gt;
 
 &lt;p&gt;This macro is especially useful for lambdas without arguments, like adding hooks
 and keybindings.&lt;/p&gt;

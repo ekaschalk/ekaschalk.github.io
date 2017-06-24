@@ -39,11 +39,11 @@
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
 
-  <link rel="canonical" href="https://ekaschalk.github.io/post/xi-macro/">
+  <link rel="canonical" href="https://ekaschalk.github.io/post/custom-eshell/">
 
   
 
-  <title>Anonymous function macro in elisp | Modern Emacs</title>
+  <title>Making eshell your own | Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -108,14 +108,14 @@
 
 
   <div class="article-container">
-    <h1 itemprop="name">Anonymous function macro in elisp</h1>
+    <h1 itemprop="name">Making eshell your own</h1>
     
 
 <div class="article-metadata">
 
   <span class="article-date">
-    <time datetime="2017-06-23 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Fri, Jun 23, 2017
+    <time datetime="2017-06-24 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      Sat, Jun 24, 2017
     </time>
   </span>
 
@@ -126,9 +126,6 @@
     <i class="fa fa-folder"></i>
     
     <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/emacs-lisp">emacs-lisp</a
     >
     
   </span>
@@ -143,35 +140,35 @@
   <ul class="share">
     <li>
       <a class="facebook"
-         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fxi-macro%2f"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f"
          target="_blank">
         <i class="fa fa-facebook"></i>
       </a>
     </li>
     <li>
       <a class="twitter"
-         href="https://twitter.com/intent/tweet?text=Anonymous%20function%20macro%20in%20elisp&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fxi-macro%2f"
+         href="https://twitter.com/intent/tweet?text=Making%20eshell%20your%20own&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f"
          target="_blank">
         <i class="fa fa-twitter"></i>
       </a>
     </li>
     <li>
       <a class="linkedin"
-         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fxi-macro%2f&amp;title=Anonymous%20function%20macro%20in%20elisp"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f&amp;title=Making%20eshell%20your%20own"
          target="_blank">
         <i class="fa fa-linkedin"></i>
       </a>
     </li>
     <li>
       <a class="weibo"
-         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fxi-macro%2f&amp;title=Anonymous%20function%20macro%20in%20elisp"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f&amp;title=Making%20eshell%20your%20own"
          target="_blank">
         <i class="fa fa-weibo"></i>
       </a>
     </li>
     <li>
       <a class="email"
-         href="mailto:?subject=Anonymous%20function%20macro%20in%20elisp&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fxi-macro%2f">
+         href="mailto:?subject=Making%20eshell%20your%20own&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f">
         <i class="fa fa-envelope"></i>
       </a>
     </li>
@@ -184,56 +181,121 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>Clojure has anonymous functions with the reader macro <code>#(</code></p>
+      <p>I have written utilities for choosing what information, icons, and faces your
+eshell prompt presents.</p>
 
-<pre><code class="language-clojure">
-(#(print %2 %1) &quot;there&quot; &quot;hi&quot;)
-</code></pre>
+<p>Example eshell prompts:</p>
 
-<p>Emacs Lisp doesn't have reader macros, but we can take direction from Hylang, a
-lisp dialect similar to Clojure inter-oping with Python.</p>
+<p><img src="/img/esh-ex.png" alt="/img/esh-ex.png" title="/img/esh-ex.png" />
+<img src="/img/esh-me.png" alt="/img/esh-me.png" title="/img/esh-me.png" /></p>
 
-<p>It implements the anonymous functions as the aptly named <code>xi</code> macro, where the
-lambda has arguments determined by presence of <code>x1 ... xi</code> .</p>
+<p>Eshell prompt customization takes place in <code>eshell-prompt-function</code> and
+ <code>eshell-prompt-regexp</code>. The former determines the content of your prompt
+while the latter distinguishes your commands.</p>
 
-<pre><code class="language-lisp">
-((xi print x2 x1) &quot;there&quot; &quot;hi&quot;)
-</code></pre>
-
-<p>We can implement the <code>xi</code> macro in Emacs Lisp roughly as:</p>
+<p>I define a macro <code>esh-section</code> taking a name, an icon, a form or variable to be
+evaluated, and optionally face properties. They create anonymous functions which
+will be evaluated and concatenated at prompt-time.</p>
 
 <pre><code class="language-lisp">
 (require 'dash)
 (require 's)
 
-(defmacro xi (&amp;rest FORMS)
-  `(lambda ,(--filter (s-contains? (symbol-name it)
-                                   (prin1-to-string FORMS))
-                      '(x1 x2 x3 x4 x5))
-     ,FORMS))
+(defmacro with-face (STR &amp;rest PROPS)
+  &quot;Return STR propertized with PROPS.&quot;
+  `(propertize ,STR 'face (list ,@PROPS)))
+
+(defmacro esh-section (NAME ICON FORM &amp;rest PROPS)
+  &quot;Build eshell section NAME with ICON prepended to evaled FORM with PROPS.&quot;
+  `(setq ,NAME
+         (lambda () (when ,FORM
+                      (-&gt; ,ICON
+                          (concat esh-section-delim ,FORM)
+                          (with-face ,@PROPS))))))
+
+(defun esh-acc (acc x)
+  &quot;Accumulator for evaluating and concatenating esh-sections.&quot;
+  (--if-let (funcall x)
+      (if (s-blank? acc)
+          it
+        (concat acc esh-sep it))
+    acc))
+
+(defun esh-prompt-func ()
+  &quot;Build `eshell-prompt-function'&quot;
+  (concat esh-header
+          (-reduce-from 'esh-acc &quot;&quot; eshell-funcs)
+          &quot;\n&quot;
+          eshell-prompt-string))
 </code></pre>
 
-<p>This enables:</p>
+<p>Now lets define the needed configuration.</p>
 
 <pre><code class="language-lisp">
-(funcall (xi print (concat x2 x1)) &quot;there&quot; &quot;hi&quot;)
-;; expands to
-(funcall (lambda (x1 x2) (print (concat x2 x1))) &quot;there&quot; &quot;hi&quot;)
+;; Separator between esh-sections
+(setq esh-sep &quot;  &quot;)  ; or &quot; | &quot;
+
+;; Separator between an esh-section icon and form
+(setq esh-section-delim &quot; &quot;)
+
+;; Eshell prompt header
+(setq esh-header &quot;\n &quot;)  ; or &quot;\n┌─&quot;
+
+;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
+;; your login, these can be the same.
+(setq eshell-prompt-regexp &quot; &quot;)   ; or &quot;└─&gt; &quot;
+(setq eshell-prompt-string &quot; &quot;)   ; or &quot;└─&gt; &quot;
 </code></pre>
 
-<p>This implementation could be improved - the above example works with <code>(xi x3 x1)</code>,
-it doesn't actually validate that the xi are contiguous. It also doesn't cover
-all numbers of arguments, though over 5 arguments would be questionable anyway.
-Lastly it does not distinguish xis as part of say strings.</p>
-
-<p>This macro is especially useful for lambdas without arguments, like adding hooks
-and keybindings.</p>
+<p>Now we are set to build some sections. A note, if a section's form returns nil,
+then it will be skipped, so the effect of eg. python virtual environments will
+only appear when you have an active venv.</p>
 
 <pre><code class="language-lisp">
+(esh-section esh-dir
+             &quot;\xf07c&quot;  ;  (faicon folder)
+             (abbreviate-file-name (eshell/pwd))
+             '(:foreground &quot;gold&quot; :bold ultra-bold :underline t))
+
+(esh-section esh-git
+             &quot;\xe907&quot;  ;  (git icon)
+             (magit-get-current-branch)
+             '(:foreground &quot;pink&quot;))
+
+(esh-section esh-python
+             &quot;\xe928&quot;  ;  (python icon)
+             pyvenv-virtual-env-name)
+
+(esh-section esh-clock
+             &quot;\xf017&quot;  ;  (clock icon)
+             (format-time-string &quot;%H:%M&quot; (current-time))
+             '(:foreground &quot;forest green&quot;))
+
+;; Below I implement a &quot;prompt number&quot; section
+(setq esh-prompt-num 0)
 (add-hook 'eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
-;; Becomes
-(add-hook 'eshell-exit-hook (xi setq esh-prompt-num 0))
+(advice-add 'eshell-send-input :before
+            (lambda (&amp;rest args) (setq esh-prompt-num (incf esh-prompt-num))))
+
+(esh-section esh-num
+             &quot;\xf0c9&quot;  ;  (list icon)
+             (number-to-string esh-prompt-num)
+             '(:foreground &quot;brown&quot;))
+
+;; Choose which eshell-funcs to enable
+(setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
+
+;; Enable the new eshell prompt
+(setq eshell-prompt-function 'esh-prompt-func)
 </code></pre>
+
+<p>Further extensions to explore are predicate-based face application for eg.
+distinguishing master and other branches and modeline-like foreground separation.</p>
+
+<p><a href="https://gist.github.com/ekaschalk/f0ac91c406ad99e53bb97752683811a5" title="I've hosted the code altogether at this gist">I've hosted the code altogether at this gist</a>.</p>
+
+<p><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/.spacemacs" title="display/shell in my config">display/shell in my config</a> will host the most recent iteration and all my other
+emacs tweaks.</p>
 
     </div>
   </div>
@@ -244,13 +306,10 @@ and keybindings.</p>
   <nav>
   <ul class="pager">
     
-    <li class="previous"><a href="https://ekaschalk.github.io/post/org-mode-blogging/"><span
-      aria-hidden="true">&larr;</span> An Emacs Blogging Workflow</a></li>
+    <li class="previous"><a href="https://ekaschalk.github.io/post/xi-macro/"><span
+      aria-hidden="true">&larr;</span> Anonymous function macro in elisp</a></li>
     
 
-    
-    <li class="next"><a href="https://ekaschalk.github.io/post/custom-eshell/">Making eshell your own <span
-      aria-hidden="true">&rarr;</span></a></li>
     
   </ul>
 </nav>
@@ -264,9 +323,9 @@ and keybindings.</p>
     <div id="disqus_thread"></div>
 <script type="text/javascript">
     var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/xi-macro\/';
-    var disqus_title = 'Anonymous function macro in elisp';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/xi-macro\/';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/custom-eshell\/';
+    var disqus_title = 'Making eshell your own';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/custom-eshell\/';
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

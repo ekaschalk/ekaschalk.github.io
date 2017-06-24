@@ -7,8 +7,132 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <lastBuildDate>Fri, 23 Jun 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 24 Jun 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/categories/emacs/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Making eshell your own</title>
+      <link>https://ekaschalk.github.io/post/custom-eshell/</link>
+      <pubDate>Sat, 24 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/custom-eshell/</guid>
+      <description>&lt;p&gt;I have written utilities for choosing what information, icons, and faces your
+eshell prompt presents.&lt;/p&gt;
+
+&lt;p&gt;Example eshell prompts:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/esh-ex.png&#34; alt=&#34;/img/esh-ex.png&#34; title=&#34;/img/esh-ex.png&#34; /&gt;
+&lt;img src=&#34;https://ekaschalk.github.io/img/esh-me.png&#34; alt=&#34;/img/esh-me.png&#34; title=&#34;/img/esh-me.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Eshell prompt customization takes place in &lt;code&gt;eshell-prompt-function&lt;/code&gt; and
+ &lt;code&gt;eshell-prompt-regexp&lt;/code&gt;. The former determines the content of your prompt
+while the latter distinguishes your commands.&lt;/p&gt;
+
+&lt;p&gt;I define a macro &lt;code&gt;esh-section&lt;/code&gt; taking a name, an icon, a form or variable to be
+evaluated, and optionally face properties. They create anonymous functions which
+will be evaluated and concatenated at prompt-time.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(require &#39;dash)
+(require &#39;s)
+
+(defmacro with-face (STR &amp;amp;rest PROPS)
+  &amp;quot;Return STR propertized with PROPS.&amp;quot;
+  `(propertize ,STR &#39;face (list ,@PROPS)))
+
+(defmacro esh-section (NAME ICON FORM &amp;amp;rest PROPS)
+  &amp;quot;Build eshell section NAME with ICON prepended to evaled FORM with PROPS.&amp;quot;
+  `(setq ,NAME
+         (lambda () (when ,FORM
+                      (-&amp;gt; ,ICON
+                          (concat esh-section-delim ,FORM)
+                          (with-face ,@PROPS))))))
+
+(defun esh-acc (acc x)
+  &amp;quot;Accumulator for evaluating and concatenating esh-sections.&amp;quot;
+  (--if-let (funcall x)
+      (if (s-blank? acc)
+          it
+        (concat acc esh-sep it))
+    acc))
+
+(defun esh-prompt-func ()
+  &amp;quot;Build `eshell-prompt-function&#39;&amp;quot;
+  (concat esh-header
+          (-reduce-from &#39;esh-acc &amp;quot;&amp;quot; eshell-funcs)
+          &amp;quot;\n&amp;quot;
+          eshell-prompt-string))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now lets define the needed configuration.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Separator between esh-sections
+(setq esh-sep &amp;quot;  &amp;quot;)  ; or &amp;quot; | &amp;quot;
+
+;; Separator between an esh-section icon and form
+(setq esh-section-delim &amp;quot; &amp;quot;)
+
+;; Eshell prompt header
+(setq esh-header &amp;quot;\n &amp;quot;)  ; or &amp;quot;\n┌─&amp;quot;
+
+;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
+;; your login, these can be the same.
+(setq eshell-prompt-regexp &amp;quot; &amp;quot;)   ; or &amp;quot;└─&amp;gt; &amp;quot;
+(setq eshell-prompt-string &amp;quot; &amp;quot;)   ; or &amp;quot;└─&amp;gt; &amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we are set to build some sections. A note, if a section&#39;s form returns nil,
+then it will be skipped, so the effect of eg. python virtual environments will
+only appear when you have an active venv.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(esh-section esh-dir
+             &amp;quot;\xf07c&amp;quot;  ;  (faicon folder)
+             (abbreviate-file-name (eshell/pwd))
+             &#39;(:foreground &amp;quot;gold&amp;quot; :bold ultra-bold :underline t))
+
+(esh-section esh-git
+             &amp;quot;\xe907&amp;quot;  ;  (git icon)
+             (magit-get-current-branch)
+             &#39;(:foreground &amp;quot;pink&amp;quot;))
+
+(esh-section esh-python
+             &amp;quot;\xe928&amp;quot;  ;  (python icon)
+             pyvenv-virtual-env-name)
+
+(esh-section esh-clock
+             &amp;quot;\xf017&amp;quot;  ;  (clock icon)
+             (format-time-string &amp;quot;%H:%M&amp;quot; (current-time))
+             &#39;(:foreground &amp;quot;forest green&amp;quot;))
+
+;; Below I implement a &amp;quot;prompt number&amp;quot; section
+(setq esh-prompt-num 0)
+(add-hook &#39;eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
+(advice-add &#39;eshell-send-input :before
+            (lambda (&amp;amp;rest args) (setq esh-prompt-num (incf esh-prompt-num))))
+
+(esh-section esh-num
+             &amp;quot;\xf0c9&amp;quot;  ;  (list icon)
+             (number-to-string esh-prompt-num)
+             &#39;(:foreground &amp;quot;brown&amp;quot;))
+
+;; Choose which eshell-funcs to enable
+(setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
+
+;; Enable the new eshell prompt
+(setq eshell-prompt-function &#39;esh-prompt-func)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Further extensions to explore are predicate-based face application for eg.
+distinguishing master and other branches and modeline-like foreground separation.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://gist.github.com/ekaschalk/f0ac91c406ad99e53bb97752683811a5&#34; title=&#34;I&#39;ve hosted the code altogether at this gist&#34;&gt;I&#39;ve hosted the code altogether at this gist&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/ekaschalk/dotspacemacs/blob/master/.spacemacs&#34; title=&#34;display/shell in my config&#34;&gt;display/shell in my config&lt;/a&gt; will host the most recent iteration and all my other
+emacs tweaks.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Anonymous function macro in elisp</title>
@@ -55,7 +179,8 @@ lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt
 
 &lt;p&gt;This implementation could be improved - the above example works with &lt;code&gt;(xi x3 x1)&lt;/code&gt;,
 it doesn&#39;t actually validate that the xi are contiguous. It also doesn&#39;t cover
-all numbers of arguments, though over 5 arguments would be questionable anyway.&lt;/p&gt;
+all numbers of arguments, though over 5 arguments would be questionable anyway.
+Lastly it does not distinguish xis as part of say strings.&lt;/p&gt;
 
 &lt;p&gt;This macro is especially useful for lambdas without arguments, like adding hooks
 and keybindings.&lt;/p&gt;
