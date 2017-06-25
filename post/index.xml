@@ -32,8 +32,9 @@ is magic, even trivial uses of &lt;code&gt;font-lock-add-keywords&lt;/code&gt; w
 for the entire buffer.&lt;/p&gt;
 
 &lt;p&gt;This post addresses adding faces to Magit to achieve in particular icon and
-colored commit leaders. I also integrate Ivy to prompt a leader when committing
-so you need not remember or type out completely every leader you choose.&lt;/p&gt;
+colored commit leaders. I also integrate Ivy/Helm to prompt a leader when
+committing so you need not remember or type out completely every leader you
+choose.&lt;/p&gt;
 
 &lt;h1 id=&#34;adding-leaders&#34;&gt;Adding leaders&lt;/h1&gt;
 
@@ -105,7 +106,7 @@ respectively, and exclude these from the commit prompts.&lt;/p&gt;
 &lt;p&gt;I&#39;ve tried about all the magit hooks and the only way to apply these updates are
 with &lt;code&gt;advice-add&lt;/code&gt;.&lt;/p&gt;
 
-&lt;h1 id=&#34;adding-ivy&#34;&gt;Adding Ivy&lt;/h1&gt;
+&lt;h1 id=&#34;adding-ivy-or-helm&#34;&gt;Adding Ivy or Helm&lt;/h1&gt;
 
 &lt;p&gt;Since this is Emacs, we can do better than typing out the leaders we&#39;ve chosen
 each time we are committing. Here I present a solution with Ivy but Helm would
@@ -131,13 +132,21 @@ whether to call the prompt.&lt;/p&gt;
     (setq use-magit-commit-prompt-p nil)
     (insert (ivy-read &amp;quot;Commit Type &amp;quot; pretty-magit-prompt
                       :require-match t :sort t :preselect &amp;quot;Add: &amp;quot;))
+    ;; Or if you are using Helm...
+    ;; (insert (helm :sources (helm-build-sync-source &amp;quot;Commit Type &amp;quot;
+    ;;                          :candidates pretty-magit-prompt)
+    ;;               :buffer &amp;quot;*magit cmt prompt*&amp;quot;))
+    ;; I haven&#39;t tested this but should be simple to get the same behaior
     (add-magit-faces)
-    (evil-insert 1)))
+    (evil-insert 1)  ; If you use evil
+    ))
 
 (remove-hook &#39;git-commit-setup-hook &#39;with-editor-usage-message)
 (add-hook &#39;git-commit-setup-hook &#39;magit-commit-prompt)
 (advice-add &#39;magit-commit :after &#39;use-magit-commit-prompt)
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/magit-prompt.png&#34; alt=&#34;/img/magit-prompt.png&#34; title=&#34;/img/magit-prompt.png&#34; /&gt;&lt;/p&gt;
 
 &lt;h1 id=&#34;further&#34;&gt;Further&lt;/h1&gt;
 

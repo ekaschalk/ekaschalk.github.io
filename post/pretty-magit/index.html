@@ -197,8 +197,9 @@ is magic, even trivial uses of <code>font-lock-add-keywords</code> will break fo
 for the entire buffer.</p>
 
 <p>This post addresses adding faces to Magit to achieve in particular icon and
-colored commit leaders. I also integrate Ivy to prompt a leader when committing
-so you need not remember or type out completely every leader you choose.</p>
+colored commit leaders. I also integrate Ivy/Helm to prompt a leader when
+committing so you need not remember or type out completely every leader you
+choose.</p>
 
 <h1 id="adding-leaders">Adding leaders</h1>
 
@@ -270,7 +271,7 @@ respectively, and exclude these from the commit prompts.</p>
 <p>I've tried about all the magit hooks and the only way to apply these updates are
 with <code>advice-add</code>.</p>
 
-<h1 id="adding-ivy">Adding Ivy</h1>
+<h1 id="adding-ivy-or-helm">Adding Ivy or Helm</h1>
 
 <p>Since this is Emacs, we can do better than typing out the leaders we've chosen
 each time we are committing. Here I present a solution with Ivy but Helm would
@@ -296,13 +297,21 @@ whether to call the prompt.</p>
     (setq use-magit-commit-prompt-p nil)
     (insert (ivy-read &quot;Commit Type &quot; pretty-magit-prompt
                       :require-match t :sort t :preselect &quot;Add: &quot;))
+    ;; Or if you are using Helm...
+    ;; (insert (helm :sources (helm-build-sync-source &quot;Commit Type &quot;
+    ;;                          :candidates pretty-magit-prompt)
+    ;;               :buffer &quot;*magit cmt prompt*&quot;))
+    ;; I haven't tested this but should be simple to get the same behaior
     (add-magit-faces)
-    (evil-insert 1)))
+    (evil-insert 1)  ; If you use evil
+    ))
 
 (remove-hook 'git-commit-setup-hook 'with-editor-usage-message)
 (add-hook 'git-commit-setup-hook 'magit-commit-prompt)
 (advice-add 'magit-commit :after 'use-magit-commit-prompt)
 </code></pre>
+
+<p><img src="/img/magit-prompt.png" alt="/img/magit-prompt.png" title="/img/magit-prompt.png" /></p>
 
 <h1 id="further">Further</h1>
 
