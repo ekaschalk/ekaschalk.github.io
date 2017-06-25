@@ -14,3 +14,12 @@ body {
 p.read-more {
     display: none;
 }
+
+.article-title a {
+    font-size: 1.4rem;
+    color: #0095eb;
+}
+
+.article-list-item {
+    margin-bottom: 0px;
+}
