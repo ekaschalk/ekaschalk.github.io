@@ -11,6 +11,186 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Pretty Magit - Integrating commit leaders</title>
+      <link>https://ekaschalk.github.io/post/pretty-magit/</link>
+      <pubDate>Sun, 25 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/pretty-magit/</guid>
+      <description>&lt;p&gt;A comparison of how I see my commit logs and how they truly are:&lt;/p&gt;
+
+&lt;table&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/spacemacs/magit-symbols.png&#34; alt=&#34;/img/spacemacs/magit-symbols.png&#34; title=&#34;/img/spacemacs/magit-symbols.png&#34; /&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/spacemacs/magit-raw.png&#34; alt=&#34;/img/spacemacs/magit-raw.png&#34; title=&#34;/img/spacemacs/magit-raw.png&#34; /&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Typically this would be accomplished with Emacs &lt;code&gt;font-lock-mode&lt;/code&gt;. However Magit
+is magic, even trivial uses of &lt;code&gt;font-lock-add-keywords&lt;/code&gt; will break fontification
+for the entire buffer.&lt;/p&gt;
+
+&lt;p&gt;This post addresses adding faces to Magit to achieve in particular icon and
+colored commit leaders. I also integrate Ivy to prompt a leader when committing
+so you need not remember or type out completely every leader you choose.&lt;/p&gt;
+
+&lt;h1 id=&#34;adding-leaders&#34;&gt;Adding leaders&lt;/h1&gt;
+
+&lt;p&gt;We cannot use font-locks so we compose the symbols and add the face text
+properties ourselves.&lt;/p&gt;
+
+&lt;p&gt;Users will interact with the macro &lt;code&gt;pretty-magit&lt;/code&gt; which takes a word such as
+Fix, Add, and Docs, a unicode point to replace it with, a face attributes plist,
+and optionally whether to exclude it from being added to the commit prompt.&lt;/p&gt;
+
+&lt;dl&gt;
+My personal choices for leaders are:
+&lt;dt&gt;Add&lt;/dt&gt;
+&lt;dd&gt;Any feature or update - check mark&lt;/dd&gt;
+&lt;dt&gt;Fix&lt;/dt&gt;
+&lt;dd&gt;Any bug fix - a bug&lt;/dd&gt;
+&lt;dt&gt;Clean&lt;/dt&gt;
+&lt;dd&gt;Any kind of refactoring - scissors&lt;/dd&gt;
+&lt;dt&gt;Docs&lt;/dt&gt;
+&lt;dd&gt;Documentation changes - info symbol&lt;/dd&gt;
+&lt;dt&gt;Feature&lt;/dt&gt;
+&lt;dd&gt;A milestone commit - flagpost&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;I also fontify origin and master with the github icon and branch icon
+respectively, and exclude these from the commit prompts.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(require &#39;dash)
+
+(defmacro pretty-magit (WORD ICON PROPS &amp;amp;optional NO-PROMPT?)
+  &amp;quot;Replace sanitized WORD with ICON, PROPS and by default add to prompts.&amp;quot;
+  `(prog1
+     (add-to-list &#39;pretty-magit-alist
+                  (list (rx bow (group ,WORD (eval (if ,NO-PROMPT? &amp;quot;&amp;quot; &amp;quot;:&amp;quot;))))
+                        ,ICON &#39;,PROPS))
+     (unless ,NO-PROMPT?
+       (add-to-list &#39;pretty-magit-prompt (concat ,WORD &amp;quot;: &amp;quot;)))))
+
+(setq pretty-magit-alist nil)
+(setq pretty-magit-prompt nil)
+(pretty-magit &amp;quot;Feature&amp;quot; ? (:foreground &amp;quot;slate gray&amp;quot; :height 1.2))
+(pretty-magit &amp;quot;Add&amp;quot;     ? (:foreground &amp;quot;#375E97&amp;quot; :height 1.2))
+(pretty-magit &amp;quot;Fix&amp;quot;     ? (:foreground &amp;quot;#FB6542&amp;quot; :height 1.2))
+(pretty-magit &amp;quot;Clean&amp;quot;   ? (:foreground &amp;quot;#FFBB00&amp;quot; :height 1.2))
+(pretty-magit &amp;quot;Docs&amp;quot;    ? (:foreground &amp;quot;#3F681C&amp;quot; :height 1.2))
+(pretty-magit &amp;quot;master&amp;quot;  ? (:box t :height 1.2) t)
+(pretty-magit &amp;quot;origin&amp;quot;  ? (:box t :height 1.2) t)
+
+(defun add-magit-faces ()
+  &amp;quot;Add face properties and compose symbols for buffer from pretty-magit.&amp;quot;
+  (interactive)
+  (with-silent-modifications
+    (--each pretty-magit-alist
+      (-let (((rgx icon props) it))
+        (save-excursion
+          (goto-char (point-min))
+          (while (search-forward-regexp rgx nil t)
+            (compose-region
+             (match-beginning 1) (match-end 1) icon)
+            (when props
+              (add-face-text-property
+               (match-beginning 1) (match-end 1) props))))))))
+
+(advice-add &#39;magit-status :after &#39;add-magit-faces)
+(advice-add &#39;magit-refresh-buffer :after &#39;add-magit-faces)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I&#39;ve tried about all the magit hooks and the only way to apply these updates are
+with &lt;code&gt;advice-add&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;adding-ivy&#34;&gt;Adding Ivy&lt;/h1&gt;
+
+&lt;p&gt;Since this is Emacs, we can do better than typing out the leaders we&#39;ve chosen
+each time we are committing. Here I present a solution with Ivy but Helm would
+be little different.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;git-commit-setup-hook&lt;/code&gt; they provide has a delayed execution.
+Magit&#39;s ammend, reword, and other commit bindings internally use that same hook.
+However, it does not make sense to prompt a leader in those cases.
+We can only distinguish a plain new commit by the call of &lt;code&gt;magit-commit&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;With these observations, we must advise &lt;code&gt;magit-commit&lt;/code&gt; to let the hook know
+whether to call the prompt.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(setq use-magit-commit-prompt-p nil)
+(defun use-magit-commit-prompt (&amp;amp;rest args)
+  (setq use-magit-commit-prompt-p t))
+
+(defun magit-commit-prompt ()
+  &amp;quot;Magit prompt and insert commit header with faces.&amp;quot;
+  (interactive)
+  (when use-magit-commit-prompt-p
+    (setq use-magit-commit-prompt-p nil)
+    (insert (ivy-read &amp;quot;Commit Type &amp;quot; pretty-magit-prompt
+                      :require-match t :sort t :preselect &amp;quot;Add: &amp;quot;))
+    (add-magit-faces)
+    (evil-insert 1)))
+
+(remove-hook &#39;git-commit-setup-hook &#39;with-editor-usage-message)
+(add-hook &#39;git-commit-setup-hook &#39;magit-commit-prompt)
+(advice-add &#39;magit-commit :after &#39;use-magit-commit-prompt)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;further&#34;&gt;Further&lt;/h1&gt;
+
+&lt;p&gt;Beware of two very minor issues that I have not been able to resolve:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;If you escape an ivy leader prompt, then next commit will skip the prompt and&lt;/li&gt;
+   will work fine thereon. Avoid by just not escaping the prompt.
+&lt;li&gt;In the commit messages, the insertion from the ivy prompt will be the right&lt;/li&gt;
+   symbol, but lose its face properties when text is inserted. This is due to
+   deep Magit propertize magic.
+&lt;/ol&gt;
+
+&lt;p&gt;There are many possible leaders, consider these options&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;Add&lt;/dt&gt;
+&lt;dd&gt;Create a capability e.g. feature, test, dependency.&lt;/dd&gt;
+&lt;dt&gt;Cut&lt;/dt&gt;
+&lt;dd&gt;Remove a capability e.g. feature, test, dependency.&lt;/dd&gt;
+&lt;dt&gt;Fix&lt;/dt&gt;
+&lt;dd&gt;Fix an issue e.g. bug, typo, accident, misstatement.&lt;/dd&gt;
+&lt;dt&gt;Bump&lt;/dt&gt;
+&lt;dd&gt;Increase the version of something e.g. dependency.&lt;/dd&gt;
+&lt;dt&gt;Make&lt;/dt&gt;
+&lt;dd&gt;Change the build process, or tooling, or infra.&lt;/dd&gt;
+&lt;dt&gt;Start&lt;/dt&gt;
+&lt;dd&gt;Begin doing something; e.g. create a feature flag.&lt;/dd&gt;
+&lt;dt&gt;Stop&lt;/dt&gt;
+&lt;dd&gt;End doing something; e.g. remove a feature flag.&lt;/dd&gt;
+&lt;dt&gt;Refactor&lt;/dt&gt;
+&lt;dd&gt;A code change that MUST be just a refactoring.&lt;/dd&gt;
+&lt;dt&gt;Reformat&lt;/dt&gt;
+&lt;dd&gt;Refactor of formatting, e.g. omit whitespace.&lt;/dd&gt;
+&lt;dt&gt;Optimize&lt;/dt&gt;
+&lt;dd&gt;Refactor of performance, e.g. speed up code.&lt;/dd&gt;
+&lt;dt&gt;Document&lt;/dt&gt;
+&lt;dd&gt;Refactor of documentation, e.g. help files.&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;h1 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h1&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Commit leader examples taken from from https://news.ycombinator.com/item?id=13889155. &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Making eshell your own</title>
       <link>https://ekaschalk.github.io/post/custom-eshell/</link>
       <pubDate>Sat, 24 Jun 2017 00:00:00 +0000</pubDate>

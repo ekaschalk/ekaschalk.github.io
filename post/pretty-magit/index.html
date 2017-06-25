@@ -39,11 +39,11 @@
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
 
-  <link rel="canonical" href="https://ekaschalk.github.io/post/custom-eshell/">
+  <link rel="canonical" href="https://ekaschalk.github.io/post/pretty-magit/">
 
   
 
-  <title>Making eshell your own | Modern Emacs</title>
+  <title>Pretty Magit - Integrating commit leaders | Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -108,14 +108,14 @@
 
 
   <div class="article-container">
-    <h1 itemprop="name">Making eshell your own</h1>
+    <h1 itemprop="name">Pretty Magit - Integrating commit leaders</h1>
     
 
 <div class="article-metadata">
 
   <span class="article-date">
-    <time datetime="2017-06-24 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Sat, Jun 24, 2017
+    <time datetime="2017-06-25 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      Sun, Jun 25, 2017
     </time>
   </span>
 
@@ -140,35 +140,35 @@
   <ul class="share">
     <li>
       <a class="facebook"
-         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fpretty-magit%2f"
          target="_blank">
         <i class="fa fa-facebook"></i>
       </a>
     </li>
     <li>
       <a class="twitter"
-         href="https://twitter.com/intent/tweet?text=Making%20eshell%20your%20own&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f"
+         href="https://twitter.com/intent/tweet?text=Pretty%20Magit%20-%20Integrating%20commit%20leaders&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpretty-magit%2f"
          target="_blank">
         <i class="fa fa-twitter"></i>
       </a>
     </li>
     <li>
       <a class="linkedin"
-         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f&amp;title=Making%20eshell%20your%20own"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpretty-magit%2f&amp;title=Pretty%20Magit%20-%20Integrating%20commit%20leaders"
          target="_blank">
         <i class="fa fa-linkedin"></i>
       </a>
     </li>
     <li>
       <a class="weibo"
-         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f&amp;title=Making%20eshell%20your%20own"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fpretty-magit%2f&amp;title=Pretty%20Magit%20-%20Integrating%20commit%20leaders"
          target="_blank">
         <i class="fa fa-weibo"></i>
       </a>
     </li>
     <li>
       <a class="email"
-         href="mailto:?subject=Making%20eshell%20your%20own&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fcustom-eshell%2f">
+         href="mailto:?subject=Pretty%20Magit%20-%20Integrating%20commit%20leaders&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fpretty-magit%2f">
         <i class="fa fa-envelope"></i>
       </a>
     </li>
@@ -181,121 +181,177 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>I have written utilities for choosing what information, icons, and faces your
-eshell prompt presents.</p>
+      <p>A comparison of how I see my commit logs and how they truly are:</p>
 
-<p>Example eshell prompts:</p>
+<table>
+<tbody>
+<tr>
+<td><img src="/img/spacemacs/magit-symbols.png" alt="/img/spacemacs/magit-symbols.png" title="/img/spacemacs/magit-symbols.png" /></td>
+<td><img src="/img/spacemacs/magit-raw.png" alt="/img/spacemacs/magit-raw.png" title="/img/spacemacs/magit-raw.png" /></td>
+</tr>
+</tbody>
+</table>
 
-<p><img src="/img/esh-ex.png" alt="/img/esh-ex.png" title="/img/esh-ex.png" />
-<img src="/img/esh-me.png" alt="/img/esh-me.png" title="/img/esh-me.png" /></p>
+<p>Typically this would be accomplished with Emacs <code>font-lock-mode</code>. However Magit
+is magic, even trivial uses of <code>font-lock-add-keywords</code> will break fontification
+for the entire buffer.</p>
 
-<p>Eshell prompt customization takes place in <code>eshell-prompt-function</code> and
- <code>eshell-prompt-regexp</code>. The former determines the content of your prompt
-while the latter distinguishes your commands.</p>
+<p>This post addresses adding faces to Magit to achieve in particular icon and
+colored commit leaders. I also integrate Ivy to prompt a leader when committing
+so you need not remember or type out completely every leader you choose.</p>
 
-<p>I define a macro <code>esh-section</code> taking a name, an icon, a form or variable to be
-evaluated, and optionally face properties. They create anonymous functions which
-will be evaluated and concatenated at prompt-time.</p>
+<h1 id="adding-leaders">Adding leaders</h1>
+
+<p>We cannot use font-locks so we compose the symbols and add the face text
+properties ourselves.</p>
+
+<p>Users will interact with the macro <code>pretty-magit</code> which takes a word such as
+Fix, Add, and Docs, a unicode point to replace it with, a face attributes plist,
+and optionally whether to exclude it from being added to the commit prompt.</p>
+
+<dl>
+My personal choices for leaders are:
+<dt>Add</dt>
+<dd>Any feature or update - check mark</dd>
+<dt>Fix</dt>
+<dd>Any bug fix - a bug</dd>
+<dt>Clean</dt>
+<dd>Any kind of refactoring - scissors</dd>
+<dt>Docs</dt>
+<dd>Documentation changes - info symbol</dd>
+<dt>Feature</dt>
+<dd>A milestone commit - flagpost</dd>
+</dl>
+
+<p>I also fontify origin and master with the github icon and branch icon
+respectively, and exclude these from the commit prompts.</p>
 
 <pre><code class="language-lisp">
 (require 'dash)
-(require 's)
 
-(defmacro with-face (STR &amp;rest PROPS)
-  &quot;Return STR propertized with PROPS.&quot;
-  `(propertize ,STR 'face (list ,@PROPS)))
+(defmacro pretty-magit (WORD ICON PROPS &amp;optional NO-PROMPT?)
+  &quot;Replace sanitized WORD with ICON, PROPS and by default add to prompts.&quot;
+  `(prog1
+     (add-to-list 'pretty-magit-alist
+                  (list (rx bow (group ,WORD (eval (if ,NO-PROMPT? &quot;&quot; &quot;:&quot;))))
+                        ,ICON ',PROPS))
+     (unless ,NO-PROMPT?
+       (add-to-list 'pretty-magit-prompt (concat ,WORD &quot;: &quot;)))))
 
-(defmacro esh-section (NAME ICON FORM &amp;rest PROPS)
-  &quot;Build eshell section NAME with ICON prepended to evaled FORM with PROPS.&quot;
-  `(setq ,NAME
-         (lambda () (when ,FORM
-                      (-&gt; ,ICON
-                          (concat esh-section-delim ,FORM)
-                          (with-face ,@PROPS))))))
+(setq pretty-magit-alist nil)
+(setq pretty-magit-prompt nil)
+(pretty-magit &quot;Feature&quot; ? (:foreground &quot;slate gray&quot; :height 1.2))
+(pretty-magit &quot;Add&quot;     ? (:foreground &quot;#375E97&quot; :height 1.2))
+(pretty-magit &quot;Fix&quot;     ? (:foreground &quot;#FB6542&quot; :height 1.2))
+(pretty-magit &quot;Clean&quot;   ? (:foreground &quot;#FFBB00&quot; :height 1.2))
+(pretty-magit &quot;Docs&quot;    ? (:foreground &quot;#3F681C&quot; :height 1.2))
+(pretty-magit &quot;master&quot;  ? (:box t :height 1.2) t)
+(pretty-magit &quot;origin&quot;  ? (:box t :height 1.2) t)
 
-(defun esh-acc (acc x)
-  &quot;Accumulator for evaluating and concatenating esh-sections.&quot;
-  (--if-let (funcall x)
-      (if (s-blank? acc)
-          it
-        (concat acc esh-sep it))
-    acc))
+(defun add-magit-faces ()
+  &quot;Add face properties and compose symbols for buffer from pretty-magit.&quot;
+  (interactive)
+  (with-silent-modifications
+    (--each pretty-magit-alist
+      (-let (((rgx icon props) it))
+        (save-excursion
+          (goto-char (point-min))
+          (while (search-forward-regexp rgx nil t)
+            (compose-region
+             (match-beginning 1) (match-end 1) icon)
+            (when props
+              (add-face-text-property
+               (match-beginning 1) (match-end 1) props))))))))
 
-(defun esh-prompt-func ()
-  &quot;Build `eshell-prompt-function'&quot;
-  (concat esh-header
-          (-reduce-from 'esh-acc &quot;&quot; eshell-funcs)
-          &quot;\n&quot;
-          eshell-prompt-string))
+(advice-add 'magit-status :after 'add-magit-faces)
+(advice-add 'magit-refresh-buffer :after 'add-magit-faces)
 </code></pre>
 
-<p>Now lets define the needed configuration.</p>
+<p>I've tried about all the magit hooks and the only way to apply these updates are
+with <code>advice-add</code>.</p>
+
+<h1 id="adding-ivy">Adding Ivy</h1>
+
+<p>Since this is Emacs, we can do better than typing out the leaders we've chosen
+each time we are committing. Here I present a solution with Ivy but Helm would
+be little different.</p>
+
+<p>The <code>git-commit-setup-hook</code> they provide has a delayed execution.
+Magit's ammend, reword, and other commit bindings internally use that same hook.
+However, it does not make sense to prompt a leader in those cases.
+We can only distinguish a plain new commit by the call of <code>magit-commit</code>.</p>
+
+<p>With these observations, we must advise <code>magit-commit</code> to let the hook know
+whether to call the prompt.</p>
 
 <pre><code class="language-lisp">
-;; Separator between esh-sections
-(setq esh-sep &quot;  &quot;)  ; or &quot; | &quot;
+(setq use-magit-commit-prompt-p nil)
+(defun use-magit-commit-prompt (&amp;rest args)
+  (setq use-magit-commit-prompt-p t))
 
-;; Separator between an esh-section icon and form
-(setq esh-section-delim &quot; &quot;)
+(defun magit-commit-prompt ()
+  &quot;Magit prompt and insert commit header with faces.&quot;
+  (interactive)
+  (when use-magit-commit-prompt-p
+    (setq use-magit-commit-prompt-p nil)
+    (insert (ivy-read &quot;Commit Type &quot; pretty-magit-prompt
+                      :require-match t :sort t :preselect &quot;Add: &quot;))
+    (add-magit-faces)
+    (evil-insert 1)))
 
-;; Eshell prompt header
-(setq esh-header &quot;\n &quot;)  ; or &quot;\n┌─&quot;
-
-;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
-;; your login, these can be the same.
-(setq eshell-prompt-regexp &quot; &quot;)   ; or &quot;└─&gt; &quot;
-(setq eshell-prompt-string &quot; &quot;)   ; or &quot;└─&gt; &quot;
+(remove-hook 'git-commit-setup-hook 'with-editor-usage-message)
+(add-hook 'git-commit-setup-hook 'magit-commit-prompt)
+(advice-add 'magit-commit :after 'use-magit-commit-prompt)
 </code></pre>
 
-<p>Now we are set to build some sections. A note, if a section's form returns nil,
-then it will be skipped, so the effect of eg. python virtual environments will
-only appear when you have an active venv.</p>
+<h1 id="further">Further</h1>
 
-<pre><code class="language-lisp">
-(esh-section esh-dir
-             &quot;\xf07c&quot;  ;  (faicon folder)
-             (abbreviate-file-name (eshell/pwd))
-             '(:foreground &quot;gold&quot; :bold ultra-bold :underline t))
+<p>Beware of two very minor issues that I have not been able to resolve:</p>
 
-(esh-section esh-git
-             &quot;\xe907&quot;  ;  (git icon)
-             (magit-get-current-branch)
-             '(:foreground &quot;pink&quot;))
+<ol>
+<li>If you escape an ivy leader prompt, then next commit will skip the prompt and</li>
+   will work fine thereon. Avoid by just not escaping the prompt.
+<li>In the commit messages, the insertion from the ivy prompt will be the right</li>
+   symbol, but lose its face properties when text is inserted. This is due to
+   deep Magit propertize magic.
+</ol>
 
-(esh-section esh-python
-             &quot;\xe928&quot;  ;  (python icon)
-             pyvenv-virtual-env-name)
+<p>There are many possible leaders, consider these options<sup class="footnote-ref" id="fnref:1"><a rel="footnote" href="#fn:1">1</a></sup>:</p>
 
-(esh-section esh-clock
-             &quot;\xf017&quot;  ;  (clock icon)
-             (format-time-string &quot;%H:%M&quot; (current-time))
-             '(:foreground &quot;forest green&quot;))
+<dl>
+<dt>Add</dt>
+<dd>Create a capability e.g. feature, test, dependency.</dd>
+<dt>Cut</dt>
+<dd>Remove a capability e.g. feature, test, dependency.</dd>
+<dt>Fix</dt>
+<dd>Fix an issue e.g. bug, typo, accident, misstatement.</dd>
+<dt>Bump</dt>
+<dd>Increase the version of something e.g. dependency.</dd>
+<dt>Make</dt>
+<dd>Change the build process, or tooling, or infra.</dd>
+<dt>Start</dt>
+<dd>Begin doing something; e.g. create a feature flag.</dd>
+<dt>Stop</dt>
+<dd>End doing something; e.g. remove a feature flag.</dd>
+<dt>Refactor</dt>
+<dd>A code change that MUST be just a refactoring.</dd>
+<dt>Reformat</dt>
+<dd>Refactor of formatting, e.g. omit whitespace.</dd>
+<dt>Optimize</dt>
+<dd>Refactor of performance, e.g. speed up code.</dd>
+<dt>Document</dt>
+<dd>Refactor of documentation, e.g. help files.</dd>
+</dl>
 
-;; Below I implement a &quot;prompt number&quot; section
-(setq esh-prompt-num 0)
-(add-hook 'eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
-(advice-add 'eshell-send-input :before
-            (lambda (&amp;rest args) (setq esh-prompt-num (incf esh-prompt-num))))
+<h1 id="footnotes">Footnotes</h1>
+<div class="footnotes">
 
-(esh-section esh-num
-             &quot;\xf0c9&quot;  ;  (list icon)
-             (number-to-string esh-prompt-num)
-             '(:foreground &quot;brown&quot;))
+<hr />
 
-;; Choose which eshell-funcs to enable
-(setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
-
-;; Enable the new eshell prompt
-(setq eshell-prompt-function 'esh-prompt-func)
-</code></pre>
-
-<p>Further extensions to explore are predicate-based face application for eg.
-distinguishing master and other branches and modeline-like foreground separation.</p>
-
-<p><a href="https://gist.github.com/ekaschalk/f0ac91c406ad99e53bb97752683811a5" title="I've hosted the code altogether at this gist">I've hosted the code altogether at this gist</a>.</p>
-
-<p><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/.spacemacs" title="display/shell in my config">display/shell in my config</a> will host the most recent iteration and all my other
-emacs tweaks.</p>
+<ol>
+<li id="fn:1">Commit leader examples taken from from https://news.ycombinator.com/item?id=13889155. <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+</ol>
+</div>
 
     </div>
   </div>
@@ -306,13 +362,10 @@ emacs tweaks.</p>
   <nav>
   <ul class="pager">
     
-    <li class="previous"><a href="https://ekaschalk.github.io/post/xi-macro/"><span
-      aria-hidden="true">&larr;</span> Anonymous function macro in elisp</a></li>
+    <li class="previous"><a href="https://ekaschalk.github.io/post/custom-eshell/"><span
+      aria-hidden="true">&larr;</span> Making eshell your own</a></li>
     
 
-    
-    <li class="next"><a href="https://ekaschalk.github.io/post/pretty-magit/">Pretty Magit - Integrating commit leaders <span
-      aria-hidden="true">&rarr;</span></a></li>
     
   </ul>
 </nav>
@@ -326,9 +379,9 @@ emacs tweaks.</p>
     <div id="disqus_thread"></div>
 <script type="text/javascript">
     var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/custom-eshell\/';
-    var disqus_title = 'Making eshell your own';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/custom-eshell\/';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/pretty-magit\/';
+    var disqus_title = 'Pretty Magit - Integrating commit leaders';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/pretty-magit\/';
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
