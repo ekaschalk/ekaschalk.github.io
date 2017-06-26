@@ -20,6 +20,15 @@ p.read-more {
     color: #0095eb;
 }
 
+.article-title {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.article-list-item .article-metadata {
+    margin-bottom: 0px;
+}
+
 .article-list-item {
     margin-bottom: 0px;
 }
