@@ -67,7 +67,8 @@ emacs enabling these shenanigans.&lt;/p&gt;
       <guid>https://ekaschalk.github.io/post/prettify-mode/</guid>
       <description>
 
-&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/prettify-mode.png&#34; width=&#34;660&#34; height=&#34;830&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/spacemacs/python-code.png&#34; /&gt;
+&lt;img src=&#34;https://ekaschalk.github.io/img/spacemacs/hy-code.png&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Sequences of characters are represented as a single token using:&lt;/p&gt;
 
