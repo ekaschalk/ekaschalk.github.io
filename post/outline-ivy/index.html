@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.22.1" />
+  <meta name="author" content="Eric Kaschalk">
+  
+
+  
+  
+  
+    
+  
+  
+    
+    
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/zenburn.min.css">
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/academicons.min.css">
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather%7CRoboto+Mono">
+  <link rel="stylesheet" href="/css/hugo-academic.css">
+  
+  <link rel="stylesheet" href="/css/custom.css">
+  
+
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
+
+  <link rel="canonical" href="https://ekaschalk.github.io/post/outline-ivy/">
+
+  
+
+  <title>Managing code with Outlines | Modern Emacs</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Modern Emacs</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#spacemacs">
+            
+            <span>My Spacemacs</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>About</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Managing code with Outlines</h1>
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    <time datetime="2017-06-30 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      Fri, Jun 30, 2017
+    </time>
+  </span>
+
+  
+  
+  
+  <span class="article-categories">
+    <i class="fa fa-folder"></i>
+    
+    <a href="/categories/emacs">emacs</a
+    >
+    
+  </span>
+  
+  
+
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-ivy%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Managing%20code%20with%20Outlines&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-ivy%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-ivy%2f&amp;title=Managing%20code%20with%20Outlines"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-ivy%2f&amp;title=Managing%20code%20with%20Outlines"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Managing%20code%20with%20Outlines&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-ivy%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    <div class="article-style" itemprop="articleBody">
+      <p>I consider outlines an under-utilized yet killer feature of Emacs.</p>
+
+<p>This post is split into two parts:</p>
+
+<ol>
+<li>Introducing and customizing <code>outline-mode</code> and <code>outshine-mode</code>.</li>
+<li><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el" title="My package">My package</a> <code>outline-ivy</code> for jumping to outlines.</li>
+</ol>
+
+<p><img src="/img/outline-ivy.gif" alt="/img/outline-ivy.gif" title="/img/outline-ivy.gif" /></p>
+
+<h1 id="intro-to-outlines">Intro to Outlines</h1>
+
+<h2 id="background">Background</h2>
+
+<p>Outline-mode is a general framework for headers. Org-mode itself uses
+outline-mode.</p>
+
+<p>Headers are demarcated by the current major-mode's comment syntax, typically
+with levels determined by the proceeding number of <code>*</code>.</p>
+
+<ul>
+<li>Python: <code># *</code> is a level 1 header, <code># **</code> a level 2 header...</li>
+<li>Haskell: <code>--*</code> <code>--**</code></li>
+<li>Clojure: <code>;; *</code> <code>;; **</code></li>
+</ul>
+
+<p>Emacs lisp uses <code>;;;</code>, <code>;;;;</code>, ... for compatibility with the many packages that
+use the original, not asterisk-based, outline format.</p>
+
+<p>The package <code>outshine</code> gives utility like narrowing and cycling to these
+outlines.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>Enable outlines and outshine with:</p>
+
+<pre><code class="language-lisp">
+;; Require packages for following code
+(require 'dash)
+(require 'outshine)
+
+;; Required for outshine
+(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
+
+;; Enables outline-minor-mode for *ALL* programming buffers
+(add-hook 'prog-mode-hook 'outline-minor-mode)
+</code></pre>
+
+<h2 id="keybindings">Keybindings</h2>
+
+<p>I remap <code>outline-minor-mode-map</code> to mirror org-mode. Provided are evil and
+leader-key based bindings. Reference org-mode for developing your own
+emacs-style bindings.</p>
+
+<pre><code class="language-lisp">
+;; Narrowing now works within the headline rather than requiring to be on it
+(advice-add 'outshine-narrow-to-subtree :before
+            (lambda (&amp;rest args) (unless (outline-on-heading-p t)
+                                   (outline-previous-visible-heading 1))))
+
+(spacemacs/set-leader-keys
+  ;; Narrowing
+  &quot;nn&quot; 'outshine-narrow-to-subtree
+  &quot;nw&quot; 'widen
+
+  ;; Structural edits
+  &quot;nj&quot; 'outline-move-subtree-down
+  &quot;nk&quot; 'outline-move-subtree-up
+  &quot;nh&quot; 'outline-promote
+  &quot;nl&quot; 'outline-demote)
+
+(let ((kmap outline-minor-mode-map))
+  (define-key kmap (kbd &quot;M-RET&quot;) 'outshine-insert-heading)
+  (define-key kmap (kbd &quot;&lt;backtab&gt;&quot;) 'outshine-cycle-buffer)
+
+  ;; Evil outline navigation keybindings
+  (evil-define-key '(normal visual motion) kmap
+    &quot;gh&quot; 'outline-up-heading
+    &quot;gj&quot; 'outline-forward-same-level
+    &quot;gk&quot; 'outline-backward-same-level
+    &quot;gl&quot; 'outline-next-visible-heading
+    &quot;gu&quot; 'outline-previous-visible-heading))
+</code></pre>
+
+<h2 id="styling">Styling</h2>
+
+<h3 id="faces">Faces</h3>
+
+<p>Outline headers fulfill a different goal than org headers. Outlines are for
+structuring semantically similar blocks of code. Org headers additionally
+incorporate todos, priorities, tags, and so on.</p>
+
+<p>Outlines are necessarily further apart than org headers, which often have no
+subtext at all.</p>
+
+<p>So I recommend setting both the <code>:background</code> and <code>:height</code> face attributes to
+highlight and make obvious the different sections.</p>
+
+<p>This can be done by updating the <code>outline-1/2/3...</code> faces.
+Org mode header faces can set separately using the <code>org-level-1/2/3...</code> faces.</p>
+
+<pre><code class="language-lisp">
+(setq my-black &quot;#1b1b1e&quot;)
+
+(custom-theme-set-faces
+ 'solarized-dark
+ `(outline-1 ((t (:height 1.25 :background &quot;#268bd2&quot;
+                          :foreground ,my-black :weight bold))))
+ `(outline-2 ((t (:height 1.15 :background &quot;#2aa198&quot;
+                          :foreground ,my-black :weight bold))))
+ `(outline-3 ((t (:height 1.05 :background &quot;#b58900&quot;
+                          :foreground ,my-black :weight bold)))))
+</code></pre>
+
+<h3 id="bullets">Bullets</h3>
+
+<p>Now these outlines will be displayed with the comment syntax, there is no mirror
+of <code>org-bullets-bullet-list</code> for setting icons to replace the eg. ';;;'.</p>
+
+<p>We need to use <code>compose-region</code> to manually replace the headers with our custom
+bullets. Here is an image of my org-bullets replicated for outlines.
+<img src="/img/outline-bullets.png" alt="/img/outline-bullets.png" title="/img/outline-bullets.png" /></p>
+
+<p>The following code is generalized to replace symbols for possibly many modes and
+is a bit complex. Here I implement the outline bullets for lisp-like modes and
+python.</p>
+
+<pre><code class="language-lisp">
+(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
+  (font-lock-add-keywords
+   nil (--map (-let (((rgx uni-point) it))
+                `(,rgx (0 (progn
+                            (compose-region (match-beginning 1) (match-end 1)
+                                            ,(concat &quot;\t&quot; (list uni-point)))
+                            nil))))
+              FONT-LOCK-ALIST)))
+
+(defmacro add-font-locks (FONT-LOCK-HOOKS-ALIST)
+  `(--each ,FONT-LOCK-HOOKS-ALIST
+     (-let (((font-locks . mode-hooks) it))
+       (--each mode-hooks
+         (add-hook it (-partial '-add-font-lock-kwds
+                                (symbol-value font-locks)))))))
+
+(defconst emacs-outlines-font-lock-alist
+  ;; Outlines
+  '((&quot;\\(^;;;\\) &quot;          ?■)
+    (&quot;\\(^;;;;\\) &quot;         ?○)
+    (&quot;\\(^;;;;;\\) &quot;        ?✸)
+    (&quot;\\(^;;;;;;\\) &quot;       ?✿)))
+
+(defconst lisp-outlines-font-lock-alist
+  ;; Outlines
+  '((&quot;\\(^;; \\*\\) &quot;          ?■)
+    (&quot;\\(^;; \\*\\*\\) &quot;       ?○)
+    (&quot;\\(^;; \\*\\*\\*\\) &quot;    ?✸)
+    (&quot;\\(^;; \\*\\*\\*\\*\\) &quot; ?✿)))
+
+(defconst python-outlines-font-lock-alist
+  '((&quot;\\(^# \\*\\) &quot;          ?■)
+    (&quot;\\(^# \\*\\*\\) &quot;       ?○)
+    (&quot;\\(^# \\*\\*\\*\\) &quot;    ?✸)
+    (&quot;\\(^# \\*\\*\\*\\*\\) &quot; ?✿)))
+
+(add-font-locks
+ '((emacs-outlines-font-lock-alist emacs-lisp-mode-hook)
+   (lisp-outlines-font-lock-alist clojure-mode-hook hy-mode-hook)
+   (python-outlines-font-lock-alist python-mode-hook)))
+</code></pre>
+
+<p>This could eventually be improved to work for any number of levels and
+auto-determine the outline regex base on the comment syntax.</p>
+
+<h3 id="ellipsis">Ellipsis</h3>
+
+<p>Org-mode has the variable <code>org-ellipsis</code> for setting the trailing chars for
+collapsed headers.</p>
+
+<p>We can set our own outline ellipsis icon as follows:</p>
+
+<pre><code class="language-lisp">
+(defvar outline-display-table (make-display-table))
+(set-display-table-slot outline-display-table 'selective-display
+                        (vector (make-glyph-code ?▼ 'escape-glyph)))
+(defun set-outline-display-table ()
+  (setf buffer-display-table outline-display-table))
+
+(add-hook 'outline-mode-hook 'set-outline-display-table)
+(add-hook 'outline-minor-mode-hook 'set-outline-display-table)
+</code></pre>
+
+<h1 id="outline-ivy">Outline-ivy</h1>
+
+<table>
+<thead>
+<tr>
+<th>All the outlines</th>
+<th>Searching catches children</th>
+<th>Restricting Levels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="/img/outline-ivy-raw.png" alt="/img/outline-ivy-raw.png" title="/img/outline-ivy-raw.png" /></td>
+<td><img src="/img/outline-ivy-many.png" alt="/img/outline-ivy-many.png" title="/img/outline-ivy-many.png" /></td>
+<td><img src="/img/outline-ivy-level.png" alt="/img/outline-ivy-level.png" title="/img/outline-ivy-level.png" /></td>
+</tr>
+</tbody>
+</table>
+
+<p>Current methods for jumping to outlines have significant limitations.</p>
+
+<p><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el" title="Outline-ivy">Outline-ivy</a> makes outlines a proper navigational, not just organizational, tool
+with <code>oi-jump</code>.</p>
+
+<p>All outlines are collected, stylized, and associated with their parents.</p>
+
+<p>Parents are inserted as invisible text for child outlines. This way, searching
+for eg. "Display" catches all its children.</p>
+
+<p>The level is also inserted and hidden enabling the search "1 spacemacs" to catch
+only top-level headings matching spacemacs. It also overrides <code>ivy-match-face</code> and
+ <code>ivy-height</code> to play nice with the propertized prompt strings.</p>
+
+<p>The default configuration:</p>
+
+<pre><code class="language-lisp">
+(defvar oi-height 20
+  &quot;Number of outlines to display, overrides ivy-height.&quot;)
+
+(defface oi-match-face
+  '((t :height 1.10 :foreground &quot;light gray&quot;))
+  &quot;Match face for ivy outline prompt.&quot;)
+
+(defface oi-face-1
+  '((t :foreground &quot;#268bd2&quot; :height 1.25 :underline t :weight ultra-bold))
+  &quot;Ivy outline face for level 1&quot;)
+
+(defface oi-face-2
+  '((t :foreground &quot;#2aa198&quot; :height 1.1 :weight semi-bold))
+  &quot;Ivy outline face for level 2&quot;)
+
+(defface oi-face-3
+  '((t :foreground &quot;steel blue&quot;))
+  &quot;Ivy outline face for level 3&quot;)
+
+;; My keybinding for oi-jump, unbound by default.
+(global-set-key (kbd &quot;C-j&quot;) 'oi-jump)
+</code></pre>
+
+<p>Many emacs lisp packages both intentionally and unintentionally use the outline
+syntax for organizing their source. These changes can make understanding and
+navigating the source significantly easier.</p>
+
+<p>Below is a screenshot jumping to an outline in <code>org.el</code>, the core org source
+file.</p>
+
+<p><img src="/img/outlines-org.png" alt="/img/outlines-org.png" title="/img/outlines-org.png" /></p>
+
+<p>I'm not sure how difficult it would be to port this package to <code>helm</code>. This is
+one of many updates I'll look to add eventually, such as adding more quick
+actions to the prompt like jump-and-narrow or a projective jump version.</p>
+
+<h1 id="my-experience">My Experience</h1>
+
+<p>Perhaps the best judge of the impact of some configuration is how often you
+find yourself reaching for it. For buffer-wide navigation to a specific area
+rather than some specific symbol or function, I now almost exclusively use
+ <code>oi-jump</code>.</p>
+
+<p>I consider outlines to be one of the most practical features of Emacs. All
+source code, in any language, I organize with outlines. Given how unobtrusive
+the syntax is, it shouldn't be difficult to implement in a collaborative
+project.</p>
+
+    </div>
+  </div>
+
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
+    
+    <li class="previous"><a href="https://ekaschalk.github.io/post/pretty-magit/"><span
+      aria-hidden="true">&larr;</span> Pretty Magit - Integrating commit leaders</a></li>
+    
+
+    
+  </ul>
+</nav>
+
+</div>
+
+<div class="article-container">
+  
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/outline-ivy\/';
+    var disqus_title = 'Managing code with Outlines';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/outline-ivy\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
+
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2017 Eric Kaschalk &middot; 
+
+      Powered by the <a href="https://github.com/gcushen/hugo-academic" target="_blank">Academic
+      theme</a> for <a href="http://gohugo.io" target="_blank">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" integrity="sha512-jGsMH83oKe9asCpkOVkBnUrDDTp8wl+adkB2D+//JtlxO4SrLoJdhbOysIFQJloQFD+C4Fl1rMsQZF76JjV0eQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.1/imagesloaded.pkgd.min.js" integrity="sha512-gAY/etPYgEHDUW+GLBkxn90gKGHPlPCpRhXasGZHGx1Pk0QZw2bLRWCf1dOrY7UhHs8EV6KBSBq86206CJqrZA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.4/TweenMax.min.js" integrity="sha512-ANpvRsX22QqENmRQm2qUqlRVbWanJykv+Z9+me4/n4LvUNkpPmO3Qm1VB0OQn0ip2xIdmbf9kaSAxTceOHY1YQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/plugins/ScrollToPlugin.min.js" integrity="sha512-CDeU7pRtkPX6XJtF/gcFWlEwyaX7mcAp5sO3VIu/ylsdR74wEw4wmBpD5yYTrmMAiAboi9thyBUr1vXRPA7t0Q==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-101190730-1', 'auto');
+        ga('send', 'pageview');
+
+         
+        var links = document.querySelectorAll('a');
+        Array.prototype.map.call(links, function(item) {
+            if (item.host != document.location.host) {
+                item.addEventListener('click', function() {
+                    var action = item.getAttribute('data-action') || 'follow';
+                    ga('send', 'event', 'outbound', action, item.href);
+                });
+            }
+        });
+    </script>
+    
+
+    
+    
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/python.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/lisp.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/hy.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/clojure.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+
+  </body>
+</html>
+

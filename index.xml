@@ -11,6 +11,290 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Managing code with Outlines</title>
+      <link>https://ekaschalk.github.io/post/outline-ivy/</link>
+      <pubDate>Fri, 30 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/outline-ivy/</guid>
+      <description>&lt;p&gt;I consider outlines an under-utilized yet killer feature of Emacs.&lt;/p&gt;
+
+&lt;p&gt;This post is split into two parts:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Introducing and customizing &lt;code&gt;outline-mode&lt;/code&gt; and &lt;code&gt;outshine-mode&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el&#34; title=&#34;My package&#34;&gt;My package&lt;/a&gt; &lt;code&gt;outline-ivy&lt;/code&gt; for jumping to outlines.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-ivy.gif&#34; alt=&#34;/img/outline-ivy.gif&#34; title=&#34;/img/outline-ivy.gif&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;intro-to-outlines&#34;&gt;Intro to Outlines&lt;/h1&gt;
+
+&lt;h2 id=&#34;background&#34;&gt;Background&lt;/h2&gt;
+
+&lt;p&gt;Outline-mode is a general framework for headers. Org-mode itself uses
+outline-mode.&lt;/p&gt;
+
+&lt;p&gt;Headers are demarcated by the current major-mode&#39;s comment syntax, typically
+with levels determined by the proceeding number of &lt;code&gt;*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Python: &lt;code&gt;# *&lt;/code&gt; is a level 1 header, &lt;code&gt;# **&lt;/code&gt; a level 2 header...&lt;/li&gt;
+&lt;li&gt;Haskell: &lt;code&gt;--*&lt;/code&gt; &lt;code&gt;--**&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Clojure: &lt;code&gt;;; *&lt;/code&gt; &lt;code&gt;;; **&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Emacs lisp uses &lt;code&gt;;;;&lt;/code&gt;, &lt;code&gt;;;;;&lt;/code&gt;, ... for compatibility with the many packages that
+use the original, not asterisk-based, outline format.&lt;/p&gt;
+
+&lt;p&gt;The package &lt;code&gt;outshine&lt;/code&gt; gives utility like narrowing and cycling to these
+outlines.&lt;/p&gt;
+
+&lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;Enable outlines and outshine with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Require packages for following code
+(require &#39;dash)
+(require &#39;outshine)
+
+;; Required for outshine
+(add-hook &#39;outline-minor-mode-hook &#39;outshine-hook-function)
+
+;; Enables outline-minor-mode for *ALL* programming buffers
+(add-hook &#39;prog-mode-hook &#39;outline-minor-mode)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;keybindings&#34;&gt;Keybindings&lt;/h2&gt;
+
+&lt;p&gt;I remap &lt;code&gt;outline-minor-mode-map&lt;/code&gt; to mirror org-mode. Provided are evil and
+leader-key based bindings. Reference org-mode for developing your own
+emacs-style bindings.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Narrowing now works within the headline rather than requiring to be on it
+(advice-add &#39;outshine-narrow-to-subtree :before
+            (lambda (&amp;amp;rest args) (unless (outline-on-heading-p t)
+                                   (outline-previous-visible-heading 1))))
+
+(spacemacs/set-leader-keys
+  ;; Narrowing
+  &amp;quot;nn&amp;quot; &#39;outshine-narrow-to-subtree
+  &amp;quot;nw&amp;quot; &#39;widen
+
+  ;; Structural edits
+  &amp;quot;nj&amp;quot; &#39;outline-move-subtree-down
+  &amp;quot;nk&amp;quot; &#39;outline-move-subtree-up
+  &amp;quot;nh&amp;quot; &#39;outline-promote
+  &amp;quot;nl&amp;quot; &#39;outline-demote)
+
+(let ((kmap outline-minor-mode-map))
+  (define-key kmap (kbd &amp;quot;M-RET&amp;quot;) &#39;outshine-insert-heading)
+  (define-key kmap (kbd &amp;quot;&amp;lt;backtab&amp;gt;&amp;quot;) &#39;outshine-cycle-buffer)
+
+  ;; Evil outline navigation keybindings
+  (evil-define-key &#39;(normal visual motion) kmap
+    &amp;quot;gh&amp;quot; &#39;outline-up-heading
+    &amp;quot;gj&amp;quot; &#39;outline-forward-same-level
+    &amp;quot;gk&amp;quot; &#39;outline-backward-same-level
+    &amp;quot;gl&amp;quot; &#39;outline-next-visible-heading
+    &amp;quot;gu&amp;quot; &#39;outline-previous-visible-heading))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;styling&#34;&gt;Styling&lt;/h2&gt;
+
+&lt;h3 id=&#34;faces&#34;&gt;Faces&lt;/h3&gt;
+
+&lt;p&gt;Outline headers fulfill a different goal than org headers. Outlines are for
+structuring semantically similar blocks of code. Org headers additionally
+incorporate todos, priorities, tags, and so on.&lt;/p&gt;
+
+&lt;p&gt;Outlines are necessarily further apart than org headers, which often have no
+subtext at all.&lt;/p&gt;
+
+&lt;p&gt;So I recommend setting both the &lt;code&gt;:background&lt;/code&gt; and &lt;code&gt;:height&lt;/code&gt; face attributes to
+highlight and make obvious the different sections.&lt;/p&gt;
+
+&lt;p&gt;This can be done by updating the &lt;code&gt;outline-1/2/3...&lt;/code&gt; faces.
+Org mode header faces can set separately using the &lt;code&gt;org-level-1/2/3...&lt;/code&gt; faces.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(setq my-black &amp;quot;#1b1b1e&amp;quot;)
+
+(custom-theme-set-faces
+ &#39;solarized-dark
+ `(outline-1 ((t (:height 1.25 :background &amp;quot;#268bd2&amp;quot;
+                          :foreground ,my-black :weight bold))))
+ `(outline-2 ((t (:height 1.15 :background &amp;quot;#2aa198&amp;quot;
+                          :foreground ,my-black :weight bold))))
+ `(outline-3 ((t (:height 1.05 :background &amp;quot;#b58900&amp;quot;
+                          :foreground ,my-black :weight bold)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;bullets&#34;&gt;Bullets&lt;/h3&gt;
+
+&lt;p&gt;Now these outlines will be displayed with the comment syntax, there is no mirror
+of &lt;code&gt;org-bullets-bullet-list&lt;/code&gt; for setting icons to replace the eg. &#39;;;;&#39;.&lt;/p&gt;
+
+&lt;p&gt;We need to use &lt;code&gt;compose-region&lt;/code&gt; to manually replace the headers with our custom
+bullets. Here is an image of my org-bullets replicated for outlines.
+&lt;img src=&#34;https://ekaschalk.github.io/img/outline-bullets.png&#34; alt=&#34;/img/outline-bullets.png&#34; title=&#34;/img/outline-bullets.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The following code is generalized to replace symbols for possibly many modes and
+is a bit complex. Here I implement the outline bullets for lisp-like modes and
+python.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
+  (font-lock-add-keywords
+   nil (--map (-let (((rgx uni-point) it))
+                `(,rgx (0 (progn
+                            (compose-region (match-beginning 1) (match-end 1)
+                                            ,(concat &amp;quot;\t&amp;quot; (list uni-point)))
+                            nil))))
+              FONT-LOCK-ALIST)))
+
+(defmacro add-font-locks (FONT-LOCK-HOOKS-ALIST)
+  `(--each ,FONT-LOCK-HOOKS-ALIST
+     (-let (((font-locks . mode-hooks) it))
+       (--each mode-hooks
+         (add-hook it (-partial &#39;-add-font-lock-kwds
+                                (symbol-value font-locks)))))))
+
+(defconst emacs-outlines-font-lock-alist
+  ;; Outlines
+  &#39;((&amp;quot;\\(^;;;\\) &amp;quot;          ?■)
+    (&amp;quot;\\(^;;;;\\) &amp;quot;         ?○)
+    (&amp;quot;\\(^;;;;;\\) &amp;quot;        ?✸)
+    (&amp;quot;\\(^;;;;;;\\) &amp;quot;       ?✿)))
+
+(defconst lisp-outlines-font-lock-alist
+  ;; Outlines
+  &#39;((&amp;quot;\\(^;; \\*\\) &amp;quot;          ?■)
+    (&amp;quot;\\(^;; \\*\\*\\) &amp;quot;       ?○)
+    (&amp;quot;\\(^;; \\*\\*\\*\\) &amp;quot;    ?✸)
+    (&amp;quot;\\(^;; \\*\\*\\*\\*\\) &amp;quot; ?✿)))
+
+(defconst python-outlines-font-lock-alist
+  &#39;((&amp;quot;\\(^# \\*\\) &amp;quot;          ?■)
+    (&amp;quot;\\(^# \\*\\*\\) &amp;quot;       ?○)
+    (&amp;quot;\\(^# \\*\\*\\*\\) &amp;quot;    ?✸)
+    (&amp;quot;\\(^# \\*\\*\\*\\*\\) &amp;quot; ?✿)))
+
+(add-font-locks
+ &#39;((emacs-outlines-font-lock-alist emacs-lisp-mode-hook)
+   (lisp-outlines-font-lock-alist clojure-mode-hook hy-mode-hook)
+   (python-outlines-font-lock-alist python-mode-hook)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This could eventually be improved to work for any number of levels and
+auto-determine the outline regex base on the comment syntax.&lt;/p&gt;
+
+&lt;h3 id=&#34;ellipsis&#34;&gt;Ellipsis&lt;/h3&gt;
+
+&lt;p&gt;Org-mode has the variable &lt;code&gt;org-ellipsis&lt;/code&gt; for setting the trailing chars for
+collapsed headers.&lt;/p&gt;
+
+&lt;p&gt;We can set our own outline ellipsis icon as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defvar outline-display-table (make-display-table))
+(set-display-table-slot outline-display-table &#39;selective-display
+                        (vector (make-glyph-code ?▼ &#39;escape-glyph)))
+(defun set-outline-display-table ()
+  (setf buffer-display-table outline-display-table))
+
+(add-hook &#39;outline-mode-hook &#39;set-outline-display-table)
+(add-hook &#39;outline-minor-mode-hook &#39;set-outline-display-table)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;outline-ivy&#34;&gt;Outline-ivy&lt;/h1&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;All the outlines&lt;/th&gt;
+&lt;th&gt;Searching catches children&lt;/th&gt;
+&lt;th&gt;Restricting Levels&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-ivy-raw.png&#34; alt=&#34;/img/outline-ivy-raw.png&#34; title=&#34;/img/outline-ivy-raw.png&#34; /&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-ivy-many.png&#34; alt=&#34;/img/outline-ivy-many.png&#34; title=&#34;/img/outline-ivy-many.png&#34; /&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-ivy-level.png&#34; alt=&#34;/img/outline-ivy-level.png&#34; title=&#34;/img/outline-ivy-level.png&#34; /&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Current methods for jumping to outlines have significant limitations.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el&#34; title=&#34;Outline-ivy&#34;&gt;Outline-ivy&lt;/a&gt; makes outlines a proper navigational, not just organizational, tool
+with &lt;code&gt;oi-jump&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;All outlines are collected, stylized, and associated with their parents.&lt;/p&gt;
+
+&lt;p&gt;Parents are inserted as invisible text for child outlines. This way, searching
+for eg. &#34;Display&#34; catches all its children.&lt;/p&gt;
+
+&lt;p&gt;The level is also inserted and hidden enabling the search &#34;1 spacemacs&#34; to catch
+only top-level headings matching spacemacs. It also overrides &lt;code&gt;ivy-match-face&lt;/code&gt; and
+ &lt;code&gt;ivy-height&lt;/code&gt; to play nice with the propertized prompt strings.&lt;/p&gt;
+
+&lt;p&gt;The default configuration:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defvar oi-height 20
+  &amp;quot;Number of outlines to display, overrides ivy-height.&amp;quot;)
+
+(defface oi-match-face
+  &#39;((t :height 1.10 :foreground &amp;quot;light gray&amp;quot;))
+  &amp;quot;Match face for ivy outline prompt.&amp;quot;)
+
+(defface oi-face-1
+  &#39;((t :foreground &amp;quot;#268bd2&amp;quot; :height 1.25 :underline t :weight ultra-bold))
+  &amp;quot;Ivy outline face for level 1&amp;quot;)
+
+(defface oi-face-2
+  &#39;((t :foreground &amp;quot;#2aa198&amp;quot; :height 1.1 :weight semi-bold))
+  &amp;quot;Ivy outline face for level 2&amp;quot;)
+
+(defface oi-face-3
+  &#39;((t :foreground &amp;quot;steel blue&amp;quot;))
+  &amp;quot;Ivy outline face for level 3&amp;quot;)
+
+;; My keybinding for oi-jump, unbound by default.
+(global-set-key (kbd &amp;quot;C-j&amp;quot;) &#39;oi-jump)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Many emacs lisp packages both intentionally and unintentionally use the outline
+syntax for organizing their source. These changes can make understanding and
+navigating the source significantly easier.&lt;/p&gt;
+
+&lt;p&gt;Below is a screenshot jumping to an outline in &lt;code&gt;org.el&lt;/code&gt;, the core org source
+file.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outlines-org.png&#34; alt=&#34;/img/outlines-org.png&#34; title=&#34;/img/outlines-org.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I&#39;m not sure how difficult it would be to port this package to &lt;code&gt;helm&lt;/code&gt;. This is
+one of many updates I&#39;ll look to add eventually, such as adding more quick
+actions to the prompt like jump-and-narrow or a projective jump version.&lt;/p&gt;
+
+&lt;h1 id=&#34;my-experience&#34;&gt;My Experience&lt;/h1&gt;
+
+&lt;p&gt;Perhaps the best judge of the impact of some configuration is how often you
+find yourself reaching for it. For buffer-wide navigation to a specific area
+rather than some specific symbol or function, I now almost exclusively use
+ &lt;code&gt;oi-jump&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;I consider outlines to be one of the most practical features of Emacs. All
+source code, in any language, I organize with outlines. Given how unobtrusive
+the syntax is, it shouldn&#39;t be difficult to implement in a collaborative
+project.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Pretty Magit - Integrating commit leaders</title>
       <link>https://ekaschalk.github.io/post/pretty-magit/</link>
       <pubDate>Sun, 25 Jun 2017 00:00:00 +0000</pubDate>
