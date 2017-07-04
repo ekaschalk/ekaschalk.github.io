@@ -11,6 +11,111 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Fancy Outline Bullets</title>
+      <link>https://ekaschalk.github.io/post/outline-bullets/</link>
+      <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/outline-bullets/</guid>
+      <description>&lt;p&gt;We improve upon the outline bullets presented in the previous post &lt;a href=&#39;https://ekaschalk.github.io/post/outline-ivy/&#39;&gt;Managing code with Outlines&lt;/a&gt;.&lt;/p&gt;
+
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;My Headings&lt;/th&gt;
+&lt;th&gt;Editing my config&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-bullets-fancy.png&#34; alt=&#34;/img/outline-bullets-fancy.png&#34; title=&#34;/img/outline-bullets-fancy.png&#34; /&gt;&lt;/td&gt;
+&lt;td&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-bullets-config.png&#34; alt=&#34;/img/outline-bullets-config.png&#34; title=&#34;/img/outline-bullets-config.png&#34; /&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;This solution:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Allows for face application to the bullet. The default faces &lt;code&gt;outline-1/2/3...&lt;/code&gt;&lt;/li&gt;
+   only apply to the text, not the bullet.
+&lt;li&gt;Adds spaces for higher level bullets. So not every outline-level needs to&lt;/li&gt;
+   have its text start at the same column.
+&lt;li&gt;Works for any number of outline levels.&lt;/li&gt;
+&lt;li&gt;Generalized - uses outline regexes, all that is required to add the bullets&lt;/li&gt;
+   to a mode is adding to its hook.
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(require &#39;dash)
+(require &#39;outshine)
+(require &#39;s)
+
+(defmacro with-face (STR &amp;amp;rest PROPS)
+  &amp;quot;Return STR propertized with PROPS.&amp;quot;
+  `(propertize ,STR &#39;face (list ,@PROPS)))
+
+(defun set-icon-fonts (CODE-FONT-ALIST)
+  &amp;quot;Utility to associate many unicode points with specified fonts.&amp;quot;
+  (--each CODE-FONT-ALIST
+    (-let (((font . codes) it))
+      (--each codes
+        (set-fontset-font t `(,it . ,it) font)))))
+
+;; Requires all-the-icons fonts installed
+(set-icon-fonts
+ &#39;((&amp;quot;material icons&amp;quot; #xe3d0 #xe3d1 #xe3d2 #xe3d4)))
+
+(setq outline-bullets-bullet-list &#39;(&amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot;))
+
+(defun font-lock-display-updates (FONT-LOCK-ALIST)
+  &amp;quot;Put text property for FONT-LOCK-ALIST for var-width replacements.&amp;quot;
+  (font-lock-add-keywords
+   nil (--map (-let (((rgx uni-point) it))
+                `(,rgx (0 (progn
+                            (put-text-property
+                             (match-beginning 1) (match-end 1)
+                             &#39;display
+                             ,uni-point)
+                            nil))))
+              FONT-LOCK-ALIST)))
+
+(defun outline-bullets-rgx-at-level (LEVEL)
+  &amp;quot;Calculate regex or outline-bullets at LEVEL.&amp;quot;
+  (concat &amp;quot;\\(^&amp;quot;
+          (-&amp;gt; LEVEL
+              outshine-calc-outline-string-at-level
+              s-trim-right)
+          &amp;quot;\\) &amp;quot;))
+
+(defun propertize-bullet (LEVEL BULLET)
+  &amp;quot;Add LEVEL-dependent face to BULLET.&amp;quot;
+  (with-face BULLET
+             (pcase LEVEL
+               (0 &#39;(:inherit outline-1 :underline nil))
+               (1 &#39;(:inherit outline-2 :underline nil))
+               (2 &#39;(:inherit outline-3 :underline nil))
+               (3 &#39;(:inherit outline-4 :underline nil))
+               (_ nil))))
+
+(defun add-outline-font-locks ()
+  &amp;quot;Use with `add-hook&#39; to enable outline-bullets-bullet-list for mode.&amp;quot;
+  (font-lock-display-updates
+   (--map-indexed
+    (list
+     (outline-bullets-rgx-at-level (+ 1 it-index))
+     (concat
+      (s-repeat it-index &amp;quot; &amp;quot;)
+      (propertize-bullet it-index it)))
+    (-take 8 (-cycle outline-bullets-bullet-list)))))
+
+(add-hook &#39;emacs-lisp-mode-hook &#39;add-outline-font-locks)
+(add-hook &#39;hy-mode-hook &#39;add-outline-font-locks)
+(add-hook &#39;python-mode-hook &#39;add-outline-font-locks)
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Managing code with Outlines</title>
       <link>https://ekaschalk.github.io/post/outline-ivy/</link>
       <pubDate>Fri, 30 Jun 2017 00:00:00 +0000</pubDate>

@@ -33,17 +33,17 @@
   <link rel="stylesheet" href="/css/custom.css">
   
 
-  <link rel="alternate" href="https://ekaschalk.github.io/post/index.xml" type="application/rss+xml" title="Modern Emacs">
-  <link rel="feed" href="https://ekaschalk.github.io/post/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
 
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
 
-  <link rel="canonical" href="https://ekaschalk.github.io/post/">
+  <link rel="canonical" href="https://ekaschalk.github.io/post/outline-bullets/">
 
   
 
-  <title>Posts | Modern Emacs</title>
+  <title>Fancy Outline Bullets | Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -114,20 +114,13 @@
 </nav>
 
 
-
-
-
-<div class="universal-wrapper">
-
-  <h1>Posts</h1>
+<article class="article" itemscope itemtype="http://schema.org/Article">
 
   
 
-  
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/outline-bullets/">Fancy Outline Bullets</a></h2>
+
+  <div class="article-container">
+    <h1 itemprop="name">Fancy Outline Bullets</h1>
     
 
 <div class="article-metadata">
@@ -154,312 +147,193 @@
   
 
   
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-bullets%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Fancy%20Outline%20Bullets&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-bullets%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-bullets%2f&amp;title=Fancy%20Outline%20Bullets"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-bullets%2f&amp;title=Fancy%20Outline%20Bullets"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Fancy%20Outline%20Bullets&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2foutline-bullets%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
 
 </div>
 
-    <div class="article-style"><p>
-      
-      Improving the display of outline mode.
-      
-    </p></div>
+    <div class="article-style" itemprop="articleBody">
+      <p>We improve upon the outline bullets presented in the previous post <a href='/post/outline-ivy/'>Managing code with Outlines</a>.</p>
+
+<table>
+<thead>
+<tr>
+<th>My Headings</th>
+<th>Editing my config</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="/img/outline-bullets-fancy.png" alt="/img/outline-bullets-fancy.png" title="/img/outline-bullets-fancy.png" /></td>
+<td><img src="/img/outline-bullets-config.png" alt="/img/outline-bullets-config.png" title="/img/outline-bullets-config.png" /></td>
+</tr>
+</tbody>
+</table>
+
+<p>This solution:</p>
+
+<ol>
+<li>Allows for face application to the bullet. The default faces <code>outline-1/2/3...</code></li>
+   only apply to the text, not the bullet.
+<li>Adds spaces for higher level bullets. So not every outline-level needs to</li>
+   have its text start at the same column.
+<li>Works for any number of outline levels.</li>
+<li>Generalized - uses outline regexes, all that is required to add the bullets</li>
+   to a mode is adding to its hook.
+</ol>
+
+<pre><code class="language-lisp">
+(require 'dash)
+(require 'outshine)
+(require 's)
+
+(defmacro with-face (STR &amp;rest PROPS)
+  &quot;Return STR propertized with PROPS.&quot;
+  `(propertize ,STR 'face (list ,@PROPS)))
+
+(defun set-icon-fonts (CODE-FONT-ALIST)
+  &quot;Utility to associate many unicode points with specified fonts.&quot;
+  (--each CODE-FONT-ALIST
+    (-let (((font . codes) it))
+      (--each codes
+        (set-fontset-font t `(,it . ,it) font)))))
+
+;; Requires all-the-icons fonts installed
+(set-icon-fonts
+ '((&quot;material icons&quot; #xe3d0 #xe3d1 #xe3d2 #xe3d4)))
+
+(setq outline-bullets-bullet-list '(&quot;&quot; &quot;&quot; &quot;&quot; &quot;&quot;))
+
+(defun font-lock-display-updates (FONT-LOCK-ALIST)
+  &quot;Put text property for FONT-LOCK-ALIST for var-width replacements.&quot;
+  (font-lock-add-keywords
+   nil (--map (-let (((rgx uni-point) it))
+                `(,rgx (0 (progn
+                            (put-text-property
+                             (match-beginning 1) (match-end 1)
+                             'display
+                             ,uni-point)
+                            nil))))
+              FONT-LOCK-ALIST)))
+
+(defun outline-bullets-rgx-at-level (LEVEL)
+  &quot;Calculate regex or outline-bullets at LEVEL.&quot;
+  (concat &quot;\\(^&quot;
+          (-&gt; LEVEL
+              outshine-calc-outline-string-at-level
+              s-trim-right)
+          &quot;\\) &quot;))
+
+(defun propertize-bullet (LEVEL BULLET)
+  &quot;Add LEVEL-dependent face to BULLET.&quot;
+  (with-face BULLET
+             (pcase LEVEL
+               (0 '(:inherit outline-1 :underline nil))
+               (1 '(:inherit outline-2 :underline nil))
+               (2 '(:inherit outline-3 :underline nil))
+               (3 '(:inherit outline-4 :underline nil))
+               (_ nil))))
+
+(defun add-outline-font-locks ()
+  &quot;Use with `add-hook' to enable outline-bullets-bullet-list for mode.&quot;
+  (font-lock-display-updates
+   (--map-indexed
+    (list
+     (outline-bullets-rgx-at-level (+ 1 it-index))
+     (concat
+      (s-repeat it-index &quot; &quot;)
+      (propertize-bullet it-index it)))
+    (-take 8 (-cycle outline-bullets-bullet-list)))))
+
+(add-hook 'emacs-lisp-mode-hook 'add-outline-font-locks)
+(add-hook 'hy-mode-hook 'add-outline-font-locks)
+(add-hook 'python-mode-hook 'add-outline-font-locks)
+</code></pre>
+
+    </div>
   </div>
-  
-  <div>
+
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
     
-    <h2><a href="https://ekaschalk.github.io/post/outline-ivy/">Managing code with Outlines</a></h2>
+    <li class="previous"><a href="https://ekaschalk.github.io/post/outline-ivy/"><span
+      aria-hidden="true">&larr;</span> Managing code with Outlines</a></li>
     
 
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-30 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Fri, Jun 30, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
     
-    <a href="/categories/emacs">emacs</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
+  </ul>
+</nav>
 
 </div>
 
-    <div class="article-style"><p>
-      
-      Programming the org-mode way.
-      
-    </p></div>
+<div class="article-container">
+  
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/outline-bullets\/';
+    var disqus_title = 'Fancy Outline Bullets';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/outline-bullets\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/pretty-magit/">Pretty Magit - Integrating commit leaders</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-25 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Sun, Jun 25, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Using icons in your commits without the downsides.
-      
-    </p></div>
-  </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/custom-eshell/">Making eshell your own</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-24 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Sat, Jun 24, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Customizing the eshell prompt with your own icons and faces.
-      
-    </p></div>
-  </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/xi-macro/">Anonymous function macro in elisp</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-23 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Fri, Jun 23, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/emacs-lisp">emacs-lisp</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Porting clojures #( reader macro to elisp.
-      
-    </p></div>
-  </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/org-mode-blogging/">An Emacs Blogging Workflow</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-20 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Tue, Jun 20, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/org-mode">org-mode</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Easy org-mode blogging with Hugo.
-      
-    </p></div>
-  </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/python-infix/">Unicode Python Infix Operators</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-06-19 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Mon, Jun 19, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/math">math</a
-    >, 
-    
-    <a href="/categories/python">python</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Mimicking custom python unicode infix operators in Emacs.
-      
-    </p></div>
-  </div>
-  
-  <div>
-    
-    <h2><a href="https://ekaschalk.github.io/post/prettify-mode/">Mathematical Notation in Emacs</a></h2>
-    
-
-<div class="article-metadata">
-
-  <span class="article-date">
-    <time datetime="2017-02-19 00:00:00 &#43;0000 UTC" itemprop="datePublished">
-      Sun, Feb 19, 2017
-    </time>
-  </span>
-
-  
-  
-  
-  <span class="article-categories">
-    <i class="fa fa-folder"></i>
-    
-    <a href="/categories/emacs">emacs</a
-    >, 
-    
-    <a href="/categories/python">python</a
-    >, 
-    
-    <a href="/categories/math">math</a
-    >
-    
-  </span>
-  
-  
-
-  
-
-  
-
-</div>
-
-    <div class="article-style"><p>
-      
-      Programming with unicode replacements that only you see.
-      
-    </p></div>
-  </div>
-  
-
-  
+</section>
 
 
 </div>
+
 <footer class="site-footer">
   <div class="container">
     <p class="powered-by">
