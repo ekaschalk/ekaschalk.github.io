@@ -2,55 +2,55 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Modern Emacs</title>
-    <link>www.modernemacs.com/categories/</link>
+    <link>modernemacs.com/categories/</link>
     <description>Recent content in Categories on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <atom:link href="www.modernemacs.com/categories/" rel="self" type="application/rss+xml" />
+    <atom:link href="modernemacs.com/categories/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Emacs</title>
-      <link>www.modernemacs.com/categories/emacs/</link>
+      <link>modernemacs.com/categories/emacs/</link>
       <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/categories/emacs/</guid>
+      <guid>modernemacs.com/categories/emacs/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Emacs Lisp</title>
-      <link>www.modernemacs.com/categories/emacs-lisp/</link>
+      <link>modernemacs.com/categories/emacs-lisp/</link>
       <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/categories/emacs-lisp/</guid>
+      <guid>modernemacs.com/categories/emacs-lisp/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Math</title>
-      <link>www.modernemacs.com/categories/math/</link>
+      <link>modernemacs.com/categories/math/</link>
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/categories/math/</guid>
+      <guid>modernemacs.com/categories/math/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Org Mode</title>
-      <link>www.modernemacs.com/categories/org-mode/</link>
+      <link>modernemacs.com/categories/org-mode/</link>
       <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/categories/org-mode/</guid>
+      <guid>modernemacs.com/categories/org-mode/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Python</title>
-      <link>www.modernemacs.com/categories/python/</link>
+      <link>modernemacs.com/categories/python/</link>
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/categories/python/</guid>
+      <guid>modernemacs.com/categories/python/</guid>
       <description></description>
     </item>
     

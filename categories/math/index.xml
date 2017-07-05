@@ -2,23 +2,23 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Math on Modern Emacs</title>
-    <link>www.modernemacs.com/categories/math/</link>
+    <link>modernemacs.com/categories/math/</link>
     <description>Recent content in Math on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
     <lastBuildDate>Mon, 19 Jun 2017 00:00:00 +0000</lastBuildDate>
-    <atom:link href="www.modernemacs.com/categories/math/" rel="self" type="application/rss+xml" />
+    <atom:link href="modernemacs.com/categories/math/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Unicode Python Infix Operators</title>
-      <link>www.modernemacs.com/post/python-infix/</link>
+      <link>modernemacs.com/post/python-infix/</link>
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/post/python-infix/</guid>
+      <guid>modernemacs.com/post/python-infix/</guid>
       <description>&lt;p&gt;Custom infix operators can be emulated in Python using &lt;strong&gt;prettify-symbols-mode&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;www.modernemacs.com/img/python-infix.png&#34; width=700px&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;modernemacs.com/img/python-infix.png&#34; width=700px&gt;&lt;/p&gt;
 &lt;!-- [[file:/img/python-infix.png]] --&gt;
 
 &lt;p&gt;In your emacs config include:&lt;/p&gt;
@@ -61,14 +61,14 @@ emacs enabling these shenanigans.&lt;/p&gt;
     
     <item>
       <title>Mathematical Notation in Emacs</title>
-      <link>www.modernemacs.com/post/prettify-mode/</link>
+      <link>modernemacs.com/post/prettify-mode/</link>
       <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/post/prettify-mode/</guid>
+      <guid>modernemacs.com/post/prettify-mode/</guid>
       <description>
 
-&lt;p&gt;&lt;img src=&#34;www.modernemacs.com/img/spacemacs/python-code.png&#34; /&gt;
-&lt;img src=&#34;www.modernemacs.com/img/spacemacs/hy-code.png&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;modernemacs.com/img/spacemacs/python-code.png&#34; /&gt;
+&lt;img src=&#34;modernemacs.com/img/spacemacs/hy-code.png&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Sequences of characters are represented as a single token using:&lt;/p&gt;
 

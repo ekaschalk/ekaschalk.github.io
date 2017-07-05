@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Emacs Lisp on Modern Emacs</title>
-    <link>www.modernemacs.com/categories/emacs-lisp/</link>
+    <link>modernemacs.com/categories/emacs-lisp/</link>
     <description>Recent content in Emacs Lisp on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
     <lastBuildDate>Fri, 23 Jun 2017 00:00:00 +0000</lastBuildDate>
-    <atom:link href="www.modernemacs.com/categories/emacs-lisp/" rel="self" type="application/rss+xml" />
+    <atom:link href="modernemacs.com/categories/emacs-lisp/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Anonymous function macro in elisp</title>
-      <link>www.modernemacs.com/post/xi-macro/</link>
+      <link>modernemacs.com/post/xi-macro/</link>
       <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>www.modernemacs.com/post/xi-macro/</guid>
+      <guid>modernemacs.com/post/xi-macro/</guid>
       <description>&lt;p&gt;Clojure has anonymous functions with the reader macro &lt;code&gt;#(&lt;/code&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&#34;language-clojure&#34;&gt;
