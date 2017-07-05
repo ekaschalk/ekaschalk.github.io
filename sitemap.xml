@@ -5,7 +5,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/outline-bullets/</loc>
+      <loc>https://ekaschalk.github.io/post/outline-bullets/</loc>
       <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     </url>
     
@@ -14,7 +14,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/outline-ivy/</loc>
+      <loc>https://ekaschalk.github.io/post/outline-ivy/</loc>
       <lastmod>2017-06-30T00:00:00+00:00</lastmod>
     </url>
     
@@ -23,7 +23,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/pretty-magit/</loc>
+      <loc>https://ekaschalk.github.io/post/pretty-magit/</loc>
       <lastmod>2017-06-25T00:00:00+00:00</lastmod>
     </url>
     
@@ -32,7 +32,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/custom-eshell/</loc>
+      <loc>https://ekaschalk.github.io/post/custom-eshell/</loc>
       <lastmod>2017-06-24T00:00:00+00:00</lastmod>
     </url>
     
@@ -41,7 +41,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/xi-macro/</loc>
+      <loc>https://ekaschalk.github.io/post/xi-macro/</loc>
       <lastmod>2017-06-23T00:00:00+00:00</lastmod>
     </url>
     
@@ -50,7 +50,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/org-mode-blogging/</loc>
+      <loc>https://ekaschalk.github.io/post/org-mode-blogging/</loc>
       <lastmod>2017-06-20T00:00:00+00:00</lastmod>
     </url>
     
@@ -59,7 +59,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/python-infix/</loc>
+      <loc>https://ekaschalk.github.io/post/python-infix/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
     </url>
     
@@ -68,7 +68,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/prettify-mode/</loc>
+      <loc>https://ekaschalk.github.io/post/prettify-mode/</loc>
       <lastmod>2017-02-19T00:00:00+00:00</lastmod>
     </url>
     
@@ -77,7 +77,7 @@
     
     <url>
     
-      <loc>modernemacs.com/tags/emacs/</loc>
+      <loc>https://ekaschalk.github.io/tags/emacs/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
     </url>
     
@@ -86,7 +86,7 @@
     
     <url>
     
-      <loc>modernemacs.com/post/</loc>
+      <loc>https://ekaschalk.github.io/post/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
     </url>
     
@@ -95,7 +95,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/</loc>
+      <loc>https://ekaschalk.github.io/categories/</loc>
       <priority>0</priority>
     </url>
     
@@ -104,7 +104,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/emacs/</loc>
+      <loc>https://ekaschalk.github.io/categories/emacs/</loc>
       <lastmod>2017-07-03T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -114,7 +114,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/emacs-lisp/</loc>
+      <loc>https://ekaschalk.github.io/categories/emacs-lisp/</loc>
       <lastmod>2017-06-23T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -124,7 +124,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/math/</loc>
+      <loc>https://ekaschalk.github.io/categories/math/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -134,7 +134,7 @@
     
     <url>
     
-      <loc>modernemacs.com/</loc>
+      <loc>https://ekaschalk.github.io/</loc>
       <lastmod>2016-04-20T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -144,7 +144,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/org-mode/</loc>
+      <loc>https://ekaschalk.github.io/categories/org-mode/</loc>
       <lastmod>2017-06-20T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -154,7 +154,7 @@
     
     <url>
     
-      <loc>modernemacs.com/categories/python/</loc>
+      <loc>https://ekaschalk.github.io/categories/python/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
@@ -164,7 +164,7 @@
     
     <url>
     
-      <loc>modernemacs.com/tags/</loc>
+      <loc>https://ekaschalk.github.io/tags/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>

@@ -2,20 +2,20 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Modern Emacs</title>
-    <link>modernemacs.com/tags/</link>
+    <link>https://ekaschalk.github.io/tags/</link>
     <description>Recent content in Tags on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
     <lastBuildDate>Sun, 01 Jan 2017 00:00:00 +0000</lastBuildDate>
-    <atom:link href="modernemacs.com/tags/" rel="self" type="application/rss+xml" />
+    <atom:link href="/tags/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Content tagged as &#39;Emacs</title>
-      <link>modernemacs.com/tags/emacs/</link>
+      <link>https://ekaschalk.github.io/tags/emacs/</link>
       <pubDate>Sun, 01 Jan 2017 00:00:00 +0000</pubDate>
       
-      <guid>modernemacs.com/tags/emacs/</guid>
+      <guid>https://ekaschalk.github.io/tags/emacs/</guid>
       <description>&lt;p&gt;Here is a list of all the content that has been tagged as &lt;em&gt;emacs&lt;/em&gt;.&lt;/p&gt;
 </description>
     </item>
