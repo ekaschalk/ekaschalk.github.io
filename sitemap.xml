@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/post/migrate-layers/</loc>
+      <lastmod>2017-07-14T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/outline-bullets/</loc>
       <lastmod>2017-07-03T00:00:00+00:00</lastmod>
     </url>
@@ -105,7 +114,7 @@
     <url>
     
       <loc>https://ekaschalk.github.io/categories/emacs/</loc>
-      <lastmod>2017-07-03T00:00:00+00:00</lastmod>
+      <lastmod>2017-07-14T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     
@@ -156,6 +165,16 @@
     
       <loc>https://ekaschalk.github.io/categories/python/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/spacemacs/</loc>
+      <lastmod>2017-07-14T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     

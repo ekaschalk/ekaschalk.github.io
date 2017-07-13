@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.22.1" />
+  <meta name="author" content="Eric Kaschalk">
+  
+
+  
+  
+  
+    
+  
+  
+    
+    
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/zenburn.min.css">
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.0/css/academicons.min.css" integrity="sha512-GGGNUPDhnG8LEAEDsjqYIQns+Gu8RBs4j5XGlxl7UfRaZBhCCm5jenJkeJL8uPuOXGqgl8/H1gjlWQDRjd3cUQ==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather%7CRoboto+Mono">
+  <link rel="stylesheet" href="/css/hugo-academic.css">
+  
+  <link rel="stylesheet" href="/css/custom.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-101190730-1', 'auto');
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
+
+  <link rel="canonical" href="https://ekaschalk.github.io/post/migrate-layers/">
+
+  
+
+  <title>Migrating to Spacemacs Layers | Modern Emacs</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Modern Emacs</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#spacemacs">
+            
+            <span>My Spacemacs</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>About</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Migrating to Spacemacs Layers</h1>
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    <time datetime="2017-07-14 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      <i class="fa fa-calendar"></i>
+      Fri, Jul 14, 2017
+    </time>
+  </span>
+
+  
+  
+  
+  <span class="article-categories">
+    <i class="fa fa-tags"></i>
+    
+    <a href="/categories/emacs">emacs</a
+    >, 
+    
+    <a href="/categories/spacemacs">spacemacs</a
+    >
+    
+  </span>
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fmigrate-layers%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Migrating%20to%20Spacemacs%20Layers&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmigrate-layers%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmigrate-layers%2f&amp;title=Migrating%20to%20Spacemacs%20Layers"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmigrate-layers%2f&amp;title=Migrating%20to%20Spacemacs%20Layers"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Migrating%20to%20Spacemacs%20Layers&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fmigrate-layers%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    <div class="article-style" itemprop="articleBody">
+      <p>Spacemacs is referred for its evil integration, space-based bindings, and
+community contributed <em>layers</em> that collect, configure, and integrate groups of
+packages.</p>
+
+<p>For how much they add to Emacs, motivations for personal layers are largely
+undocumented.</p>
+
+<p>I introduce layers then discuss benefits, approaches, and gotchas with
+layer-based configurations.</p>
+
+<p>I've migrated my entire <code>dotspacemacs/user-config</code> into personal layers - now 6
+lines vs 1,500.</p>
+
+<p>See <a href="https://github.com/ekaschalk/.spacemacs.d" title="https://github.com/ekaschalk/.spacemacs.d">https://github.com/ekaschalk/.spacemacs.d</a> for my viewer-friendly configuration .</p>
+
+<h1 id="introducing-layers">Introducing Layers</h1>
+
+<p>This section is not a replacement for <a href="http://spacemacs.org/doc/LAYERS.html" title="http://spacemacs.org/doc/LAYERS.html">http://spacemacs.org/doc/LAYERS.html</a>.</p>
+
+<p>Layers are directories containing up to 5 files and possibly additional
+packages.</p>
+
+<p>In load order:</p>
+
+<h3 id="layers-el">Layers.el</h3>
+
+<p>Layer dependencies to load first.</p>
+
+<pre><code class="language-lisp">
+(configuration-layer/declare-layers '(theming))
+</code></pre>
+
+<h3 id="packages-el">packages.el</h3>
+
+<p>Packages added or configured by the layer.</p>
+
+<pre><code class="language-lisp">
+(setq my-layer-packages
+      '(a-pkg
+        (github-pkg :location (recipe :fetcher github
+                                      :repo &quot;github-user/repo-name&quot;))
+        (my-pkg :location local)))
+</code></pre>
+
+<ul>
+<li><strong>Owned Packages:</strong> A layer owns a package if it defines <code>layer-name/init-pkg-name</code>. All packages not defined in <code>dotspacemacs/additional/packages</code> should have one and only one owner. It calls <code>use-package</code>. Common options are <code>:init</code> for before load config, <code>:config</code> for after, <code>:if</code> for loading if eg. a certain OS or executable is installed, <code>:after</code> for enforcing load order, and <code>:defer t</code> for deferred loading.</li>
+</ul>
+
+<pre><code class="language-lisp">
+(defun display/init-pretty-outlines ()
+  (use-package pretty-outlines
+    :after outshine
+    :config
+    (progn
+      (add-hook 'outline-mode-hook 'pretty-outline-set-display-table)
+      (add-hook 'outline-minor-mode-hook 'pretty-outline-set-display-table)
+      (add-hook 'emacs-lisp-mode-hook 'pretty-outline-add-bullets))))
+</code></pre>
+
+<ul>
+<li><strong>Unowned Packages:</strong> A layer that does not own a package can configure it with <code>layer-name/pre-init-pkg-name</code> and <code>layer-name/post-init-pkg-name</code>.</li>
+</ul>
+
+<pre><code class="language-lisp">
+(defun config/pre-init-neotree ()
+  (evil-global-set-key 'normal (kbd &quot;M-p&quot;)
+                       'neotree-find-project-root))
+
+(defun config/post-init-neotree ()
+  (setq neo-theme 'icons))
+</code></pre>
+
+<ul>
+<li><strong>Local Packages:</strong> Personal packages at <code>local/my-pkg/my-pkg.el</code>.</li>
+</ul>
+
+<h3 id="funcs-el">funcs.el</h3>
+
+<p>Layer functions.</p>
+
+<p>Package agnostic functions belong here.</p>
+
+<pre><code class="language-lisp">
+(defmacro with-face (STR &amp;rest PROPS)
+  &quot;Return STR propertized with PROPS.&quot;
+  `(propertize ,STR 'face (list ,@PROPS)))
+</code></pre>
+
+<p>Guarding against particular packages being installed:</p>
+
+<pre><code class="language-lisp">
+(when (configuration-layer/package-usedp 'some-pkg)
+  (defun my-func ()))
+</code></pre>
+
+<h3 id="config-el">config.el</h3>
+
+<p>Layer variables.</p>
+
+<pre><code class="language-lisp">
+;; python/config.el
+(defvar python-tab-width 4
+  &quot;Tab width value for python buffers&quot;)
+
+;; init.el in dotspacemacs-configuration-layers
+(python :variables python-tab-width 2)
+</code></pre>
+
+<p>Configuration defined here will be loaded before the package init functions are
+executed. Layer dependencies are actually loaded prior to config.el.</p>
+
+<p>This can be used for eg. setting theme updates with the <code>theming</code> layer.</p>
+
+<pre><code class="language-lisp">
+(setq theming-modifications
+      `((solarized-dark (avy-background-face :foreground &quot;#586e75&quot;)
+                        (font-lock-doc-face :foreground &quot;#2aa198&quot;))
+        (solarized-light ...)))
+</code></pre>
+
+<h3 id="keybindings-el">keybindings.el</h3>
+
+<p>Package-agnostic key-bindings.</p>
+
+<pre><code class="language-lisp">
+(global-set-key (kbd &quot;M-d&quot;) 'spacemacs/delete-window)
+
+;; Evil will be loaded
+(evil-define-key '(normal visual motion) outline-minor-mode-map
+  &quot;gh&quot; 'outline-up-heading)
+</code></pre>
+
+<h1 id="personal-layers">Personal Layers</h1>
+
+<h2 id="structure">Structure</h2>
+
+<p>While any organization can be used, I recommend at most these 5 layers covering
+common needs.</p>
+
+<h3 id="a-macros-base-layer">A Macros/Base Layer</h3>
+
+<p>A base layer that all personal layers inherit packages, macros, and common
+functions from with <code>(configuration-layer/declare-layers '(base))</code>.</p>
+
+<p>I load <code>dash-functional</code> and define <code>with-dir</code>, <code>with-face</code>, and other useful
+utilities here.</p>
+
+<h3 id="config">Config</h3>
+
+<p>All packages and their configuration and key-bindings that don't fit into any
+neat grouping.</p>
+
+<p>When any package's init gets large, consider a local package. I maintain my
+org-mode setup separately in a local <code>org-config</code> package.</p>
+
+<p>Anything, excluding spacemacs toggles, can be setup here. For instance:</p>
+
+<pre><code class="language-lisp">
+(setq config-packages '(evil ...))
+
+(defun config/post-init-evil ()
+  (setq evil-escape-key-sequence &quot;jk&quot;)
+  (setq evil-escape-unordered-key-sequence &quot;true&quot;)
+  (advice-add 'evil-ex-search-next :after 'config/scroll-to-center-advice)
+  (advice-add 'evil-ex-search-previous :after 'config/scroll-to-center-advice))
+</code></pre>
+
+<p>I recommend this layer own <strong>all additional packages</strong> except themes, see gotchas.</p>
+
+<h3 id="display">Display</h3>
+
+<p>Theme updates and display packages like <code>spaceline-all-the-icons</code>.</p>
+
+<p>Due to how Spacemacs loads themes, I highly recommend declaring the
+ <code>theming</code> layer a dependency for theme updates. It is much more efficient should
+you configure multiple themes, like light and dark versions, and as it is a
+layer, it will be loaded prior to <code>config.el</code> for proper code isolation.</p>
+
+<p>I integrate and configure my local pretty packages here:</p>
+
+<ul>
+<li><em>pretty-code</em> : Program with custom ligatures and symbols, see <a href='/post/prettify-mode/'>mathematical notation in emacs</a></li>
+<li><em>pretty-eshell</em> : Customize eshell information and faces, see <a href='/post/custom-eshell/'>making eshell your own</a></li>
+<li><em>pretty-fonts</em> : All the icons and Fira Code ligature integration.</li>
+<li><em>pretty-magit</em> : Commit leaders, see <a href='/post/pretty-magit/'>pretty magit - integrating commit leaders</a></li>
+<li><em>pretty-outlines</em> : Fancy outline bullets and ellipsis, see <a href='/post/outline-bullets/'>fancy outline bullets</a></li>
+</ul>
+
+<h3 id="langs-optional">Langs (optional)</h3>
+
+<p>I find it useful to separate programming language configuration out from the
+config layer, though it is not necessary.</p>
+
+<h3 id="personal-optional">Personal (optional)</h3>
+
+<p>All personal packages that aren't display related I maintain in a single
+personal layer. This is only relevant if you write your own packages.</p>
+
+<p>I setup my blogging and outline-jump packages here.</p>
+
+<h2 id="your-init-el">Your init.el</h2>
+
+<p>Layers must be declared in your <code>dotspacemacs-configuration-layers</code> to take effect.</p>
+
+<p>I've organized my layers into several sections:</p>
+
+<pre><code class="language-lisp">
+(defvar dotspacemacs/layers/local
+  '((macros :location local)
+    (config :location local)
+    (display :location local)
+    (langs :location local)
+    (personal :location local))
+  &quot;Local layers housed in '~/.spacemacs.d/layers'.&quot;)
+
+(defvar dotspacemacs/layers/core
+  '(better-defaults
+    git
+    org
+    ...)
+  &quot;Layers I consider core to Spacemacs&quot;)
+
+(defvar dotspacemacs/layers/langs
+  '(emacs-lisp
+    ...)
+  &quot;Programming and markup language layers&quot;)
+
+(defvar dotspacemacs/layers/extra
+  '(gnus
+    graphviz
+    ...)
+  &quot;Miscellaneous layers&quot;)
+
+(defun dotspacemacs/layers ()
+  (setq-default dotspacemacs-configuration-layer-path '(&quot;~/.spacemacs.d/layers/&quot;)
+                dotspacemacs-configuration-layers
+                (append dotspacemacs/layers/core
+                        dotspacemacs/layers/langs
+                        dotspacemacs/layers/extra
+                        dotspacemacs/layers/local)
+                ...))
+</code></pre>
+
+<h2 id="gotchas">Gotchas</h2>
+
+<p>Migrating was mostly painless. However when things go wrong you lose access to
+your setup, an annoying development cycle. I encountered several Spacemacs
+idiosyncrasies to be aware of when using layers to replace my user-config.</p>
+
+<p>Non-obvious errors to avoid:</p>
+
+<h3 id="naming">Naming</h3>
+
+<p>The naming scheme of <code>setq layer-name-packages</code> and <code>defun layer-name/init-pkg-name</code> is strict.
+Beware when refactoring that you adjust the layer name accordingly. Failure to
+do so will result in the package's configuration not being loaded or in the case
+of ownership, not being installed, rather than a direct error.</p>
+
+<h3 id="spacemacs-toggles">Spacemacs toggles</h3>
+
+<p>Some toggles like <code>spacemacs/toggle-highlight-long-lines-globally-on</code> do not
+belong in any layer and should be defined in your user-config. Six toggles are
+now all that compose my <code>dotspacemacs/user-config</code>.</p>
+
+<p>This goes for some toggles not explicitly owned by Spacemacs - trying to setup
+ <code>fringe-mode</code> failed for me even in a <code>config/post-init-fringe</code> block.</p>
+
+<h3 id="os-configuration">OS Configuration</h3>
+
+<p>I define <code>is-linuxp</code> and a few other OS utilities that conditionally setup
+ <code>dotspacemacs/init</code> variables like font size. Layers load after these variables
+are set, so the utilities cannot be moved to a layer. Set them at the top of
+your <code>init.el</code>.</p>
+
+<h3 id="additional-themes">Additional Themes</h3>
+
+<p>Spacemacs layers load ordering causes issues for extra themes. Theme packages
+cannot be put in a layer. As a result, to use solarized I set:</p>
+
+<pre><code class="language-lisp">
+;; ~/.spacemacs.d/init.el
+(defun dotspacemacs/layers ()
+  (setq-default dotspacemacs-additional-packages '(solarized-theme)
+                ...))
+(defun dotspacemacs/init ()
+  (setq-default dotspacemacs-themes '(solarized-dark solarized-light)
+                ...))
+</code></pre>
+
+<h3 id="spacemacs-core-layers">Spacemacs Core Layers</h3>
+
+<p>Without doing a deep dive into Spacemacs core, you can expect the following
+layers to always be loaded <strong>before all personal layers</strong>. This is how
+ <code>dash</code> is always available and <code>evil-define-key</code> can be used in keybindings
+files.</p>
+
+<p>Call <code>g d</code> or <code>(spacemacs/jump-to-definition)</code> in emacs lisp mode to jump to
+that layer's packages.el to check out its packages and configuration.</p>
+
+<pre><code class="language-lisp">
+(configuration-layer/declare-layers
+ '(spacemacs-base
+   spacemacs-completion
+   spacemacs-layouts
+   spacemacs-editing
+   spacemacs-editing-visual
+   spacemacs-evil
+   spacemacs-language
+   spacemacs-misc
+   spacemacs-modeline
+   spacemacs-navigation
+   spacemacs-org
+   spacemacs-purpose
+   spacemacs-visual))
+</code></pre>
+
+<p>These layers follow the same rules and principles as every other layer. If you
+have the curiosity, these layers make Spacemacs what it is.</p>
+
+<p>Functionality provided here can be made use of by any layer, assuming those
+packages and layers are not explicitly excluded.</p>
+
+<h1 id="benefits">Benefits</h1>
+
+<p>Those that value organization and robustness will find Spacemacs layers to
+improve on other configuration management methods.</p>
+
+<p>Following Spacemacs conventions leads to predictable, friendly configurations.</p>
+
+<p>Once you've become familiar with its conventions, there is no overhead.</p>
+
+    </div>
+  </div>
+
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
+    
+    <li class="previous"><a href="https://ekaschalk.github.io/post/outline-bullets/"><span
+      aria-hidden="true">&larr;</span> Fancy Outline Bullets</a></li>
+    
+
+    
+  </ul>
+</nav>
+
+</div>
+
+<div class="article-container">
+  
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/migrate-layers\/';
+    var disqus_title = 'Migrating to Spacemacs Layers';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/migrate-layers\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
+
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2017 Eric Kaschalk &middot; 
+
+      Powered by the <a href="https://github.com/gcushen/hugo-academic" target="_blank">Academic
+      theme</a> for <a href="http://gohugo.io" target="_blank">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" integrity="sha512-jGsMH83oKe9asCpkOVkBnUrDDTp8wl+adkB2D+//JtlxO4SrLoJdhbOysIFQJloQFD+C4Fl1rMsQZF76JjV0eQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.2/imagesloaded.pkgd.min.js" integrity="sha512-iHzEu7GbSc705hE2skyH6/AlTpOfBmkx7nUqTLGzPYR+C1tRaItbRlJ7hT/D3YQ9SV0fqLKzp4XY9wKulTBGTw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js" integrity="sha512-Z5heTz36xTemt1TbtbfXtTq5lMfYnOkXM2/eWcTTiLU01+Sw4ku1i7vScDc8fWhrP2abz9GQzgKH5NGBLoYlAw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/plugins/ScrollToPlugin.min.js" integrity="sha512-CDeU7pRtkPX6XJtF/gcFWlEwyaX7mcAp5sO3VIu/ylsdR74wEw4wmBpD5yYTrmMAiAboi9thyBUr1vXRPA7t0Q==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+    <script src="/js/custom.js"></script>
+    
+
+    
+    
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/python.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/lisp.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/hy.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/clojure.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+
+  </body>
+</html>
+
