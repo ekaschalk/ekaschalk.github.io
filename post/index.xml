@@ -11,6 +11,345 @@
     <atom:link href="/post/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>A mile Hy - My experience with lispy Python</title>
+      <link>https://ekaschalk.github.io/post/mile-hy/</link>
+      <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/mile-hy/</guid>
+      <description>&lt;p&gt;Roughly, &lt;a href=&#34;http://docs.hylang.org/en/stable/&#34; title=&#34;Hy&#34;&gt;Hy&lt;/a&gt; is to Python as Clojure is to Java. Hy completely inter-ops with Python.&lt;/p&gt;
+
+&lt;p&gt;I&#39;ve hit commit 1,500 in my Hy project at work. I wanted to share my experience
+working with Hy, where I feel it shines and where it falls short.&lt;/p&gt;
+
+&lt;h1 id=&#34;intro-to-hy&#34;&gt;Intro to Hy&lt;/h1&gt;
+
+&lt;h2 id=&#34;basic-syntax&#34;&gt;Basic syntax&lt;/h2&gt;
+
+&lt;p&gt;Hy is a lisp and so uses hyphens as its delimiter. Hy unmangles all hyphens as
+underscores and mangles all incoming underscores to hyphens.&lt;/p&gt;
+
+&lt;p&gt;The following is all valid, hyphens and underscores can be used interchangeably:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(import a-module)
+(import b_module)
+
+(defn a-func [x y]
+  (+ x y))
+
+(setv a-list [1 2])
+(setv a_dict {&amp;quot;k1&amp;quot; &amp;quot;v1&amp;quot; &amp;quot;k2&amp;quot; &amp;quot;v2&amp;quot;})
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To use Hy from python:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+import hy
+from my_hy_module import a_func
+
+a_func(1, 2)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Classes work as expected:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defclass AClass [object]
+  (defn --init-- [self])
+
+  #@(staticmethod
+     (defn -a-func [])))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;#@&lt;/code&gt; is a reader macro for &lt;code&gt;with-decorator&lt;/code&gt;, illustrated later.&lt;/p&gt;
+
+&lt;p&gt;Most all python features are implemented. For example, in master branch we
+have args/kwargs unpacking as:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(print #* [&amp;quot;hi&amp;quot; &amp;quot;there&amp;quot;] #** {&amp;quot;sep&amp;quot; &amp;quot;\n&amp;quot;})
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Some features that were once in python but were removed are also implemented,
+for instance parameter unpacking:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defn add [x [y z]]
+  (+ x y z))
+
+(add 1 [2 3])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;shadowed-built-ins&#34;&gt;Shadowed built-ins&lt;/h2&gt;
+
+&lt;p&gt;Most operators are shadowed. This enables:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(map + [1 2] [2 3])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;whereas in python you would have to do a comprehension or:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+import op
+
+map(op.add, [1, 2], [2, 3])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;special-characters-in-names&#34;&gt;Special characters in names&lt;/h2&gt;
+
+&lt;p&gt;Python restricts the characters you can use in setting variable and functions.
+Hy does not have most of these restrictions.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defn assert~ [x y]
+  (npt.assert-almost-equal x y))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;testing&#34;&gt;Testing&lt;/h2&gt;
+
+&lt;p&gt;Hy works with pytest. Add &lt;code&gt;project_root/conftest.py&lt;/code&gt; with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+import hy
+from _pytest.python import Module
+
+
+def pytest_collect_file(path, parent):
+    if path.ext == &amp;quot;.hy&amp;quot; and &amp;quot;test_&amp;quot; in path.basename:
+        return Module(path, parent)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To collect and run tests written in hy.&lt;/p&gt;
+
+&lt;h2 id=&#34;debugging&#34;&gt;Debugging&lt;/h2&gt;
+
+&lt;p&gt;Pdb/ipdb integrate perfectly with Hy, regardless if called from a hy, python, or
+ipython repl. The hy code can be stepped through and depending on if which repl
+you are in, hy/python code be can executed.&lt;/p&gt;
+
+&lt;h1 id=&#34;why-hy&#34;&gt;Why Hy&lt;/h1&gt;
+
+&lt;h2 id=&#34;macros&#34;&gt;Macros&lt;/h2&gt;
+
+&lt;p&gt;Espousing macros to those who have not learned them is akin to the &#34;monad
+fallacy&#34;. Instead, consider this example of macros reducing pytest boilerplate.&lt;/p&gt;
+
+&lt;p&gt;The macro definitions are &lt;a href=&#34;https://gist.github.com/ekaschalk/240b213aabe83f565aa74bc70161bfaf&#34; title=&#34;contained in this gist&#34;&gt;contained in this gist&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(deffixture numbers
+  &amp;quot;Some numbers.&amp;quot;
+  [[[1 2] 1 [2 3] [2 3]
+   [[1 2] 2 [3 4] [2 4]]
+
+  (list-it it (np.array x1) x2 (np.array x3) (np.array x4))
+
+(with-fixture numbers
+  test-numpy-+ [x i y -]
+  (assert~ (+ i x) y))
+
+(with-fixture numbers
+  test-numpy-* [x i - y]
+  (assert~ (* i x) y))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+@pytest.fixture(params=[
+    ([1, 2], 1, [2, 3], [2, 3]),
+    ([1, 2], 2, [3, 4], [2, 4])
+])
+def numbers(request):
+    &amp;quot;Some numbers.&amp;quot;
+    x, i, y, z = request.params
+    return np.array(x), i, np.array(y), np.array(z)
+
+def test_numpy_add(numbers):
+    x, i, y, _ = numbers
+    npt.assert_almost_equal(x+i, y)
+
+def test_numpy_mult(numbers):
+    x, i, _, y = numbers
+    npt.assert_almost_equal(x*i, y)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Macros allowed:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Implicitly binding request.params to &#34;it&#34; which are then deconstructed to an&lt;/li&gt;
+   anonymous function with the number of parameters as its arity.
+&lt;li&gt;Selectively transforming these parameters.&lt;/li&gt;
+&lt;li&gt;Unpacking and binding the parameters at function definition level.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With the prep factored out in a way only macros enable, the testing body is now
+exactly and only the testing logic.&lt;/p&gt;
+
+&lt;h3 id=&#34;reader-macros&#34;&gt;Reader Macros&lt;/h3&gt;
+
+&lt;p&gt;Reader macros are macros with a shortened syntax.
+The ones I use most are:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(import [toolz.curried :as tz])
+
+(deftag t [expr]
+  &amp;quot;Cast form to a tuple.&amp;quot;
+  `(tuple ~expr))
+
+(deftag $ [expr]
+  &amp;quot;Curry a form.&amp;quot;
+  `(tz.curry ~@expr))
+
+;; For example
+#t(map #$(+ 1) [1 2])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Or in python:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+tuple(map(lambda x: x+1, [1, 2]))
+tuple(x+1 for x in [1, 2])
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Depending on the version of hy you are using, it is either &lt;code&gt;defsharp&lt;/code&gt; or &lt;code&gt;deftag&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;structural-editing&#34;&gt;Structural editing&lt;/h2&gt;
+
+&lt;p&gt;Those that are familiar with lisps likely know the terms &#34;slurp&#34;, &#34;barf&#34;,
+&#34;wrap&#34;, and so on.&lt;/p&gt;
+
+&lt;p&gt;Lisp syntax allows for editing the AST directly.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Initial text
+map [1 2] (+ 1)
+;; wrap map with &amp;quot;w&amp;quot; followed by three slurps 3*&amp;quot;s&amp;quot;
+(map [1 2] (+ 1))
+;; traverse to last form 2*&amp;quot;j&amp;quot; and transpose &amp;quot;t&amp;quot;
+(map (+ 1) [1 2])
+;; altogether &#39;wsssjjt&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This kind of editing is not possible (or at least very restricted) when editing
+python code.&lt;/p&gt;
+
+&lt;h2 id=&#34;functional-programming&#34;&gt;Functional programming&lt;/h2&gt;
+
+&lt;p&gt;What drove me to move to Hy was when I looked at my code and saw
+ &lt;code&gt;tz.thread_first&lt;/code&gt; and &lt;code&gt;tz.thread_last&lt;/code&gt; everywhere. Python goes out of its way
+to make functional programming a second-class citizen. Most all building blocks
+of FP must be implemented and imported everywhere, like the identity function
+and composition.&lt;/p&gt;
+
+&lt;p&gt;Hy empowers FP with:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Threading and anaphoric macros.&lt;/li&gt;
+&lt;li&gt;First class functools and itertools (reduce, starmap, compress...)&lt;/li&gt;
+&lt;li&gt;Common functional methods (juxt, take, drop, constantly, repeatedly...)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&#34;when-to-hyde&#34;&gt;When to Hyde&lt;/h1&gt;
+
+&lt;p&gt;Hy is not always the best choice. I have encountered some issues with Hy, as
+would be expected with a niche language under active development.&lt;/p&gt;
+
+&lt;p&gt;The issues are however minor and due to the key development invariant of
+maintaining complete python compatibility, at worst they can be addressed by
+writing that functionality in Python and importing it.&lt;/p&gt;
+
+&lt;h2 id=&#34;tooling&#34;&gt;Tooling&lt;/h2&gt;
+
+&lt;p&gt;The largest challenge I see to Hy adoption is its current state of tooling.&lt;/p&gt;
+
+&lt;p&gt;If you want to have an enjoyable Hy experience, you are pretty much limited to
+Emacs.&lt;/p&gt;
+
+&lt;p&gt;The Emacs major-mode hy-mode implements syntax highlighting and some basic repl
+support but has its own set of issues.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;No linter, and pylint won&#39;t recognize imported hy objects.&lt;/li&gt;
+&lt;li&gt;No autocompletion.&lt;/li&gt;
+&lt;li&gt;There are bugs.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I&#39;m going to work to address some of these issues but as of now, while you have
+access to all of python&#39;s libraries, the same is not true for its tooling.&lt;/p&gt;
+
+&lt;h2 id=&#34;scripting&#34;&gt;Scripting&lt;/h2&gt;
+
+&lt;p&gt;Hy&#39;s repl comes far short of Ipython&#39;s featureset. You do not have things like
+autoloading or %pdb toggling. In general, lisp&#39;s syntax is not as nice for
+scripting.&lt;/p&gt;
+
+&lt;p&gt;I actually write all my scripts and interactive code in Python as a result.&lt;/p&gt;
+
+&lt;h2 id=&#34;performance-critical-code&#34;&gt;Performance Critical Code&lt;/h2&gt;
+
+&lt;p&gt;If you are writing code that does a lot of fancy array indexing and in-place
+operations, you will have a bad time in Hy.&lt;/p&gt;
+
+&lt;p&gt;My work is data-sciency and I have some numba accelerated code in separate
+python modules. I&#39;ve called Cython source files from Hy without issue.&lt;/p&gt;
+
+&lt;p&gt;There is also a small performance cost to using Hy, it is insignificant for
+most purposes.&lt;/p&gt;
+
+&lt;h2 id=&#34;breaking-changes&#34;&gt;Breaking Changes&lt;/h2&gt;
+
+&lt;p&gt;Breaking changes do occur.&lt;/p&gt;
+
+&lt;p&gt;Version 0.12 had reader macros as &lt;code&gt;defreader&lt;/code&gt; which is now &lt;code&gt;defsharp&lt;/code&gt; in 0.13
+and now in master branch is &lt;code&gt;deftag&lt;/code&gt;. There are good reasons for these changes,
+but they do require being up to date on hy&#39;s development.&lt;/p&gt;
+
+&lt;p&gt;The function &lt;code&gt;apply&lt;/code&gt; for calling a function with arguments unpacked was removed
+in master when the unpacking generalizations were implemented. However, apply
+still has a use-case for threading macros and last I checked they were debating
+reintroducing it in some form.&lt;/p&gt;
+
+&lt;p&gt;The constants for inf and -inf recently were changed to require capitalization.&lt;/p&gt;
+
+&lt;p&gt;Let was originally implemented but removed in favor of &lt;code&gt;setv&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There are good reasons for all these changes but they do incur extra maintenance
+on your part.&lt;/p&gt;
+
+&lt;h2 id=&#34;documentation&#34;&gt;Documentation&lt;/h2&gt;
+
+&lt;p&gt;Hy&#39;s documentation could be improved. Some examples:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Integrating pytest and Hy via the &lt;code&gt;conftest.py&lt;/code&gt; is not documented.&lt;/li&gt;
+&lt;li&gt;Which operators are shadowed are not documented. While now functions like &lt;code&gt;get&lt;/code&gt; are shadowed, when I started, using &lt;code&gt;get&lt;/code&gt; as a function would throw the strange &lt;code&gt;NameError: name &#39;get&#39; is not defined&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Macros are imported with &lt;code&gt;require&lt;/code&gt;. Unlike imports, requires are not transitive. So if I have a &lt;code&gt;macros.hy&lt;/code&gt; file that does &lt;code&gt;(require [hy.extra.anaphoric [*]])&lt;/code&gt;, in every file requiring from macros I will also need to require the anaphorics again.&lt;/li&gt;
+&lt;li&gt;The documentation for &lt;code&gt;zero?&lt;/code&gt; implies an &lt;code&gt;x is 0&lt;/code&gt; but it actually checks&lt;/li&gt;
+   equality. This came up working with numpy, small issues like this are present.
+&lt;/ol&gt;
+
+&lt;p&gt;Although the community is small, I&#39;ve found the maintainers to be very helpful
+and quick to respond.&lt;/p&gt;
+
+&lt;h1 id=&#34;my-experience&#34;&gt;My Experience&lt;/h1&gt;
+
+&lt;p&gt;Python is a practical language - it has amazing libraries, tooling, and
+communities. But it&#39;s development is opinionated towards imperative programming
+and its syntax, while great for the majority, leaves others wanting more
+flexibility.&lt;/p&gt;
+
+&lt;p&gt;I&#39;ve really enjoyed my time with Hy and 1,500 commits later, am satisfied with
+my choice. Small changes like parameter unpacking and no more commas trim things
+down. Larger changes like macros, threading and the functional built-ins allow
+for a first-class functional programming experience.&lt;/p&gt;
+
+&lt;p&gt;Choosing Hy you don&#39;t get Clojurescript or the type safety of Haskell, but you
+do get Numpy, Pandas, Matplotlib, Numba, Django, and every other python library
+from the comfort of Lisp.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Migrating to Spacemacs Layers</title>
       <link>https://ekaschalk.github.io/post/migrate-layers/</link>
       <pubDate>Fri, 14 Jul 2017 00:00:00 +0000</pubDate>

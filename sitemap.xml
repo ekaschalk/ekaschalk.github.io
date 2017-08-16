@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/post/mile-hy/</loc>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/migrate-layers/</loc>
       <lastmod>2017-07-14T00:00:00+00:00</lastmod>
     </url>
@@ -133,6 +142,26 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/categories/hy/</loc>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/lisp/</loc>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/categories/math/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
       <priority>0</priority>
@@ -164,7 +193,7 @@
     <url>
     
       <loc>https://ekaschalk.github.io/categories/python/</loc>
-      <lastmod>2017-06-19T00:00:00+00:00</lastmod>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="author" content="Eric Kaschalk">
+  
+
+  
+  
+  
+    
+  
+  
+    
+    
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/zenburn.min.css">
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.0/css/academicons.min.css" integrity="sha512-GGGNUPDhnG8LEAEDsjqYIQns+Gu8RBs4j5XGlxl7UfRaZBhCCm5jenJkeJL8uPuOXGqgl8/H1gjlWQDRjd3cUQ==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather%7CRoboto+Mono">
+  <link rel="stylesheet" href="/css/hugo-academic.css">
+  
+  <link rel="stylesheet" href="/css/custom.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-101190730-1', 'auto');
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
+
+  <link rel="canonical" href="https://ekaschalk.github.io/post/mile-hy/">
+
+  
+
+  <title>A mile Hy - My experience with lispy Python | Modern Emacs</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Modern Emacs</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#spacemacs">
+            
+            <span>My Spacemacs</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>About</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">A mile Hy - My experience with lispy Python</h1>
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    <time datetime="2017-08-17 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      <i class="fa fa-calendar"></i>
+      Thu, Aug 17, 2017
+    </time>
+  </span>
+
+  
+  
+  
+  <span class="article-categories">
+    <i class="fa fa-tags"></i>
+    
+    <a href="/categories/lisp">lisp</a
+    >, 
+    
+    <a href="/categories/python">python</a
+    >, 
+    
+    <a href="/categories/hy">hy</a
+    >
+    
+  </span>
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2fmile-hy%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=A%20mile%20Hy%20-%20My%20experience%20with%20lispy%20Python&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmile-hy%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmile-hy%2f&amp;title=A%20mile%20Hy%20-%20My%20experience%20with%20lispy%20Python"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2fmile-hy%2f&amp;title=A%20mile%20Hy%20-%20My%20experience%20with%20lispy%20Python"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=A%20mile%20Hy%20-%20My%20experience%20with%20lispy%20Python&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2fmile-hy%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    <div class="article-style" itemprop="articleBody">
+      <p>Roughly, <a href="http://docs.hylang.org/en/stable/" title="Hy">Hy</a> is to Python as Clojure is to Java. Hy completely inter-ops with Python.</p>
+
+<p>I've hit commit 1,500 in my Hy project at work. I wanted to share my experience
+working with Hy, where I feel it shines and where it falls short.</p>
+
+<h1 id="intro-to-hy">Intro to Hy</h1>
+
+<h2 id="basic-syntax">Basic syntax</h2>
+
+<p>Hy is a lisp and so uses hyphens as its delimiter. Hy unmangles all hyphens as
+underscores and mangles all incoming underscores to hyphens.</p>
+
+<p>The following is all valid, hyphens and underscores can be used interchangeably:</p>
+
+<pre><code class="language-lisp">
+(import a-module)
+(import b_module)
+
+(defn a-func [x y]
+  (+ x y))
+
+(setv a-list [1 2])
+(setv a_dict {&quot;k1&quot; &quot;v1&quot; &quot;k2&quot; &quot;v2&quot;})
+</code></pre>
+
+<p>To use Hy from python:</p>
+
+<pre><code class="language-python">
+import hy
+from my_hy_module import a_func
+
+a_func(1, 2)
+</code></pre>
+
+<p>Classes work as expected:</p>
+
+<pre><code class="language-lisp">
+(defclass AClass [object]
+  (defn --init-- [self])
+
+  #@(staticmethod
+     (defn -a-func [])))
+</code></pre>
+
+<p>The <code>#@</code> is a reader macro for <code>with-decorator</code>, illustrated later.</p>
+
+<p>Most all python features are implemented. For example, in master branch we
+have args/kwargs unpacking as:</p>
+
+<pre><code class="language-lisp">
+(print #* [&quot;hi&quot; &quot;there&quot;] #** {&quot;sep&quot; &quot;\n&quot;})
+</code></pre>
+
+<p>Some features that were once in python but were removed are also implemented,
+for instance parameter unpacking:</p>
+
+<pre><code class="language-lisp">
+(defn add [x [y z]]
+  (+ x y z))
+
+(add 1 [2 3])
+</code></pre>
+
+<h2 id="shadowed-built-ins">Shadowed built-ins</h2>
+
+<p>Most operators are shadowed. This enables:</p>
+
+<pre><code class="language-lisp">
+(map + [1 2] [2 3])
+</code></pre>
+
+<p>whereas in python you would have to do a comprehension or:</p>
+
+<pre><code class="language-python">
+import op
+
+map(op.add, [1, 2], [2, 3])
+</code></pre>
+
+<h2 id="special-characters-in-names">Special characters in names</h2>
+
+<p>Python restricts the characters you can use in setting variable and functions.
+Hy does not have most of these restrictions.</p>
+
+<pre><code class="language-lisp">
+(defn assert~ [x y]
+  (npt.assert-almost-equal x y))
+</code></pre>
+
+<h2 id="testing">Testing</h2>
+
+<p>Hy works with pytest. Add <code>project_root/conftest.py</code> with:</p>
+
+<pre><code class="language-python">
+import hy
+from _pytest.python import Module
+
+
+def pytest_collect_file(path, parent):
+    if path.ext == &quot;.hy&quot; and &quot;test_&quot; in path.basename:
+        return Module(path, parent)
+</code></pre>
+
+<p>To collect and run tests written in hy.</p>
+
+<h2 id="debugging">Debugging</h2>
+
+<p>Pdb/ipdb integrate perfectly with Hy, regardless if called from a hy, python, or
+ipython repl. The hy code can be stepped through and depending on if which repl
+you are in, hy/python code be can executed.</p>
+
+<h1 id="why-hy">Why Hy</h1>
+
+<h2 id="macros">Macros</h2>
+
+<p>Espousing macros to those who have not learned them is akin to the "monad
+fallacy". Instead, consider this example of macros reducing pytest boilerplate.</p>
+
+<p>The macro definitions are <a href="https://gist.github.com/ekaschalk/240b213aabe83f565aa74bc70161bfaf" title="contained in this gist">contained in this gist</a>.</p>
+
+<pre><code class="language-lisp">
+(deffixture numbers
+  &quot;Some numbers.&quot;
+  [[[1 2] 1 [2 3] [2 3]
+   [[1 2] 2 [3 4] [2 4]]
+
+  (list-it it (np.array x1) x2 (np.array x3) (np.array x4))
+
+(with-fixture numbers
+  test-numpy-+ [x i y -]
+  (assert~ (+ i x) y))
+
+(with-fixture numbers
+  test-numpy-* [x i - y]
+  (assert~ (* i x) y))
+</code></pre>
+
+<pre><code class="language-python">
+@pytest.fixture(params=[
+    ([1, 2], 1, [2, 3], [2, 3]),
+    ([1, 2], 2, [3, 4], [2, 4])
+])
+def numbers(request):
+    &quot;Some numbers.&quot;
+    x, i, y, z = request.params
+    return np.array(x), i, np.array(y), np.array(z)
+
+def test_numpy_add(numbers):
+    x, i, y, _ = numbers
+    npt.assert_almost_equal(x+i, y)
+
+def test_numpy_mult(numbers):
+    x, i, _, y = numbers
+    npt.assert_almost_equal(x*i, y)
+</code></pre>
+
+<p>Macros allowed:</p>
+
+<ol>
+<li>Implicitly binding request.params to "it" which are then deconstructed to an</li>
+   anonymous function with the number of parameters as its arity.
+<li>Selectively transforming these parameters.</li>
+<li>Unpacking and binding the parameters at function definition level.</li>
+</ol>
+
+<p>With the prep factored out in a way only macros enable, the testing body is now
+exactly and only the testing logic.</p>
+
+<h3 id="reader-macros">Reader Macros</h3>
+
+<p>Reader macros are macros with a shortened syntax.
+The ones I use most are:</p>
+
+<pre><code class="language-lisp">
+(import [toolz.curried :as tz])
+
+(deftag t [expr]
+  &quot;Cast form to a tuple.&quot;
+  `(tuple ~expr))
+
+(deftag $ [expr]
+  &quot;Curry a form.&quot;
+  `(tz.curry ~@expr))
+
+;; For example
+#t(map #$(+ 1) [1 2])
+</code></pre>
+
+<p>Or in python:</p>
+
+<pre><code class="language-python">
+tuple(map(lambda x: x+1, [1, 2]))
+tuple(x+1 for x in [1, 2])
+</code></pre>
+
+<p>Depending on the version of hy you are using, it is either <code>defsharp</code> or <code>deftag</code>.</p>
+
+<h2 id="structural-editing">Structural editing</h2>
+
+<p>Those that are familiar with lisps likely know the terms "slurp", "barf",
+"wrap", and so on.</p>
+
+<p>Lisp syntax allows for editing the AST directly.</p>
+
+<pre><code class="language-lisp">
+;; Initial text
+map [1 2] (+ 1)
+;; wrap map with &quot;w&quot; followed by three slurps 3*&quot;s&quot;
+(map [1 2] (+ 1))
+;; traverse to last form 2*&quot;j&quot; and transpose &quot;t&quot;
+(map (+ 1) [1 2])
+;; altogether 'wsssjjt'
+</code></pre>
+
+<p>This kind of editing is not possible (or at least very restricted) when editing
+python code.</p>
+
+<h2 id="functional-programming">Functional programming</h2>
+
+<p>What drove me to move to Hy was when I looked at my code and saw
+ <code>tz.thread_first</code> and <code>tz.thread_last</code> everywhere. Python goes out of its way
+to make functional programming a second-class citizen. Most all building blocks
+of FP must be implemented and imported everywhere, like the identity function
+and composition.</p>
+
+<p>Hy empowers FP with:</p>
+
+<ol>
+<li>Threading and anaphoric macros.</li>
+<li>First class functools and itertools (reduce, starmap, compress...)</li>
+<li>Common functional methods (juxt, take, drop, constantly, repeatedly...)</li>
+</ol>
+
+<h1 id="when-to-hyde">When to Hyde</h1>
+
+<p>Hy is not always the best choice. I have encountered some issues with Hy, as
+would be expected with a niche language under active development.</p>
+
+<p>The issues are however minor and due to the key development invariant of
+maintaining complete python compatibility, at worst they can be addressed by
+writing that functionality in Python and importing it.</p>
+
+<h2 id="tooling">Tooling</h2>
+
+<p>The largest challenge I see to Hy adoption is its current state of tooling.</p>
+
+<p>If you want to have an enjoyable Hy experience, you are pretty much limited to
+Emacs.</p>
+
+<p>The Emacs major-mode hy-mode implements syntax highlighting and some basic repl
+support but has its own set of issues.</p>
+
+<ol>
+<li>No linter, and pylint won't recognize imported hy objects.</li>
+<li>No autocompletion.</li>
+<li>There are bugs.</li>
+</ol>
+
+<p>I'm going to work to address some of these issues but as of now, while you have
+access to all of python's libraries, the same is not true for its tooling.</p>
+
+<h2 id="scripting">Scripting</h2>
+
+<p>Hy's repl comes far short of Ipython's featureset. You do not have things like
+autoloading or %pdb toggling. In general, lisp's syntax is not as nice for
+scripting.</p>
+
+<p>I actually write all my scripts and interactive code in Python as a result.</p>
+
+<h2 id="performance-critical-code">Performance Critical Code</h2>
+
+<p>If you are writing code that does a lot of fancy array indexing and in-place
+operations, you will have a bad time in Hy.</p>
+
+<p>My work is data-sciency and I have some numba accelerated code in separate
+python modules. I've called Cython source files from Hy without issue.</p>
+
+<p>There is also a small performance cost to using Hy, it is insignificant for
+most purposes.</p>
+
+<h2 id="breaking-changes">Breaking Changes</h2>
+
+<p>Breaking changes do occur.</p>
+
+<p>Version 0.12 had reader macros as <code>defreader</code> which is now <code>defsharp</code> in 0.13
+and now in master branch is <code>deftag</code>. There are good reasons for these changes,
+but they do require being up to date on hy's development.</p>
+
+<p>The function <code>apply</code> for calling a function with arguments unpacked was removed
+in master when the unpacking generalizations were implemented. However, apply
+still has a use-case for threading macros and last I checked they were debating
+reintroducing it in some form.</p>
+
+<p>The constants for inf and -inf recently were changed to require capitalization.</p>
+
+<p>Let was originally implemented but removed in favor of <code>setv</code>.</p>
+
+<p>There are good reasons for all these changes but they do incur extra maintenance
+on your part.</p>
+
+<h2 id="documentation">Documentation</h2>
+
+<p>Hy's documentation could be improved. Some examples:</p>
+
+<ol>
+<li>Integrating pytest and Hy via the <code>conftest.py</code> is not documented.</li>
+<li>Which operators are shadowed are not documented. While now functions like <code>get</code> are shadowed, when I started, using <code>get</code> as a function would throw the strange <code>NameError: name 'get' is not defined</code>.</li>
+<li>Macros are imported with <code>require</code>. Unlike imports, requires are not transitive. So if I have a <code>macros.hy</code> file that does <code>(require [hy.extra.anaphoric [*]])</code>, in every file requiring from macros I will also need to require the anaphorics again.</li>
+<li>The documentation for <code>zero?</code> implies an <code>x is 0</code> but it actually checks</li>
+   equality. This came up working with numpy, small issues like this are present.
+</ol>
+
+<p>Although the community is small, I've found the maintainers to be very helpful
+and quick to respond.</p>
+
+<h1 id="my-experience">My Experience</h1>
+
+<p>Python is a practical language - it has amazing libraries, tooling, and
+communities. But it's development is opinionated towards imperative programming
+and its syntax, while great for the majority, leaves others wanting more
+flexibility.</p>
+
+<p>I've really enjoyed my time with Hy and 1,500 commits later, am satisfied with
+my choice. Small changes like parameter unpacking and no more commas trim things
+down. Larger changes like macros, threading and the functional built-ins allow
+for a first-class functional programming experience.</p>
+
+<p>Choosing Hy you don't get Clojurescript or the type safety of Haskell, but you
+do get Numpy, Pandas, Matplotlib, Numba, Django, and every other python library
+from the comfort of Lisp.</p>
+
+    </div>
+  </div>
+
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
+    
+    <li class="previous"><a href="https://ekaschalk.github.io/post/migrate-layers/"><span
+      aria-hidden="true">&larr;</span> Migrating to Spacemacs Layers</a></li>
+    
+
+    
+  </ul>
+</nav>
+
+</div>
+
+<div class="article-container">
+  
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/mile-hy\/';
+    var disqus_title = 'A mile Hy - My experience with lispy Python';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/mile-hy\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
+
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2017 Eric Kaschalk &middot; 
+
+      Powered by the <a href="https://github.com/gcushen/hugo-academic" target="_blank">Academic
+      theme</a> for <a href="http://gohugo.io" target="_blank">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" integrity="sha512-jGsMH83oKe9asCpkOVkBnUrDDTp8wl+adkB2D+//JtlxO4SrLoJdhbOysIFQJloQFD+C4Fl1rMsQZF76JjV0eQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.2/imagesloaded.pkgd.min.js" integrity="sha512-iHzEu7GbSc705hE2skyH6/AlTpOfBmkx7nUqTLGzPYR+C1tRaItbRlJ7hT/D3YQ9SV0fqLKzp4XY9wKulTBGTw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js" integrity="sha512-Z5heTz36xTemt1TbtbfXtTq5lMfYnOkXM2/eWcTTiLU01+Sw4ku1i7vScDc8fWhrP2abz9GQzgKH5NGBLoYlAw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/plugins/ScrollToPlugin.min.js" integrity="sha512-CDeU7pRtkPX6XJtF/gcFWlEwyaX7mcAp5sO3VIu/ylsdR74wEw4wmBpD5yYTrmMAiAboi9thyBUr1vXRPA7t0Q==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+    <script src="/js/custom.js"></script>
+    
+
+    
+    
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/python.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/lisp.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/hy.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/clojure.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+
+  </body>
+</html>
+
