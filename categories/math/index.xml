@@ -180,12 +180,17 @@ characters &lt;a href=&#34;http://www.fileformat.info/info/unicode/index.htm&#34
 
 &lt;h1 id=&#34;ligatures&#34;&gt;Ligatures&lt;/h1&gt;
 
-&lt;p&gt;See &lt;a href=&#34;https://github.com/tonsky/FiraCode&#34;&gt;Fira Code&lt;/a&gt; font for examples and
-installation. &lt;a href=&#34;https://gist.github.com/mordocai/50783defab3c3d1650e068b4d1c91495&#34;&gt;This
-snippet&lt;/a&gt;
-must go into your config. Make sure you install the &lt;code&gt;Fira Code Symbol font&lt;/code&gt;
-linked at the top of the gist &lt;em&gt;in addition&lt;/em&gt; to the fonts linked on the Github.
-The gist should work for both Linux and Windows.&lt;/p&gt;
+&lt;p&gt;UPDATE: The original implementation of ligatures for Emacs is no longer hosted.
+&lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-fonts/pretty-fonts.el&#34;&gt;Check out my package that implements fira code&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;To enable them, you need to add:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(pretty-fonts-set-kwds
+  &#39;((pretty-fonts-fira-font prog-mode-hook org-mode-hook)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The ligatures require the FiraCodeSymbol font, not the entire fira code font.
+Here is a link to the ligatures font to be installed: &lt;a href=&#34;https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip&#34;&gt;https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Some of the asterisk ligatures can conflict with org-mode headers and others I
 just did not like. I have disabled ligatures for

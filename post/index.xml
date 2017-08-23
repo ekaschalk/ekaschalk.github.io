@@ -723,49 +723,44 @@ improve on other configuration management methods.&lt;/p&gt;
    to a mode is adding to its hook.
 &lt;/ol&gt;
 
+&lt;p&gt;The package can be found at: &lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&#34; title=&#34;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&#34;&gt;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&lt;/a&gt;&lt;/p&gt;
+
 &lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
 (require &#39;dash)
 (require &#39;outshine)
 (require &#39;s)
 
-(defmacro with-face (STR &amp;amp;rest PROPS)
-  &amp;quot;Return STR propertized with PROPS.&amp;quot;
-  `(propertize ,STR &#39;face (list ,@PROPS)))
+(provide &#39;pretty-outlines)
 
-(defun set-icon-fonts (CODE-FONT-ALIST)
-  &amp;quot;Utility to associate many unicode points with specified fonts.&amp;quot;
-  (--each CODE-FONT-ALIST
-    (-let (((font . codes) it))
-      (--each codes
-        (set-fontset-font t `(,it . ,it) font)))))
+;;; Config
 
-;; Requires all-the-icons fonts installed
-(set-icon-fonts
- &#39;((&amp;quot;material icons&amp;quot; #xe3d0 #xe3d1 #xe3d2 #xe3d4)))
+(defvar pretty-outline-bullets-bullet-list &#39;(&amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot;)
+  &amp;quot;An implemention of `org-bullets-bullet-list&#39; for outlines&amp;quot;)
 
-(setq outline-bullets-bullet-list &#39;(&amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot; &amp;quot;&amp;quot;))
+;;; Outline-bullets
 
-(defun font-lock-display-updates (FONT-LOCK-ALIST)
+(defun pretty-outline--add-font-locks (FONT-LOCK-ALIST)
   &amp;quot;Put text property for FONT-LOCK-ALIST for var-width replacements.&amp;quot;
   (font-lock-add-keywords
    nil (--map (-let (((rgx uni-point) it))
-                `(,rgx (0 (progn
-                            (put-text-property
-                             (match-beginning 1) (match-end 1)
-                             &#39;display
-                             ,uni-point)
-                            nil))))
-              FONT-LOCK-ALIST)))
+             `(,rgx (0 (progn
+                         (put-text-property
+                          (match-beginning 1) (match-end 1)
+                          &#39;display
+                          ,uni-point)
+                         nil))))
+           FONT-LOCK-ALIST)))
 
-(defun outline-bullets-rgx-at-level (LEVEL)
+(defun pretty-outline--bullets-rgx-at-level (LEVEL)
   &amp;quot;Calculate regex or outline-bullets at LEVEL.&amp;quot;
   (concat &amp;quot;\\(^&amp;quot;
-          (-&amp;gt; LEVEL
-              outshine-calc-outline-string-at-level
-              s-trim-right)
+          (-&amp;gt;&amp;gt; LEVEL
+             outshine-calc-outline-string-at-level
+             s-trim-right
+             (s-replace &amp;quot;*&amp;quot; &amp;quot;\\*&amp;quot;))
           &amp;quot;\\) &amp;quot;))
 
-(defun propertize-bullet (LEVEL BULLET)
+(defun pretty-outline--propertize-bullet (LEVEL BULLET)
   &amp;quot;Add LEVEL-dependent face to BULLET.&amp;quot;
   (with-face BULLET
              (pcase LEVEL
@@ -775,20 +770,20 @@ improve on other configuration management methods.&lt;/p&gt;
                (3 &#39;(:inherit outline-4 :underline nil))
                (_ nil))))
 
-(defun add-outline-font-locks ()
-  &amp;quot;Use with `add-hook&#39; to enable outline-bullets-bullet-list for mode.&amp;quot;
-  (font-lock-display-updates
+(defun pretty-outline-add-bullets ()
+  &amp;quot;Use with `add-hook&#39; to enable pretty-outline-bullets-bullet-list for mode.&amp;quot;
+  (pretty-outline--add-font-locks
    (--map-indexed
     (list
-     (outline-bullets-rgx-at-level (+ 1 it-index))
+     (pretty-outline--bullets-rgx-at-level (+ 1 it-index))
      (concat
       (s-repeat it-index &amp;quot; &amp;quot;)
-      (propertize-bullet it-index it)))
-    (-take 8 (-cycle outline-bullets-bullet-list)))))
+      (pretty-outline--propertize-bullet it-index it)))
+    (-take 8 (-cycle pretty-outline-bullets-bullet-list)))))
 
-(add-hook &#39;emacs-lisp-mode-hook &#39;add-outline-font-locks)
-(add-hook &#39;hy-mode-hook &#39;add-outline-font-locks)
-(add-hook &#39;python-mode-hook &#39;add-outline-font-locks)
+(add-hook &#39;emacs-lisp-mode-hook &#39;pretty-outline-add-bullets)
+(add-hook &#39;hy-mode-hook &#39;pretty-outline-add-bullets)
+(add-hook &#39;python-mode-hook &#39;pretty-outline-add-bullets)
 &lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
@@ -805,7 +800,7 @@ improve on other configuration management methods.&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;Introducing and customizing &lt;code&gt;outline-mode&lt;/code&gt; and &lt;code&gt;outshine-mode&lt;/code&gt;.&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el&#34; title=&#34;My package&#34;&gt;My package&lt;/a&gt; &lt;code&gt;outline-ivy&lt;/code&gt; for jumping to outlines.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el&#34; title=&#34;My package&#34;&gt;My package&lt;/a&gt; &lt;code&gt;outline-ivy&lt;/code&gt; for jumping to outlines.&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/outline-ivy.gif&#34; alt=&#34;/img/outline-ivy.gif&#34; title=&#34;/img/outline-ivy.gif&#34; /&gt;&lt;/p&gt;
@@ -927,6 +922,8 @@ bullets. Here is an image of my org-bullets replicated for outlines.
 is a bit complex. Here I implement the outline bullets for lisp-like modes and
 python.&lt;/p&gt;
 
+&lt;p&gt;UPDATE: Check &lt;a href=&#39;https://ekaschalk.github.io/post/outline-bullets/&#39;&gt;this post for full implementation.&lt;/a&gt;&lt;/p&gt;
+
 &lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
 (defun -add-font-lock-kwds (FONT-LOCK-ALIST)
   (font-lock-add-keywords
@@ -1012,7 +1009,7 @@ collapsed headers.&lt;/p&gt;
 
 &lt;p&gt;Current methods for jumping to outlines have significant limitations.&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&#34;https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el&#34; title=&#34;Outline-ivy&#34;&gt;Outline-ivy&lt;/a&gt; makes outlines a proper navigational, not just organizational, tool
+&lt;p&gt;&lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el&#34; title=&#34;Outline-ivy&#34;&gt;Outline-ivy&lt;/a&gt; makes outlines a proper navigational, not just organizational, tool
 with &lt;code&gt;oi-jump&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;All outlines are collected, stylized, and associated with their parents.&lt;/p&gt;
@@ -1709,12 +1706,17 @@ characters &lt;a href=&#34;http://www.fileformat.info/info/unicode/index.htm&#34
 
 &lt;h1 id=&#34;ligatures&#34;&gt;Ligatures&lt;/h1&gt;
 
-&lt;p&gt;See &lt;a href=&#34;https://github.com/tonsky/FiraCode&#34;&gt;Fira Code&lt;/a&gt; font for examples and
-installation. &lt;a href=&#34;https://gist.github.com/mordocai/50783defab3c3d1650e068b4d1c91495&#34;&gt;This
-snippet&lt;/a&gt;
-must go into your config. Make sure you install the &lt;code&gt;Fira Code Symbol font&lt;/code&gt;
-linked at the top of the gist &lt;em&gt;in addition&lt;/em&gt; to the fonts linked on the Github.
-The gist should work for both Linux and Windows.&lt;/p&gt;
+&lt;p&gt;UPDATE: The original implementation of ligatures for Emacs is no longer hosted.
+&lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-fonts/pretty-fonts.el&#34;&gt;Check out my package that implements fira code&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;To enable them, you need to add:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(pretty-fonts-set-kwds
+  &#39;((pretty-fonts-fira-font prog-mode-hook org-mode-hook)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The ligatures require the FiraCodeSymbol font, not the entire fira code font.
+Here is a link to the ligatures font to be installed: &lt;a href=&#34;https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip&#34;&gt;https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Some of the asterisk ligatures can conflict with org-mode headers and others I
 just did not like. I have disabled ligatures for

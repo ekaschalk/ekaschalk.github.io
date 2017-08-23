@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.22.1" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -213,7 +213,7 @@
 
 <ol>
 <li>Introducing and customizing <code>outline-mode</code> and <code>outshine-mode</code>.</li>
-<li><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el" title="My package">My package</a> <code>outline-ivy</code> for jumping to outlines.</li>
+<li><a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el" title="My package">My package</a> <code>outline-ivy</code> for jumping to outlines.</li>
 </ol>
 
 <p><img src="/img/outline-ivy.gif" alt="/img/outline-ivy.gif" title="/img/outline-ivy.gif" /></p>
@@ -335,6 +335,8 @@ bullets. Here is an image of my org-bullets replicated for outlines.
 is a bit complex. Here I implement the outline bullets for lisp-like modes and
 python.</p>
 
+<p>UPDATE: Check <a href='/post/outline-bullets/'>this post for full implementation.</a></p>
+
 <pre><code class="language-lisp">
 (defun -add-font-lock-kwds (FONT-LOCK-ALIST)
   (font-lock-add-keywords
@@ -420,7 +422,7 @@ collapsed headers.</p>
 
 <p>Current methods for jumping to outlines have significant limitations.</p>
 
-<p><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/elisp/outline-ivy.el" title="Outline-ivy">Outline-ivy</a> makes outlines a proper navigational, not just organizational, tool
+<p><a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el" title="Outline-ivy">Outline-ivy</a> makes outlines a proper navigational, not just organizational, tool
 with <code>oi-jump</code>.</p>
 
 <p>All outlines are collected, stylized, and associated with their parents.</p>

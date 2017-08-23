@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.22.1" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -328,12 +328,17 @@ characters <a href="http://www.fileformat.info/info/unicode/index.htm">here</a>.
 
 <h1 id="ligatures">Ligatures</h1>
 
-<p>See <a href="https://github.com/tonsky/FiraCode">Fira Code</a> font for examples and
-installation. <a href="https://gist.github.com/mordocai/50783defab3c3d1650e068b4d1c91495">This
-snippet</a>
-must go into your config. Make sure you install the <code>Fira Code Symbol font</code>
-linked at the top of the gist <em>in addition</em> to the fonts linked on the Github.
-The gist should work for both Linux and Windows.</p>
+<p>UPDATE: The original implementation of ligatures for Emacs is no longer hosted.
+<a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/display/local/pretty-fonts/pretty-fonts.el">Check out my package that implements fira code</a></p>
+
+<p>To enable them, you need to add:</p>
+
+<pre><code class="language-lisp">(pretty-fonts-set-kwds
+  '((pretty-fonts-fira-font prog-mode-hook org-mode-hook)))
+</code></pre>
+
+<p>The ligatures require the FiraCodeSymbol font, not the entire fira code font.
+Here is a link to the ligatures font to be installed: <a href="https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip">https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip</a>.</p>
 
 <p>Some of the asterisk ligatures can conflict with org-mode headers and others I
 just did not like. I have disabled ligatures for
