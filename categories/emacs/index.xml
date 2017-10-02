@@ -7,8 +7,460 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <lastBuildDate>Fri, 14 Jul 2017 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 03 Oct 2017 00:00:00 +0000</lastBuildDate>
     <atom:link href="/categories/emacs/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Deep diving into a major mode - Part 1</title>
+      <link>https://ekaschalk.github.io/post/major-mode-part-1/</link>
+      <pubDate>Tue, 03 Oct 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/major-mode-part-1/</guid>
+      <description>&lt;p&gt;I&#39;ve taken up maintaining &lt;a href=&#34;https://github.com/hylang/hy-mode&#34; title=&#34;hy-mode&#34;&gt;hy-mode&lt;/a&gt; - a major mode for &lt;a href=&#34;https://github.com/hylang/hy&#34; title=&#34;lispy python&#34;&gt;lispy python&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I narrate working through specific problems in auto-completion, indentation,
+shell integration, and so on.&lt;/p&gt;
+
+&lt;p&gt;This post touches on: syntax, indentation, font-locking, and context-sensitive
+syntax.&lt;/p&gt;
+
+&lt;p&gt;All code snippets require the Emacs packages &lt;code&gt;dash&lt;/code&gt; and &lt;code&gt;s&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;syntax-tables&#34;&gt;Syntax Tables&lt;/h1&gt;
+
+&lt;p&gt;The first step in a major mode is the syntax table.&lt;/p&gt;
+
+&lt;p&gt;In any major mode run &lt;code&gt;describe-syntax&lt;/code&gt; to see its syntax table. As we are
+  working with a lisp, we copy its syntax-table to start with.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy-mode-syntax-table
+  (-let [table
+         (copy-syntax-table lisp-mode-syntax-table)]
+    ;; syntax modifications...
+    table)
+  &amp;quot;Hy modes syntax table.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The syntax table isn&#39;t set explicitly, its name identifies and sets it for hy-mode.&lt;/p&gt;
+
+&lt;p&gt;Configuration is performed with &lt;code&gt;modify-syntax-entry&lt;/code&gt;, its docstring provides
+  all the syntactic constructs we can pick from.&lt;/p&gt;
+
+&lt;p&gt;A subset to be familiar with:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;( ) : &lt;code&gt;open/close parenthesis&lt;/code&gt;. These are for all bracket-like constructs such&lt;/li&gt;
+    as [ ] or { }. The first character should be the syntactic construct, namely
+    &#34;(&#34; or &#34;)&#34;, and the second character should be the closing delimiter.
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(modify-syntax-entry ?\{ &amp;quot;(}&amp;quot; table)
+(modify-syntax-entry ?\} &amp;quot;){&amp;quot; table)
+(modify-syntax-entry ?\[ &amp;quot;(]&amp;quot; table)
+(modify-syntax-entry ?\] &amp;quot;)[&amp;quot; table)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&#39; : &lt;code&gt;prefix character&lt;/code&gt;. Prefixes a symbol/word.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Quote characters are prefixes
+(modify-syntax-entry ?\~ &amp;quot;&#39;&amp;quot; table)
+(modify-syntax-entry ?\@ &amp;quot;&#39;&amp;quot; table)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;_ and w : &lt;code&gt;symbol and word constituent&lt;/code&gt; respectively.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; &amp;quot;,&amp;quot; is a symbol in Hy, namely the tuple constructor
+(modify-syntax-entry ?\, &amp;quot;_ p&amp;quot; table)
+
+;; &amp;quot;|&amp;quot; is a symbol in hy, naming the or operator
+(modify-syntax-entry ?\| &amp;quot;_ p&amp;quot; table)
+
+;; &amp;quot;#&amp;quot; is a tag macro, we include # in the symbol
+(modify-syntax-entry ?\# &amp;quot;_ p&amp;quot; table)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;| : &lt;code&gt;generic string fence&lt;/code&gt;. A more general string quote syntactic construct.&lt;/li&gt;
+    Used for delimiting multi-line strings like with triple quotes in Python. I go
+    into depth on this construct in the &#34;context-sensitive syntax&#34; section.
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;indentation&#34;&gt;Indentation&lt;/h1&gt;
+
+&lt;p&gt;Look through &lt;code&gt;calculate-lisp-indent&lt;/code&gt;, the indentation workhorse of &lt;code&gt;lisp-mode&lt;/code&gt; derivatives,
+  and it is quickly seen that indentation is &lt;em&gt;hard&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Indentation is set with &lt;code&gt;indent-line-function&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In the case of a lisp, we actually do:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(setq-local indent-line-function &#39;lisp-indent-line)
+(setq-local lisp-indent-function &#39;hy-indent-function)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Where the real work is performed by &lt;code&gt;calculate-lisp-indent&lt;/code&gt; that makes calls
+  to &lt;code&gt;lisp-indent-function&lt;/code&gt;, accepting an &lt;code&gt;indent-point&lt;/code&gt; and &lt;code&gt;state&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The function at heart is &lt;code&gt;parse-partial-sexp&lt;/code&gt;, taking limiting points and
+  retrieving a 10 element list describing the syntax at the point.&lt;/p&gt;
+
+&lt;p&gt;As this is a (necessarily) excessive amount of information, I recommend as
+  many other modes have done - define some aliases. I have:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--sexp-inermost-char (state) (nth 1 state))
+(defun hy--start-of-last-sexp (state) (nth 2 state))
+(defun hy--in-string? (state) (nth 3 state))
+(defun hy--start-of-string (state) (nth 8 state))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Observe you can also omit &lt;code&gt;state&lt;/code&gt; and call &lt;code&gt;syntax-ppss&lt;/code&gt; to get state which runs
+  &lt;code&gt;parse-partial-sexp&lt;/code&gt; from point-min to current point, with the caveat that the
+  2nd and 6th state aren&#39;t reliable. I prefer to pass the state manually.&lt;/p&gt;
+
+&lt;p&gt;These are the building blocks for indentation - we can then write utilities
+  to better get our head around indentation like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--prior-sexp? (state)
+  (number-or-marker-p (hy--start-of-last-sexp state)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;the-indent-function&#34;&gt;The indent function&lt;/h2&gt;
+
+&lt;p&gt;The three cases:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Normal Indent
+(normal b
+        c)
+(normal
+  b c)
+
+;; Special Forms
+(special b
+  c)
+
+;; List-likes
+[a b
+ c]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Hy&#39;s current indent function:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy-indent-function (indent-point state)
+  &amp;quot;Indent at INDENT-POINT where STATE is `parse-partial-sexp&#39; for INDENT-POINT.&amp;quot;
+  (goto-char (hy--sexp-inermost-char state))
+
+  (if (hy--not-function-form-p)
+      (1+ (current-column))  ; Indent after [, {, ... is always 1
+    (forward-char 1)  ; Move to start of sexp
+
+    (cond ((hy--check-non-symbol-sexp (point))  ; Comma tuple constructor
+           (+ 2 (current-column)))
+
+          ((hy--find-indent-spec state)  ; Special form uses fixed indendation
+           (1+ (current-column)))
+
+          (t
+           (hy--normal-indent calculate-lisp-indent-last-sexp)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When we indent we jump to the sexp&#39;s innermost char, ie. &#34;(&#34;, &#34;[&#34;, &#34;{&#34;, etc..&lt;/p&gt;
+
+&lt;p&gt;If that character is a list-like, then we 1+ it and are done.&lt;/p&gt;
+
+&lt;p&gt;Otherwise we move to the start of the sexp and investigate if
+    &lt;code&gt;(thing-at-point &#39;symbol)&lt;/code&gt;. If it is, then we check a list of special forms
+    like &lt;code&gt;when&lt;/code&gt;, &lt;code&gt;do&lt;/code&gt;, &lt;code&gt;defn&lt;/code&gt; for a match. If we found a (possibly fuzzy) match,
+    then regardless of whether the first line contains args or not, we indent
+    the same.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--normal-indent (last-sexp)
+  &amp;quot;Determine normal indentation column of LAST-SEXP.
+
+Example:
+ (a (b c d
+       e
+       f))
+
+1. Indent e =&amp;gt; start at d -&amp;gt; c -&amp;gt; b.
+Then backwards-sexp will throw error trying to jump to a.
+Observe &#39;a&#39; need not be on the same line as the ( will cause a match.
+Then we determine indentation based on whether there is an arg or not.
+
+2. Indenting f will go to e.
+Now since there is a prior sexp d but we have no sexps-before on same line,
+the loop will terminate without error and the prior lines indentation is it.&amp;quot;
+  (goto-char last-sexp)
+  (-let [last-sexp-start nil]
+    (if (ignore-errors
+          (while (hy--anything-before? (point))
+            (setq last-sexp-start (prog1
+                                      ;; Indentation should ignore quote chars
+                                      (if (-contains? &#39;(?\&#39; ?\` ?\~)
+                                                      (char-before))
+                                          (1- (point))
+                                        (point))
+                                    (backward-sexp))))
+          t)
+        (current-column)
+      (if (not (hy--anything-after? last-sexp-start))
+          (1+ (current-column))
+        (goto-char last-sexp-start)  ; Align with function argument
+        (current-column)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Normal indent does the most work. To notice, if we are on the next line
+    without a function arg above, then &lt;code&gt;last-sexp-start&lt;/code&gt; will be nil as
+    &lt;code&gt;backward-sexp&lt;/code&gt; will throw an error and the &lt;code&gt;setq&lt;/code&gt; won&#39;t go off.&lt;/p&gt;
+
+&lt;p&gt;If there is a function call above, then the &lt;code&gt;current-column&lt;/code&gt; of the
+    innermost, non-opening sexp, will end up as the indent point.&lt;/p&gt;
+
+&lt;p&gt;If we indent the line of the funcall, it will jump to the containing sexp
+    and calculate its indent.&lt;/p&gt;
+
+&lt;p&gt;Other indentation functions are a bit more advanced in that they track the
+    number of prior sexps in the indent-function to distinguish between eg. the
+    then and else clause of an if statement. Those cases use the same
+    fundamentals that are seen here.&lt;/p&gt;
+
+&lt;p&gt;Developing indentation from scratch can be challenging. The approach I took
+    was to look at clojure&#39;s indentation and trim it down until it fit this
+    language. I&#39;ve removed most of the extraneous details that it adds to handle
+    special rules for eg. &lt;code&gt;clojure.spec&lt;/code&gt; but it is still possible that I could
+    trim this further.&lt;/p&gt;
+
+&lt;h1 id=&#34;font-locks-and-highlighting&#34;&gt;Font Locks and Highlighting&lt;/h1&gt;
+
+&lt;p&gt;Two symbols are the entry points to be aware of into font locking:
+  &lt;code&gt;hy-font-lock-kwds&lt;/code&gt; and &lt;code&gt;hy-font-lock-syntactic-face-function&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(setq font-lock-defaults
+        &#39;(hy-font-lock-kwds
+          nil nil
+          ((&amp;quot;+-*/.&amp;lt;&amp;gt;=!?$%_&amp;amp;~^:@&amp;quot; . &amp;quot;w&amp;quot;))  ; syntax alist
+          nil
+          (font-lock-mark-block-function . mark-defun)
+          (font-lock-syntactic-face-function  ; Differentiates (doc)strings
+           . hy-font-lock-syntactic-face-function)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;font-lock-keywords&#34;&gt;Font lock keywords&lt;/h2&gt;
+
+&lt;p&gt;There exists many posts on modifying the variable &lt;code&gt;font-lock-keywords&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The approach taken in &lt;code&gt;hy-mode&lt;/code&gt; is to separate out the language by category:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy--kwds-constants
+  &#39;(&amp;quot;True&amp;quot; &amp;quot;False&amp;quot; &amp;quot;None&amp;quot; &amp;quot;Ellipsis&amp;quot; &amp;quot;NotImplemented&amp;quot;)
+  &amp;quot;Hy constant keywords.&amp;quot;)
+
+(defconst hy--kwds-defs
+  &#39;(&amp;quot;defn&amp;quot; &amp;quot;defun&amp;quot;
+    &amp;quot;defmacro&amp;quot; &amp;quot;defmacro/g!&amp;quot; &amp;quot;defmacro!&amp;quot;
+    &amp;quot;defreader&amp;quot; &amp;quot;defsharp&amp;quot; &amp;quot;deftag&amp;quot;)
+  &amp;quot;Hy definition keywords.&amp;quot;)
+
+(defconst hy--kwds-operators
+  &#39;(&amp;quot;!=&amp;quot; &amp;quot;%&amp;quot; &amp;quot;%=&amp;quot; &amp;quot;&amp;amp;&amp;quot; &amp;quot;&amp;amp;=&amp;quot; &amp;quot;*&amp;quot; &amp;quot;**&amp;quot; &amp;quot;**=&amp;quot; &amp;quot;*=&amp;quot; &amp;quot;+&amp;quot; &amp;quot;+=&amp;quot; &amp;quot;,&amp;quot; &amp;quot;-&amp;quot;
+    &amp;quot;-=&amp;quot; &amp;quot;/&amp;quot; &amp;quot;//&amp;quot; &amp;quot;//=&amp;quot; &amp;quot;/=&amp;quot; &amp;quot;&amp;lt;&amp;quot; &amp;quot;&amp;lt;&amp;lt;&amp;quot; &amp;quot;&amp;lt;&amp;lt;=&amp;quot; &amp;quot;&amp;lt;=&amp;quot; &amp;quot;=&amp;quot; &amp;quot;&amp;gt;&amp;quot; &amp;quot;&amp;gt;=&amp;quot; &amp;quot;&amp;gt;&amp;gt;&amp;quot; &amp;quot;&amp;gt;&amp;gt;=&amp;quot;
+    &amp;quot;^&amp;quot; &amp;quot;^=&amp;quot; &amp;quot;|&amp;quot; &amp;quot;|=&amp;quot; &amp;quot;~&amp;quot;)
+  &amp;quot;Hy operator keywords.&amp;quot;)
+
+;; and so on
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And then use the amazing &lt;code&gt;rx&lt;/code&gt; macro for constructing the regexes.&lt;/p&gt;
+
+&lt;p&gt;Now due to &lt;code&gt;rx&lt;/code&gt; being a macro and its internals, in order to use variable
+    definitions in the regex construction we have to call &lt;code&gt;rx-to-string&lt;/code&gt; instead.&lt;/p&gt;
+
+&lt;p&gt;The simplest definition:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy--font-lock-kwds-constants
+  (list
+   (rx-to-string
+    `(: (or ,@hy--kwds-constants)))
+
+   &#39;(0 font-lock-constant-face))
+
+  &amp;quot;Hy constant keywords.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A more complex example with multiple groups taking different faces:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy--font-lock-kwds-defs
+  (list
+   (rx-to-string
+    `(: (group-n 1 (or ,@hy--kwds-defs))
+        (1+ space)
+        (group-n 2 (1+ word))))
+
+   &#39;(1 font-lock-keyword-face)
+   &#39;(2 font-lock-function-name-face nil t))
+
+  &amp;quot;Hy definition keywords.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Of course not all highlighting constructs are determined by symbol name. We
+    can highlight the shebang line for instance as:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy--font-lock-kwds-shebang
+  (list
+   (rx buffer-start &amp;quot;#!&amp;quot; (0+ not-newline) eol)
+
+   &#39;(0 font-lock-comment-face))
+
+  &amp;quot;Hy shebang line.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We then collect all our nice and modular font locks as &lt;code&gt;hy-font-lock-kwds&lt;/code&gt; that we set earlier:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy-font-lock-kwds
+  (list hy--font-lock-kwds-constants
+        hy--font-lock-kwds-defs
+        ;; lots more ...
+        hy--font-lock-kwds-shebang)
+
+  &amp;quot;All Hy font lock keywords.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;syntactic-face-function&#34;&gt;Syntactic face function&lt;/h2&gt;
+
+&lt;p&gt;This function is typically used for distinguishing between string,
+   docstrings, and comments. It does not need to be set unless you want to
+   distinguish docstrings.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--string-in-doc-position? (state)
+  &amp;quot;Is STATE within a docstring?&amp;quot;
+  (if (= 1 (hy--start-of-string state))  ; Identify module docstring
+      t
+    (-when-let* ((first-sexp (hy--sexp-inermost-char state))
+                 (function (save-excursion
+                             (goto-char (1+ first-sexp))
+                             (thing-at-point &#39;symbol))))
+      (s-matches? (rx &amp;quot;def&amp;quot; (not blank)) function))))  ; &amp;quot;def&amp;quot;==&amp;quot;setv&amp;quot;
+
+(defun hy-font-lock-syntactic-face-function (state)
+  &amp;quot;Return syntactic face function for the position represented by STATE.
+STATE is a `parse-partial-sexp&#39; state, and the returned function is the
+Lisp font lock syntactic face function. String is shorthand for either
+a string or comment.&amp;quot;
+  (if (hy--in-string? state)
+      (if (hy--string-in-doc-position? state)
+          font-lock-doc-face
+        font-lock-string-face)
+    font-lock-comment-face))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is rather straightforward - we start out within either a string or
+    comment. If needed, we jump to the first sexp and see if it is a &#34;def-like&#34;
+    symbol, in which case we know its a doc.&lt;/p&gt;
+
+&lt;p&gt;This implementation isn&#39;t perfect as any string with a parent def-sexp will
+    use the doc-face, so if your function returns a raw string, then it will be
+    highlighted as if its a doc.&lt;/p&gt;
+
+&lt;h1 id=&#34;context-sensitive-syntax&#34;&gt;Context sensitive syntax&lt;/h1&gt;
+
+&lt;p&gt;An advanced feature Emacs enables is context-sensitive syntax. Some examples
+  are multi-line python strings, where there must be three single quotes
+  together, or haskell&#39;s multiline comments.&lt;/p&gt;
+
+&lt;p&gt;Hy implements multiline string literals for automatically escaping quote
+  characters. The syntax is &lt;code&gt;#[optional-delim[the-string]optional-delim]&lt;/code&gt; where
+  the string can span lines.&lt;/p&gt;
+
+&lt;p&gt;In order to identify and treat the bracket as a string, we look to setting the
+  &lt;code&gt;syntax-propertize-function&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;It takes two arguments, the start and end points with which to search through.
+  &lt;code&gt;syntax.el&lt;/code&gt; handles the internals of limiting and passing the start and end
+  and applying/removing the text properties as the construct changes.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--match-bracket-string (limit)
+  &amp;quot;Search forward for a bracket string literal.&amp;quot;
+  (re-search-forward
+   (rx &amp;quot;#[&amp;quot;
+       (0+ not-newline)
+       &amp;quot;[&amp;quot;
+       (group (1+ (not (any &amp;quot;]&amp;quot;))))
+       &amp;quot;]&amp;quot;
+       (0+ not-newline)
+       &amp;quot;]&amp;quot;)
+   limit
+   t))
+
+(defun hy-syntax-propertize-function (start end)
+  &amp;quot;Implements context sensitive syntax.&amp;quot;
+  (save-excursion
+    (goto-char start)
+
+    ;; Start goes to current line, need to go to char-before the #[ block
+    (when (nth 1 (syntax-ppss))
+      (goto-char (- (hy--sexp-inermost-char (syntax-ppss)) 2)))
+
+    (while (hy--match-bracket-string end)
+      (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                         &#39;syntax-table (string-to-syntax &amp;quot;|&amp;quot;))
+
+      (put-text-property (match-end 1) (1+ (match-end 1))
+                         &#39;syntax-table (string-to-syntax &amp;quot;|&amp;quot;)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We go to the start and jump before its innermost containing sexp begins minus
+  two for the hash sign and bracket characters.&lt;/p&gt;
+
+&lt;p&gt;If the regex matches a bracket string, we then set the innermost brackets on
+  both sides to have the &lt;code&gt;string-fence&lt;/code&gt; syntax.&lt;/p&gt;
+
+&lt;p&gt;When the syntax is set - &lt;code&gt;parse-partial-sexp&lt;/code&gt; and in particular font lock mode
+  and &lt;code&gt;indent-line&lt;/code&gt; will now recognize that block as a string - so proper
+  indentation and highlighting follow immediately. And when we modify the
+  brackets, the string-fence syntax is removed and behaves as expected.&lt;/p&gt;
+
+&lt;p&gt;This function can handle any kind of difficult syntactic constructs. For
+  instance, I could modify it to only work if the delimiters on both side of the
+  bracket string are the same. I could also associate some arbitrary, custom
+  text property that other parts of hy-mode interact with.&lt;/p&gt;
+
+&lt;p&gt;Note that there is the macro &lt;code&gt;syntax-propertize-rules&lt;/code&gt; for automating the
+  searching and &lt;code&gt;put-text-property&lt;/code&gt; portions. I prefer to do the searching and
+  application manually to 1. have more flexibility and 2. step through the trace
+  easier.&lt;/p&gt;
+
+&lt;h1 id=&#34;closing&#34;&gt;Closing&lt;/h1&gt;
+
+&lt;p&gt;Building a major mode teaches a lot about how Emacs works. I&#39;m sure I&#39;ve made
+  errors, but so far this has been enough to get &lt;code&gt;hy-mode&lt;/code&gt; up and running. The
+  difference in productivity in Hy I&#39;ve enjoyed since taking maintainer-ship has
+  made the exercise more than worth it.&lt;/p&gt;
+
+&lt;p&gt;I also have auto-completion and shell/process integration working which I&#39;ll
+  touch on in future posts.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Migrating to Spacemacs Layers</title>
