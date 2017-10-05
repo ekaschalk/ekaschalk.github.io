@@ -11,6 +11,290 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Solving ligature spacing in Emacs - proof of concept</title>
+      <link>https://ekaschalk.github.io/post/lig-spacing/</link>
+      <pubDate>Thu, 05 Oct 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/lig-spacing/</guid>
+      <description>&lt;p&gt;Ligatures are single-character replacements of strings. Examples of ligatures:
+replacing &#34;alpha&#34; with the alpha symbol and &#34;!=&#34; with the a slashed equal sign.
+See &lt;a href=&#39;https://ekaschalk.github.io/post/prettify-mode/&#39;&gt;Coding with Mathematical
+Notation&lt;/a&gt; for details and pictures.&lt;/p&gt;
+
+&lt;p&gt;There is a serious flaw with ligatures - either the indentation you see with
+ligatures or without ligatures is correct, not both. So if someone that does not
+use ligatures works on your code, your indentation&#39;s will not match. An example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; True indentation, what you want others to see
+(alpha b
+       c)
+
+;; Emacs indentation, what you want to see when working
+(a b
+   c)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This problem significantly hampers ligature adoption.&lt;/p&gt;
+
+&lt;p&gt;I do not believe any editor implements a solution to ligatures such that you see
+the indentation you want to see, while the true indentation remains correct.&lt;/p&gt;
+
+&lt;p&gt;I present a proof-of-concept solution to ligature spacing,&lt;/p&gt;
+
+&lt;h1 id=&#34;how-emacs-displays-text&#34;&gt;How Emacs displays text&lt;/h1&gt;
+
+&lt;p&gt;Emacs associates &lt;code&gt;text-properties&lt;/code&gt; with strings. A property can be anything.
+Some property names are special and tell Emacs to handle the text in a
+particular way, like &lt;code&gt;face&lt;/code&gt; for how a text is highlighted.&lt;/p&gt;
+
+&lt;p&gt;An &lt;code&gt;overlay&lt;/code&gt; has associated text-properties but is buffer-local. So when we move
+that text to another buffer, if that overlay had a face, then that face would
+not be carried over.&lt;/p&gt;
+
+&lt;p&gt;Properties to be aware of:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;display&lt;/code&gt; : How Emacs displays that region, can be any string.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;invisible&lt;/code&gt; : Whether the text should be displayed.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;modification-hooks&lt;/code&gt; : When text in the overlay is edited, run these hooks.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;evaporate&lt;/code&gt; (overlays) : Once the overlay is &#34;done-with&#34;, delete the overlay.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;compose-region&#34;&gt;Compose region&lt;/h2&gt;
+
+&lt;p&gt;Additionally, &lt;code&gt;compose-region&lt;/code&gt; is similar to &lt;code&gt;display&lt;/code&gt; in that the composed region
+is displayed as (possibly many) characters. Current implementations of ligatures
+all leverage compose-region by searching the buffer for say alpha and composing
+from alphas beginning to end point the Unicode symbol for alpha.&lt;/p&gt;
+
+&lt;p&gt;There are several important distinctions between &lt;code&gt;compose-region&lt;/code&gt; and &lt;code&gt;put-text-property &#39;display&lt;/code&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Indentation uses the composed character for indenting while the text-property&lt;/li&gt;
+   display indents with the true, original string.
+&lt;li&gt;Composition cannot be set for overlays. The internal &lt;code&gt;composition&lt;/code&gt; text property,&lt;/li&gt;
+   unlike all other properties, cannot be put manually.
+&lt;li&gt;Editing within a composed region will undo the composition while one must&lt;/li&gt;
+   delete the whole region with the display property to undo the display.
+&lt;/ol&gt;
+
+&lt;h1 id=&#34;working-through-a-solution&#34;&gt;Working through a solution&lt;/h1&gt;
+
+&lt;h2 id=&#34;to-compose-or-display-the-ligature&#34;&gt;To compose or display the ligature?&lt;/h2&gt;
+
+&lt;p&gt;Because composition adjusts the underlying indentation, it cannot be used for a
+ligature spacing solution. Indentation cannot be adjusted in a major-mode
+agnostic manner. Indentation always considers the true number of characters
+preceding the text on the line, so dynamically adding invisible spaces will not
+work.&lt;/p&gt;
+
+&lt;h2 id=&#34;but-how-to-make-editing-a-display-behave-like-a-composition&#34;&gt;But how to make editing a display behave like a composition?&lt;/h2&gt;
+
+&lt;p&gt;It is a serious issue to have to delete the whole text for the ligature to
+disappear.&lt;/p&gt;
+
+&lt;p&gt;The solution is the &lt;code&gt;modification-hooks&lt;/code&gt; text-property.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun lig-mod-hook (overlay post-mod? start end &amp;amp;optional _)
+  (when post-mod?
+    (overlay-put overlay &#39;display nil)
+    (overlay-put overlay &#39;modification-hooks nil)))  ; force evaporation
+
+(overlay-put lig-overlay &#39;modification-hooks &#39;(lig-mod-hook))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now editing text with the display property will behave as desired.&lt;/p&gt;
+
+&lt;h2 id=&#34;so-how-to-visually-collapse-the-indentation&#34;&gt;So how to visually collapse the indentation?&lt;/h2&gt;
+
+&lt;p&gt;We could set &lt;code&gt;invisible&lt;/code&gt; on the first 5 spaces of the line to collapse the
+visual indentation by 5. But the invisible property will modify subsequent
+line&#39;s indentation by 5 fewer (if necessary), an issue that cannot be resolved
+as we cannot determine in general the &#34;if necessary&#34; part.&lt;/p&gt;
+
+&lt;p&gt;The trick is to make the 5 first spaces display as one space. Because display
+doesn&#39;t modify indentation, subsequent lines will be indented properly.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(overlay-put space-overlay &#39;display &amp;quot; &amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;how-do-we-determine-the-indentation-we-want-to-see-then&#34;&gt;How do we determine the indentation we want to see then?&lt;/h2&gt;
+
+&lt;p&gt;We let Emacs do the work - we create a mirror buffer where the ligatures are
+actually composed and compare the differences in indentation.&lt;/p&gt;
+
+&lt;p&gt;Overlays are not just buffer-local, they also do not transfer to indirect
+buffers. Ideally we would have a hidden indirect buffer where we keep ligatures
+composed instead. Unfortunately, since the &lt;code&gt;composition&lt;/code&gt; text property is
+special, it can only be set with &lt;code&gt;compose-region&lt;/code&gt; which does not work for
+overlays.&lt;/p&gt;
+
+&lt;p&gt;Further, calculating indentation always adjusts the indentation. The
+significance is that whenever we indent the indirect buffer, all the text will
+move back-and-forth. So indirect buffers are out.&lt;/p&gt;
+
+&lt;p&gt;Instead we create temporary buffers for the composition and retrieve an alist of
+lines and their composed indentations.&lt;/p&gt;
+
+&lt;h1 id=&#34;a-working-example&#34;&gt;A working example&lt;/h1&gt;
+
+&lt;p&gt;The current ligature snippets floating around hack &lt;code&gt;font-locks&lt;/code&gt; to perform the
+ligature substitutions. I recently became familiar with context-sensitive syntax
+highlighting via the &lt;code&gt;syntax-propertize-function&lt;/code&gt; in my work on &lt;code&gt;hy-mode&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;I develop a minimal major-mode &lt;code&gt;lig-mode&lt;/code&gt; that uses the syntax function to
+implement ligatures.&lt;/p&gt;
+
+&lt;h2 id=&#34;setup&#34;&gt;Setup&lt;/h2&gt;
+
+&lt;p&gt;First we setup a basic major-mode for testing.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(provide &#39;lig-mode)
+
+(add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.lig\\&#39;&amp;quot; . lig-mode))
+
+(define-derived-mode lig-mode fundamental-mode &amp;quot;Lig&amp;quot;
+  (setq-local indent-line-function &#39;lisp-indent-line)
+  (setq-local syntax-propertize-function &#39;lig-syntax-propertize-function))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is a proof-of-concept - we implement spacing for a single ligature for now.
+Lets replace &#34;hello&#34; with a smiley face.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun lig--match-lig (limit)
+  (re-search-forward (rx word-start &amp;quot;hello&amp;quot; word-end) limit t))
+
+(setq lig-char #x263a)
+(setq lig-str &amp;quot;☺&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;determining-the-indents-we-want-to-see&#34;&gt;Determining the indents we want to see&lt;/h2&gt;
+
+&lt;p&gt;We copy the buffer contents to a temporary buffer, search and compose the
+symbols, indent the buffer, and copy the indentation for each line.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defvar lig-diff-indents nil)
+
+(defun lig-get-diff-indents ()
+  (setq lig-diff-indents nil)
+  (save-excursion
+    ;; Compose the ligatures
+    (goto-char (point-min))
+    (while (re-search-forward (rx word-start &amp;quot;hello&amp;quot; word-end) nil t)
+      (compose-region (match-beginning 0) (match-end 0) lig-char))
+
+    ;; Change indent to match the composed symbol
+    (indent-region (point-min) (point-max))
+
+    ;; Build an alist of line and indention column
+    (goto-char (point-min))
+    (setq line 1)
+    (while (&amp;lt; (point) (point-max))
+      (push (cons line (current-indentation))
+            lig-diff-indents)
+      (forward-line)
+      (setq line (1+ line)))))
+
+(defun run-lig-get-diff-indents ()
+  (let ((true-buffer (current-buffer)))
+    (with-temp-buffer
+      (fundamental-mode)
+      (setq-local indent-line-function &#39;lisp-indent-line)
+      (insert-buffer-substring-no-properties true-buffer)
+      (lig-get-diff-indents))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;bringing-it-together&#34;&gt;Bringing it together&lt;/h2&gt;
+
+&lt;p&gt;For details on how &lt;code&gt;syntax-propertize-function&lt;/code&gt; works, &lt;a href=&#39;https://ekaschalk.github.io/post/major-mode-part-1/&#39;&gt;check this post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Whenever we edit the buffer this hook will run, recalculating and visually
+collapsing all the leading spaces as needed.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun lig-syntax-propertize-function (start-limit end-limit)
+  ;; Make sure visual indentations are current
+  (run-lig-get-diff-indents)
+
+  (save-excursion
+    (goto-char (point-min))
+
+    (while (lig--match-lig end-limit)
+      (let ((start (match-beginning 0))
+            (end (match-end 0)))
+        (unless (-contains? (overlays-at start) lig-overlay)
+          ;; Create and set the lig overlays if not already set
+          (setq lig-overlay (make-overlay start end))
+          (overlay-put lig-overlay &#39;display lig-str)
+          (overlay-put lig-overlay &#39;evaporate t)
+          (overlay-put lig-overlay &#39;modification-hooks &#39;(lig-mod-hook)))))
+
+    ;; Remove all spacing overlays from buffer
+    (remove-overlays nil nil &#39;invis-spaces t)
+
+    ;; Recalcualte and add all spacing overlays
+    (goto-char (point-min))
+    (setq line 1)
+
+    (while (&amp;lt; (point) (point-max))
+      ;; Don&#39;t add the spacing overlay until we indent
+      (unless (&amp;gt; (+ (current-indentation) (point))
+                 (point-max))
+        (let* ((vis-indent (alist-get line lig-diff-indents))
+               (num-spaces (- (current-indentation) vis-indent))
+               (start (point))
+               (end (+ num-spaces (point))))
+
+         ;; only add invisible spaces if the indentations differ
+         (unless (&amp;lt;= num-spaces 1)
+            (setq space-overlay (make-overlay start end))
+            (overlay-put space-overlay &#39;invis-spaces t)
+            (overlay-put space-overlay &#39;display &amp;quot; &amp;quot;)
+            (overlay-put space-overlay &#39;evaporate t))
+
+         (setq line (1+ line))
+         (forward-line))))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;the-result&#34;&gt;The result&lt;/h1&gt;
+
+&lt;p&gt;Enable &lt;code&gt;lig-mode&lt;/code&gt; to see:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; The true text
+(hello how
+       are
+       you (hello hi
+                  again))
+
+;; What we see
+(☺ how
+   are
+   you (☺ hi
+         again))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The indentation we see is not the true indentation anymore!&lt;/p&gt;
+
+&lt;p&gt;The full and current code is &lt;a href=&#34;https://github.com/ekaschalk/emacs-ligatures&#34; title=&#34;hosted here&#34;&gt;hosted here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The missing space on the second hello is a bug. There are many issues with this
+implementation - this is a proof of concept. I suspect a completely correct
+solution to be still some time and effort away, if only because this approach is
+incredibly inefficient.&lt;/p&gt;
+
+&lt;p&gt;This post shows that we maybe can have our cake and eat it too in regards to
+ligatures.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Deep diving into a major mode - Part 1</title>
       <link>https://ekaschalk.github.io/post/major-mode-part-1/</link>
       <pubDate>Tue, 03 Oct 2017 00:00:00 +0000</pubDate>

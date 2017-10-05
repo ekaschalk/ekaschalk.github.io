@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="author" content="Eric Kaschalk">
+  
+
+  
+  
+  
+    
+  
+  
+    
+    
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/zenburn.min.css">
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.0/css/academicons.min.css" integrity="sha512-GGGNUPDhnG8LEAEDsjqYIQns+Gu8RBs4j5XGlxl7UfRaZBhCCm5jenJkeJL8uPuOXGqgl8/H1gjlWQDRjd3cUQ==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather%7CRoboto+Mono">
+  <link rel="stylesheet" href="/css/hugo-academic.css">
+  
+  <link rel="stylesheet" href="/css/custom.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-101190730-1', 'auto');
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
+
+  <link rel="canonical" href="https://ekaschalk.github.io/post/lig-spacing/">
+
+  
+
+  <title>Solving ligature spacing in Emacs - proof of concept | Modern Emacs</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">Modern Emacs</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#spacemacs">
+            
+            <span>My Spacemacs</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>About</span>
+          </a>
+        </li>
+
+        
+        
+
+        
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Solving ligature spacing in Emacs - proof of concept</h1>
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    <time datetime="2017-10-05 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      <i class="fa fa-calendar"></i>
+      Thu, Oct 5, 2017
+    </time>
+  </span>
+
+  
+  
+  
+  <span class="article-categories">
+    <i class="fa fa-tags"></i>
+    
+    <a href="/categories/emacs">emacs</a
+    >
+    
+  </span>
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2flig-spacing%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Solving%20ligature%20spacing%20in%20Emacs%20-%20proof%20of%20concept&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2flig-spacing%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2flig-spacing%2f&amp;title=Solving%20ligature%20spacing%20in%20Emacs%20-%20proof%20of%20concept"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2flig-spacing%2f&amp;title=Solving%20ligature%20spacing%20in%20Emacs%20-%20proof%20of%20concept"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Solving%20ligature%20spacing%20in%20Emacs%20-%20proof%20of%20concept&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2flig-spacing%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    <div class="article-style" itemprop="articleBody">
+      <p>Ligatures are single-character replacements of strings. Examples of ligatures:
+replacing "alpha" with the alpha symbol and "!=" with the a slashed equal sign.
+See <a href='/post/prettify-mode/'>Coding with Mathematical
+Notation</a> for details and pictures.</p>
+
+<p>There is a serious flaw with ligatures - either the indentation you see with
+ligatures or without ligatures is correct, not both. So if someone that does not
+use ligatures works on your code, your indentation's will not match. An example:</p>
+
+<pre><code class="language-lisp">
+;; True indentation, what you want others to see
+(alpha b
+       c)
+
+;; Emacs indentation, what you want to see when working
+(a b
+   c)
+</code></pre>
+
+<p>This problem significantly hampers ligature adoption.</p>
+
+<p>I do not believe any editor implements a solution to ligatures such that you see
+the indentation you want to see, while the true indentation remains correct.</p>
+
+<p>I present a proof-of-concept solution to ligature spacing,</p>
+
+<h1 id="how-emacs-displays-text">How Emacs displays text</h1>
+
+<p>Emacs associates <code>text-properties</code> with strings. A property can be anything.
+Some property names are special and tell Emacs to handle the text in a
+particular way, like <code>face</code> for how a text is highlighted.</p>
+
+<p>An <code>overlay</code> has associated text-properties but is buffer-local. So when we move
+that text to another buffer, if that overlay had a face, then that face would
+not be carried over.</p>
+
+<p>Properties to be aware of:</p>
+
+<ul>
+<li><code>display</code> : How Emacs displays that region, can be any string.</li>
+<li><code>invisible</code> : Whether the text should be displayed.</li>
+<li><code>modification-hooks</code> : When text in the overlay is edited, run these hooks.</li>
+<li><code>evaporate</code> (overlays) : Once the overlay is "done-with", delete the overlay.</li>
+</ul>
+
+<h2 id="compose-region">Compose region</h2>
+
+<p>Additionally, <code>compose-region</code> is similar to <code>display</code> in that the composed region
+is displayed as (possibly many) characters. Current implementations of ligatures
+all leverage compose-region by searching the buffer for say alpha and composing
+from alphas beginning to end point the Unicode symbol for alpha.</p>
+
+<p>There are several important distinctions between <code>compose-region</code> and <code>put-text-property 'display</code></p>
+
+<ol>
+<li>Indentation uses the composed character for indenting while the text-property</li>
+   display indents with the true, original string.
+<li>Composition cannot be set for overlays. The internal <code>composition</code> text property,</li>
+   unlike all other properties, cannot be put manually.
+<li>Editing within a composed region will undo the composition while one must</li>
+   delete the whole region with the display property to undo the display.
+</ol>
+
+<h1 id="working-through-a-solution">Working through a solution</h1>
+
+<h2 id="to-compose-or-display-the-ligature">To compose or display the ligature?</h2>
+
+<p>Because composition adjusts the underlying indentation, it cannot be used for a
+ligature spacing solution. Indentation cannot be adjusted in a major-mode
+agnostic manner. Indentation always considers the true number of characters
+preceding the text on the line, so dynamically adding invisible spaces will not
+work.</p>
+
+<h2 id="but-how-to-make-editing-a-display-behave-like-a-composition">But how to make editing a display behave like a composition?</h2>
+
+<p>It is a serious issue to have to delete the whole text for the ligature to
+disappear.</p>
+
+<p>The solution is the <code>modification-hooks</code> text-property.</p>
+
+<pre><code class="language-lisp">
+(defun lig-mod-hook (overlay post-mod? start end &amp;optional _)
+  (when post-mod?
+    (overlay-put overlay 'display nil)
+    (overlay-put overlay 'modification-hooks nil)))  ; force evaporation
+
+(overlay-put lig-overlay 'modification-hooks '(lig-mod-hook))
+</code></pre>
+
+<p>Now editing text with the display property will behave as desired.</p>
+
+<h2 id="so-how-to-visually-collapse-the-indentation">So how to visually collapse the indentation?</h2>
+
+<p>We could set <code>invisible</code> on the first 5 spaces of the line to collapse the
+visual indentation by 5. But the invisible property will modify subsequent
+line's indentation by 5 fewer (if necessary), an issue that cannot be resolved
+as we cannot determine in general the "if necessary" part.</p>
+
+<p>The trick is to make the 5 first spaces display as one space. Because display
+doesn't modify indentation, subsequent lines will be indented properly.</p>
+
+<pre><code class="language-lisp">
+(overlay-put space-overlay 'display &quot; &quot;)
+</code></pre>
+
+<h2 id="how-do-we-determine-the-indentation-we-want-to-see-then">How do we determine the indentation we want to see then?</h2>
+
+<p>We let Emacs do the work - we create a mirror buffer where the ligatures are
+actually composed and compare the differences in indentation.</p>
+
+<p>Overlays are not just buffer-local, they also do not transfer to indirect
+buffers. Ideally we would have a hidden indirect buffer where we keep ligatures
+composed instead. Unfortunately, since the <code>composition</code> text property is
+special, it can only be set with <code>compose-region</code> which does not work for
+overlays.</p>
+
+<p>Further, calculating indentation always adjusts the indentation. The
+significance is that whenever we indent the indirect buffer, all the text will
+move back-and-forth. So indirect buffers are out.</p>
+
+<p>Instead we create temporary buffers for the composition and retrieve an alist of
+lines and their composed indentations.</p>
+
+<h1 id="a-working-example">A working example</h1>
+
+<p>The current ligature snippets floating around hack <code>font-locks</code> to perform the
+ligature substitutions. I recently became familiar with context-sensitive syntax
+highlighting via the <code>syntax-propertize-function</code> in my work on <code>hy-mode</code>.</p>
+
+<p>I develop a minimal major-mode <code>lig-mode</code> that uses the syntax function to
+implement ligatures.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>First we setup a basic major-mode for testing.</p>
+
+<pre><code class="language-lisp">
+(provide 'lig-mode)
+
+(add-to-list 'auto-mode-alist '(&quot;\\.lig\\'&quot; . lig-mode))
+
+(define-derived-mode lig-mode fundamental-mode &quot;Lig&quot;
+  (setq-local indent-line-function 'lisp-indent-line)
+  (setq-local syntax-propertize-function 'lig-syntax-propertize-function))
+</code></pre>
+
+<p>This is a proof-of-concept - we implement spacing for a single ligature for now.
+Lets replace "hello" with a smiley face.</p>
+
+<pre><code class="language-lisp">
+(defun lig--match-lig (limit)
+  (re-search-forward (rx word-start &quot;hello&quot; word-end) limit t))
+
+(setq lig-char #x263a)
+(setq lig-str &quot;☺&quot;)
+</code></pre>
+
+<h2 id="determining-the-indents-we-want-to-see">Determining the indents we want to see</h2>
+
+<p>We copy the buffer contents to a temporary buffer, search and compose the
+symbols, indent the buffer, and copy the indentation for each line.</p>
+
+<pre><code class="language-lisp">
+(defvar lig-diff-indents nil)
+
+(defun lig-get-diff-indents ()
+  (setq lig-diff-indents nil)
+  (save-excursion
+    ;; Compose the ligatures
+    (goto-char (point-min))
+    (while (re-search-forward (rx word-start &quot;hello&quot; word-end) nil t)
+      (compose-region (match-beginning 0) (match-end 0) lig-char))
+
+    ;; Change indent to match the composed symbol
+    (indent-region (point-min) (point-max))
+
+    ;; Build an alist of line and indention column
+    (goto-char (point-min))
+    (setq line 1)
+    (while (&lt; (point) (point-max))
+      (push (cons line (current-indentation))
+            lig-diff-indents)
+      (forward-line)
+      (setq line (1+ line)))))
+
+(defun run-lig-get-diff-indents ()
+  (let ((true-buffer (current-buffer)))
+    (with-temp-buffer
+      (fundamental-mode)
+      (setq-local indent-line-function 'lisp-indent-line)
+      (insert-buffer-substring-no-properties true-buffer)
+      (lig-get-diff-indents))))
+</code></pre>
+
+<h2 id="bringing-it-together">Bringing it together</h2>
+
+<p>For details on how <code>syntax-propertize-function</code> works, <a href='/post/major-mode-part-1/'>check this post</a>.</p>
+
+<p>Whenever we edit the buffer this hook will run, recalculating and visually
+collapsing all the leading spaces as needed.</p>
+
+<pre><code class="language-lisp">
+(defun lig-syntax-propertize-function (start-limit end-limit)
+  ;; Make sure visual indentations are current
+  (run-lig-get-diff-indents)
+
+  (save-excursion
+    (goto-char (point-min))
+
+    (while (lig--match-lig end-limit)
+      (let ((start (match-beginning 0))
+            (end (match-end 0)))
+        (unless (-contains? (overlays-at start) lig-overlay)
+          ;; Create and set the lig overlays if not already set
+          (setq lig-overlay (make-overlay start end))
+          (overlay-put lig-overlay 'display lig-str)
+          (overlay-put lig-overlay 'evaporate t)
+          (overlay-put lig-overlay 'modification-hooks '(lig-mod-hook)))))
+
+    ;; Remove all spacing overlays from buffer
+    (remove-overlays nil nil 'invis-spaces t)
+
+    ;; Recalcualte and add all spacing overlays
+    (goto-char (point-min))
+    (setq line 1)
+
+    (while (&lt; (point) (point-max))
+      ;; Don't add the spacing overlay until we indent
+      (unless (&gt; (+ (current-indentation) (point))
+                 (point-max))
+        (let* ((vis-indent (alist-get line lig-diff-indents))
+               (num-spaces (- (current-indentation) vis-indent))
+               (start (point))
+               (end (+ num-spaces (point))))
+
+         ;; only add invisible spaces if the indentations differ
+         (unless (&lt;= num-spaces 1)
+            (setq space-overlay (make-overlay start end))
+            (overlay-put space-overlay 'invis-spaces t)
+            (overlay-put space-overlay 'display &quot; &quot;)
+            (overlay-put space-overlay 'evaporate t))
+
+         (setq line (1+ line))
+         (forward-line))))))
+</code></pre>
+
+<h1 id="the-result">The result</h1>
+
+<p>Enable <code>lig-mode</code> to see:</p>
+
+<pre><code class="language-lisp">
+;; The true text
+(hello how
+       are
+       you (hello hi
+                  again))
+
+;; What we see
+(☺ how
+   are
+   you (☺ hi
+         again))
+</code></pre>
+
+<p>The indentation we see is not the true indentation anymore!</p>
+
+<p>The full and current code is <a href="https://github.com/ekaschalk/emacs-ligatures" title="hosted here">hosted here</a>.</p>
+
+<p>The missing space on the second hello is a bug. There are many issues with this
+implementation - this is a proof of concept. I suspect a completely correct
+solution to be still some time and effort away, if only because this approach is
+incredibly inefficient.</p>
+
+<p>This post shows that we maybe can have our cake and eat it too in regards to
+ligatures.</p>
+
+    </div>
+  </div>
+
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
+    
+    <li class="previous"><a href="https://ekaschalk.github.io/post/major-mode-part-1/"><span
+      aria-hidden="true">&larr;</span> Deep diving into a major mode - Part 1</a></li>
+    
+
+    
+  </ul>
+</nav>
+
+</div>
+
+<div class="article-container">
+  
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/lig-spacing\/';
+    var disqus_title = 'Solving ligature spacing in Emacs - proof of concept';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/lig-spacing\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
+
+
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2017 Eric Kaschalk &middot; 
+
+      Powered by the <a href="https://github.com/gcushen/hugo-academic" target="_blank">Academic
+      theme</a> for <a href="http://gohugo.io" target="_blank">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js" integrity="sha512-jGsMH83oKe9asCpkOVkBnUrDDTp8wl+adkB2D+//JtlxO4SrLoJdhbOysIFQJloQFD+C4Fl1rMsQZF76JjV0eQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.2/imagesloaded.pkgd.min.js" integrity="sha512-iHzEu7GbSc705hE2skyH6/AlTpOfBmkx7nUqTLGzPYR+C1tRaItbRlJ7hT/D3YQ9SV0fqLKzp4XY9wKulTBGTw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/TweenMax.min.js" integrity="sha512-Z5heTz36xTemt1TbtbfXtTq5lMfYnOkXM2/eWcTTiLU01+Sw4ku1i7vScDc8fWhrP2abz9GQzgKH5NGBLoYlAw==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.1/plugins/ScrollToPlugin.min.js" integrity="sha512-CDeU7pRtkPX6XJtF/gcFWlEwyaX7mcAp5sO3VIu/ylsdR74wEw4wmBpD5yYTrmMAiAboi9thyBUr1vXRPA7t0Q==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+    <script src="/js/custom.js"></script>
+    
+
+    
+    
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/python.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/lisp.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/hy.min.js"></script>
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/languages/clojure.min.js"></script>
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+
+  </body>
+</html>
+
