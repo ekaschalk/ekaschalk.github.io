@@ -48,17 +48,17 @@
     
   
 
-  <link rel="alternate" href="https://ekaschalk.github.io/categories/emacs-lisp/index.xml" type="application/rss+xml" title="Modern Emacs">
-  <link rel="feed" href="https://ekaschalk.github.io/categories/emacs-lisp/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="alternate" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
+  <link rel="feed" href="https://ekaschalk.github.io/index.xml" type="application/rss+xml" title="Modern Emacs">
 
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/apple-touch-icon.png">
 
-  <link rel="canonical" href="https://ekaschalk.github.io/categories/emacs-lisp/">
+  <link rel="canonical" href="https://ekaschalk.github.io/post/elisp-exercises/">
 
   
 
-  <title>Emacs Lisp | Modern Emacs</title>
+  <title>Emacs-lisp exercises and solutions | Modern Emacs</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#navbar-main" data-offset="71">
@@ -129,40 +129,192 @@
 </nav>
 
 
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
 
 
+  <div class="article-container">
+    <h1 itemprop="name">Emacs-lisp exercises and solutions</h1>
+    
 
-<div class="universal-wrapper">
+<div class="article-metadata">
 
-  <h1>Emacs Lisp</h1>
+  <span class="article-date">
+    <time datetime="2017-10-13 00:00:00 &#43;0000 UTC" itemprop="datePublished">
+      <i class="fa fa-calendar"></i>
+      Fri, Oct 13, 2017
+    </time>
+  </span>
 
+  
+  
+  
+  <span class="article-categories">
+    <i class="fa fa-tags"></i>
+    
+    <a href="/categories/emacs">emacs</a
+    >, 
+    
+    <a href="/categories/emacs-lisp">emacs-lisp</a
+    >
+    
+  </span>
+  
   
 
   
   
-  <div>
-    <h2><a href="https://ekaschalk.github.io/post/elisp-exercises/">Emacs-lisp exercises and solutions</a></h2>
-    <div class="article-style">
-      
-      something
-      
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fekaschalk.github.io%2fpost%2felisp-exercises%2f"
+         target="_blank">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Emacs-lisp%20exercises%20and%20solutions&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2felisp-exercises%2f"
+         target="_blank">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fekaschalk.github.io%2fpost%2felisp-exercises%2f&amp;title=Emacs-lisp%20exercises%20and%20solutions"
+         target="_blank">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fekaschalk.github.io%2fpost%2felisp-exercises%2f&amp;title=Emacs-lisp%20exercises%20and%20solutions"
+         target="_blank">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Emacs-lisp%20exercises%20and%20solutions&amp;body=https%3a%2f%2fekaschalk.github.io%2fpost%2felisp-exercises%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+    <div class="article-style" itemprop="articleBody">
+      <p>I present exercises ordered by aspect and difficulty with the intent of making
+more tangible the Emacs slogan "the infinitely customizable editor".</p>
+
+<p>Be familiar with:</p>
+
+<ol>
+<li>Lisp syntax.</li>
+<li>Emacs help facilities like <code>describe-function</code>.</li>
+</ol>
+
+<p>To learn:</p>
+
+<ol>
+<li>How to work with Emacs <code>rx</code> macro for regexes.</li>
+<li>Traverse buffers and org-mode.</li>
+</ol>
+
+<h1 id="the-basics">The basics</h1>
+
+<h2 id="regexes-and-the-rx-macro">Regexes and the rx macro</h2>
+
+<p>The <code>rx</code> macro makes maintaining and writing regexes enjoyable and easy.</p>
+
+<p><code>match-beginning</code> and <code>match-end</code> are Emacs facilities for extracting regex
+matches for particular groups.</p>
+
+<p>Solve the following exercises with the <code>rx</code> syntax.</p>
+
+<p>Q1 (E) - Match the string in an org-mode header of any level.</p>
+
+<pre><code class="language-lisp">
+(rx (1+ &quot;*&quot;)
+    space
+    (group (0+ not-newline)))
+</code></pre>
+
+<p>There is the <code>group-n</code> construct for specifying the group of a particular
+particular part of the regex.</p>
+
+<p>Q2 (E) - Match both the string and the level of an org-mode header.</p>
+
+<pre><code class="language-lisp">
+(rx (group-n 1 (1+ &quot;*&quot;))
+    space
+    (group-n 2 (0+ not-newline)))
+</code></pre>
+
+<h2 id="org-mode">Org-mode</h2>
+
+<p>Q1 (E) - Get the heading name string above the current point.</p>
+
+<pre><code class="language-lisp">
+(defun ex-current-heading ()
+  (org-previous-visible-heading 1)
+  (re-search-forward (rx (1+ &quot;*&quot;) space))
+  (buffer-substring (point) (line-end-position)))
+</code></pre>
+
     </div>
   </div>
-  
-  <div>
-    <h2><a href="https://ekaschalk.github.io/post/xi-macro/">Anonymous function macro in elisp</a></h2>
-    <div class="article-style">
-      
-      Porting clojures #( reader macro to elisp.
-      
-    </div>
-  </div>
-  
 
+</article>
+
+<div class="container">
+  <nav>
+  <ul class="pager">
+    
+    <li class="previous"><a href="https://ekaschalk.github.io/post/lig-spacing/"><span
+      aria-hidden="true">&larr;</span> Solving ligature spacing in Emacs - proof of concept</a></li>
+    
+
+    
+    <li class="next"><a href="https://ekaschalk.github.io/post/major-mode-part-2/">Deep diving into a major mode - Part 2 (IDE Features) <span
+      aria-hidden="true">&rarr;</span></a></li>
+    
+  </ul>
+</nav>
+
+</div>
+
+<div class="article-container">
   
+<section id="comments">
+  <div id="disqus_thread">
+    <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_shortname = 'ekaschalk-github-io';
+    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/elisp-exercises\/';
+    var disqus_title = 'Emacs-lisp exercises and solutions';
+    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/elisp-exercises\/';
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  </div>
+</section>
 
 
 </div>
+
 <footer class="site-footer">
   <div class="container">
     <p class="powered-by">

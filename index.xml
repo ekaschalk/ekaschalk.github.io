@@ -11,6 +11,679 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Deep diving into a major mode - Part 2 (IDE Features)</title>
+      <link>https://ekaschalk.github.io/post/major-mode-part-2/</link>
+      <pubDate>Sun, 29 Oct 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/major-mode-part-2/</guid>
+      <description>&lt;p&gt;In &lt;a href=&#39;https://ekaschalk.github.io/post/major-mode-part-1/&#39;&gt;Part 1&lt;/a&gt; I addressed:
+syntax tables, indentation, font locking, and context-sensitive syntax.&lt;/p&gt;
+
+&lt;p&gt;We now build out a &#34;Hyde&#34; with: shell/async process integration, Eldoc support,
+and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-at-point.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/eldoc-auto.png&#34; alt=&#34;/img/eldoc-auto.png&#34; title=&#34;/img/eldoc-auto.png&#34; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&#34;building-inferior-hy&#34;&gt;Building Inferior Hy&lt;/h1&gt;
+
+&lt;h2 id=&#34;the-basics&#34;&gt;The basics&lt;/h2&gt;
+
+&lt;p&gt;The easiest way to add a REPL to your major-mode is through setting the variable
+   &lt;code&gt;inferior-lisp-program&lt;/code&gt;, possibly adding setup code through
+   &lt;code&gt;inferior-lisp-load-command&lt;/code&gt;, then running the &lt;code&gt;inferior-lisp&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; within the define-derived-mode hy-mode setup...
+(setq-local inferior-lisp-program &amp;quot;hy&amp;quot;)
+(setq-local inferior-lisp-load-command &amp;quot;(print \&amp;quot;Hy there!\&amp;quot;)&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This isn&#39;t sufficient for advanced shells. The custom is to create a
+    function named &lt;code&gt;run-hy&lt;/code&gt; (eg. there is &lt;code&gt;run-python&lt;/code&gt;, &lt;code&gt;run-haskell&lt;/code&gt;...)
+    which starts up the shell, sets &lt;code&gt;inferior-hy-mode&lt;/code&gt; , and switches to the
+    shell.&lt;/p&gt;
+
+&lt;h2 id=&#34;comint-mode&#34;&gt;Comint-mode&lt;/h2&gt;
+
+&lt;p&gt;It is a &#34;Major mode for interacting with an inferior interpreter&#34;. Most-all
+   inferior modes will derive from &lt;code&gt;comint-mode&lt;/code&gt;. It provides many utilities for
+   interacting with shell-like processes.&lt;/p&gt;
+
+&lt;p&gt;Hy mode&#39;s prompt is a right arrow.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(define-derived-mode inferior-hy-mode comint-mode &amp;quot;Inferior Hy&amp;quot;
+  &amp;quot;Major mode for Hy inferior process.&amp;quot;
+  (setq-local indent-tabs-mode nil)
+
+  ;; How to dispaly the process status in the mode-line
+  (setq mode-line-process &#39;(&amp;quot;:%s&amp;quot;))
+  ;; This disables editing and traversing the &amp;quot;=&amp;gt;&amp;quot; prompts
+  (setq-local comint-prompt-read-only t)
+  ;; Lets comint mode recognize the prompt
+  (setq-local comint-prompt-regexp (rx bol &amp;quot;=&amp;gt;&amp;quot; space))
+
+  ;; ... other specialized config introduced later ...
+  )
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are several comint components we will make use of:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;comint-last-prompt&lt;/code&gt; - a cons cell of begin/end markers of last prompt.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comint-send-string&lt;/code&gt; - perform &lt;code&gt;process-send-string&lt;/code&gt; with comint&lt;/li&gt;
+      bookkeeping.
+&lt;li&gt;&lt;code&gt;comint-redirect-send-command-to-process&lt;/code&gt; and &lt;code&gt;comint-redirect-completed&lt;/code&gt; - for sending strings asynchronously.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;comint-(pre)output-filter-functions&lt;/code&gt; - entry points into capturing and&lt;/li&gt;
+      cleaning process output.
+&lt;li&gt;&lt;code&gt;make-comint-in-buffer&lt;/code&gt; - entry point into comint mode.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;managing-buffers-and-processes&#34;&gt;Managing buffers and processes&lt;/h2&gt;
+
+&lt;p&gt;We must manage: the standard hy shell process, the internal hy process used
+   for autocompletion and eldoc, and temporal buffers for more advanced buffer
+   transformations of the standard hy shell process.&lt;/p&gt;
+
+&lt;p&gt;The configuration required of &lt;code&gt;inferior-hy-mode&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;;; Configuration
+
+(defconst hy-shell-interpreter &amp;quot;hy&amp;quot;
+  &amp;quot;Default Hy interpreter name.&amp;quot;)
+
+(defvar hy-shell-interpreter-args &amp;quot;--spy&amp;quot;
+  &amp;quot;Default arguments for Hy interpreter.&amp;quot;)
+
+;;; Internal
+
+(defconst hy-shell-buffer-name &amp;quot;Hy&amp;quot;
+  &amp;quot;Default buffer name for Hy interpreter.&amp;quot;)
+
+(defconst hy-shell-internal-buffer-name &amp;quot;Hy Internal&amp;quot;
+  &amp;quot;Default buffer name for the internal Hy process.&amp;quot;)
+
+(defvar hy-shell-buffer nil
+  &amp;quot;The current shell buffer for Hy.&amp;quot;)
+
+(defvar hy--shell-output-filter-in-progress nil
+  &amp;quot;Whether we are waiting for output in `hy-shell-send-string-no-output&#39;.&amp;quot;)
+
+(defvar hy--shell-font-lock-enable t
+  &amp;quot;Whether the shell should font-lock the current line.&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the building blocks of the shell can be defined.&lt;/p&gt;
+
+&lt;p&gt;The implementations are rather straightforward. To keep space down, only
+    name and docstring are provided:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-format-process-name (proc-name)
+  &amp;quot;Format a PROC-NAME with closing astericks.&amp;quot;)
+
+(defun hy-shell-get-process (&amp;amp;optional internal)
+  &amp;quot;Get process corr. to `hy-shell-buffer-name&#39;/`hy-shell-internal-buffer-name&#39;.&amp;quot;)
+
+(defun hy--shell-current-buffer-process ()
+  &amp;quot;Get process associated with current buffer.&amp;quot;)
+
+(defun hy--shell-current-buffer-a-process? ()
+  &amp;quot;Is `current-buffer&#39; a live process?&amp;quot;)
+
+(defun hy--shell-get-or-create-buffer ()
+  &amp;quot;Get or create `hy-shell-buffer&#39; buffer for current hy shell process.&amp;quot;)
+
+(defun hy--shell-buffer? ()
+  &amp;quot;Is `hy-shell-buffer&#39; set and does it exist?&amp;quot;)
+
+(defun hy--shell-kill-buffer ()
+  &amp;quot;Kill `hy-shell-buffer&#39;.&amp;quot;)
+
+(defun hy--shell-calculate-command (&amp;amp;optional internal)
+  &amp;quot;Calculate the string used to execute the inferior Hy process.&amp;quot;)
+  ;; Straightforward string formatting - see: `shell-quote-argument&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;starting-up-the-shell&#34;&gt;Starting up the shell&lt;/h2&gt;
+
+&lt;p&gt;The commands above are enough to build out some basic shell support. Lets
+   look at &lt;code&gt;run-hy&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun run-hy (&amp;amp;optional cmd)
+  &amp;quot;Run an inferior Hy process.
+
+CMD defaults to the result of `hy--shell-calculate-command&#39;.&amp;quot;
+  (interactive)
+  (unless (executable-find &amp;quot;hy&amp;quot;)
+    (message &amp;quot;Hy not found, activate a virtual environment with Hy.&amp;quot;))
+
+  (-&amp;gt; (or cmd (hy--shell-calculate-command))
+     (hy--shell-make-comint hy-shell-buffer-name &#39;show)
+     get-buffer-process))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Most of the work is delegated to &lt;code&gt;hy--shell-make-comint&lt;/code&gt; as we also must
+    have the internal variant:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun run-hy-internal ()
+  &amp;quot;Start an inferior hy process in the background for autocompletion.&amp;quot;
+  (interactive)
+  (unless (executable-find &amp;quot;hy&amp;quot;)
+    (message &amp;quot;Hy not found, activate a virtual environment containing Hy to use
+Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
+
+  (when (and (not (hy-shell-get-process &#39;internal))
+             (executable-find &amp;quot;hy&amp;quot;))
+    (-let [hy--shell-font-lock-enable
+           nil]
+      (prog1
+          (-&amp;gt; (hy--shell-calculate-command &#39;internal)
+             (hy--shell-make-comint hy-shell-internal-buffer-name nil &#39;internal)
+             get-buffer-process)
+        (hy--shell-send-internal-setup-code)
+        (message &amp;quot;Hy internal process successfully started&amp;quot;)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is a simple variation of &lt;code&gt;run-hy&lt;/code&gt; that passes the internal argument
+    through the hy shell building blocks and also sends setup code for
+    &lt;code&gt;eldoc-mode&lt;/code&gt; and &lt;code&gt;company-mode&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now we are ready to startup our &lt;code&gt;inferior-hy-mode&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-make-comint (cmd proc-name &amp;amp;optional show internal)
+  &amp;quot;Create and return comint process PROC-NAME with CMD, opt. INTERNAL and SHOW.&amp;quot;
+  (-when-let* ((proc-buffer-name
+                (hy--shell-format-process-name proc-name))
+               (_
+                (not (comint-check-proc proc-buffer-name)))
+               (cmdlist
+                (split-string-and-unquote cmd))
+               (buffer
+                (apply &#39;make-comint-in-buffer proc-name proc-buffer-name
+                       (car cmdlist) nil (cdr cmdlist)))
+               (process
+                (get-buffer-process buffer)))
+    (with-current-buffer buffer
+      (inferior-hy-mode))
+    (when show
+      (display-buffer buffer))
+    (if internal
+        (set-process-query-on-exit-flag process nil)
+      (setq hy-shell-buffer buffer))
+    proc-buffer-name))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;All the work is once again delegated to our shell building blocks. There are
+    several things to notice:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;If the process is meant to be autostarted/quited, make sure to use &lt;code&gt;set-process-query-on-exit-flag&lt;/code&gt; to nil.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;cmdlist&lt;/code&gt; car is &#34;hy&#34; and cdr is the hy interpreter arguments.&lt;/li&gt;
+&lt;li&gt;Further accessing of the shell is done with the &lt;code&gt;hy-shell-buffer&lt;/code&gt; variable.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;working-with-the-shell&#34;&gt;Working with the shell&lt;/h2&gt;
+
+&lt;p&gt;The shell is now functional, but we still don&#39;t have methods to send strings
+   to the shell (for instance, sending the current-form or the buffer for
+   evaluation). Nor do we have any support for asynchronously sending and
+   extracting information from our internal process.&lt;/p&gt;
+
+&lt;p&gt;Like always, lets define some utilities:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-end-of-output? (string)
+  &amp;quot;Return non-nil if STRING ends with the prompt.&amp;quot;
+  (s-matches? comint-prompt-regexp string))
+
+(defun hy--shell-output-filter (string)
+  &amp;quot;If STRING ends with input prompt then set filter in progress done.&amp;quot;
+  (when (hy--shell-end-of-output? string)
+    (setq hy--shell-output-filter-in-progress nil))
+  &amp;quot;\n=&amp;gt; &amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;hy--shell-output-filter-in-progress&lt;/code&gt; is the critical component. Lets see how
+    it is used:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-send-string (string &amp;amp;optional process internal)
+  &amp;quot;Internal implementation of shell send string functionality.&amp;quot;
+  (let ((process (or process (hy-shell-get-process internal)))
+        (hy--shell-output-filter-in-progress t))
+    (comint-send-string process string)
+    (while hy--shell-output-filter-in-progress
+      (accept-process-output process))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The shell process is obtained, we set it to be in progress, and send it off
+    to comint. But how and when is the filter reset?&lt;/p&gt;
+
+&lt;p&gt;We come back to the &lt;code&gt;comint-(pre)output-filter-functions&lt;/code&gt;. When we send the
+    string via &lt;code&gt;comint-send-string&lt;/code&gt;, part of its bookkeeping is to apply these
+    filter functions to the output. However, the output can come in chunks, so
+    simply accepting the process output is not sufficient. We must recognize
+    when the last of the expected process output is retrieved and signal to stop
+    accepting output.&lt;/p&gt;
+
+&lt;p&gt;The difference between the pre and standard filters is when they are
+    applied. The pre variation is executed before the process output is inserted
+    into the buffer.&lt;/p&gt;
+
+&lt;p&gt;Looking back to &lt;code&gt;hy--shell-output-filter&lt;/code&gt;, what are the outcomes of using it
+    as a pre or standard filter? Lets look at the exposed send strings:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy-shell-send-string-no-output (string &amp;amp;optional process internal)
+  &amp;quot;Send STRING to hy PROCESS and inhibit printing output.&amp;quot;
+  (-let [comint-preoutput-filter-functions
+         &#39;(hy--shell-output-filter)]
+    (hy--shell-send-string string process internal)))
+
+(defun hy-shell-send-string (string &amp;amp;optional process)
+  &amp;quot;Send STRING to hy PROCESS.&amp;quot;
+  (-let [comint-output-filter-functions
+         &#39;(hy--shell-output-filter)]
+    (hy--shell-send-string string process)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Lastly, these functions won&#39;t work for asynchronous ops like Eldoc and
+    Autocompletion. You will see a &lt;code&gt;Blocking call inhibiting process output&lt;/code&gt; error messaged in the minibuffer.&lt;/p&gt;
+
+&lt;p&gt;The asynchronous version is different. We redirect the process output to a
+    temporary buffer and capture its output.&lt;/p&gt;
+
+&lt;p&gt;The key is the 100ms &lt;code&gt;timeout&lt;/code&gt; argument passed to &lt;code&gt;accept-process-output&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-send-async (string)
+  &amp;quot;Send STRING to internal hy process asynchronously.&amp;quot;
+  (let ((output-buffer &amp;quot; *Comint Hy Redirect Work Buffer*&amp;quot;)
+        (proc (hy-shell-get-process &#39;internal)))
+    (with-current-buffer (get-buffer-create output-buffer)
+      (erase-buffer)
+      (comint-redirect-send-command-to-process string output-buffer proc nil t)
+
+      (set-buffer (process-buffer proc))
+      (while (and (null comint-redirect-completed)
+                  (accept-process-output proc nil 100 t)))
+      (set-buffer output-buffer)
+      (buffer-string))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Our shell is now ready for autocompletion, eldoc, and other awesome IDE features.&lt;/p&gt;
+
+&lt;p&gt;I originally planned to go into font-locking the prompt input (highly
+    non-trivial), but given the length of this post I will provide and link to
+    it as a separate future post.&lt;/p&gt;
+
+&lt;h1 id=&#34;autocompletion&#34;&gt;Autocompletion&lt;/h1&gt;
+
+&lt;p&gt;All the work for autocompletion was in setting up the asynchronous process
+  support. Lets see how easy autocompletion becomes:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defconst hy-company-setup-code
+  &amp;quot;(import [hy.completer [Completer]])
+(setv --HYCOMPANY (Completer))&amp;quot;
+  &amp;quot;Autocompletion setup code to send to the internal process.&amp;quot;)
+
+(defconst hy--company-regexp
+  (rx &amp;quot;&#39;&amp;quot;
+      (group (1+ (not (any &amp;quot;,]&amp;quot;))))
+      &amp;quot;&#39;&amp;quot;
+      (any &amp;quot;,&amp;quot; &amp;quot;]&amp;quot;))
+  &amp;quot;Regex to extra candidates from --HYCOMPANY.&amp;quot;)
+
+(defun hy--company-format-str (string)
+  &amp;quot;Format STRING to send to hy for completion candidates.&amp;quot;
+  (when string
+    (format &amp;quot;(.%s --HYCOMPANY \&amp;quot;%s\&amp;quot;)&amp;quot;
+            (cond ((s-starts-with? &amp;quot;#&amp;quot; string)  ; Tag matches broken in Hy atm
+                   &amp;quot;tag-matches&amp;quot;)
+                  ((s-contains? &amp;quot;.&amp;quot; string)
+                   &amp;quot;attr-matches&amp;quot;)
+                  (t
+                   &amp;quot;global-matches&amp;quot;))
+            string)))
+
+(defun hy--company-candidates (string)
+  &amp;quot;Get candidates for completion of STRING.&amp;quot;
+  (-when-let* ((command (hy--company-format-str string))
+               (candidates (hy--shell-send-async command))
+               (matches (s-match-strings-all hy--company-regexp candidates)))
+    (-select-column 1 matches)))  ; Get match-data-1 for each match
+
+(defun company-hy (command &amp;amp;optional arg &amp;amp;rest ignored)
+  (interactive (list &#39;interactive))
+  (cl-case command
+    (prefix (company-grab-symbol))
+    (candidates (hy--company-candidates arg))
+    (meta (-&amp;gt; arg hy--eldoc-get-docs hy--str-or-empty))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;Completer&lt;/code&gt; is a hy builtin that completes a given string and does all the
+    work here. We simply call it&#39;s appropriate method, extract the items in the
+    retrieved list, and hand it off to company.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;company-grab-symbol&lt;/code&gt; gets the current symbol which is handed off as &lt;code&gt;arg&lt;/code&gt; in
+    the subsequent call.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;meta&lt;/code&gt; argument shows the eldoc output for the current selected company
+    candidate in the minibuffer, as seen in this post&#39;s initial image.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;company-hy&lt;/code&gt; can then be enabled either through adding to &lt;code&gt;company-backends&lt;/code&gt; or
+    for Spacemacs users adding:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+;; Technically this should be within a hy layer, but this still works uncaptured
+(spacemacs|add-company-backends
+  :backends company-hy
+  :modes hy-mode inferior-hy-mode)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Developing a major-mode that accommodates Spacemacs users will be touched on
+    in future posts.&lt;/p&gt;
+
+&lt;h1 id=&#34;eldoc&#34;&gt;Eldoc&lt;/h1&gt;
+
+&lt;p&gt;For those unfamiliar, in the initial image &lt;code&gt;eldoc-mode&lt;/code&gt; provides the formatted
+  docstring and arguments in the minibuffer for the symbol-at-point (or
+  completion candidate).&lt;/p&gt;
+
+&lt;p&gt;Perhaps surprisingly, Eldoc is &lt;em&gt;a lot&lt;/em&gt; more challenging than autocompletion.&lt;/p&gt;
+
+&lt;p&gt;For starters, your language won&#39;t provide Eldoc like strings (formatted
+  argument list + first line of docstring) by default. How difficult inspecting
+  language constructs is entirely dependent on the language. Hy in particular is
+  difficult due to how macros are implemented and namespaced. I won&#39;t provide
+  the &lt;code&gt;hy-eldoc-setup-code&lt;/code&gt; here, it can be found within the source.&lt;/p&gt;
+
+&lt;p&gt;Next, your implementation must mirror any relevant DSLs. For lisps, Eldoc
+  inspects the form opener. It is hydiomatic to:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(setv x &amp;quot;hi&amp;quot;)
+(.format &amp;quot;{} there&amp;quot; x)
+(setv a-list [])
+(.append a-list &amp;quot;friend&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We need to send &lt;code&gt;str.format&lt;/code&gt; and &lt;code&gt;a-list.append&lt;/code&gt; - the form opener alone is
+  insufficient.&lt;/p&gt;
+
+&lt;h2 id=&#34;implementation&#34;&gt;Implementation&lt;/h2&gt;
+
+&lt;p&gt;Eldoc is setup via the &lt;code&gt;eldoc-documentation-function&lt;/code&gt; :&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy-eldoc-documentation-function ()
+  &amp;quot;Drives `eldoc-mode&#39;, retrieves eldoc msg string for inner-most symbol.&amp;quot;
+  (-&amp;gt; (hy--eldoc-get-inner-symbol)
+     hy--eldoc-get-docs))
+
+(defun hy--mode-setup-eldoc ()
+  (make-local-variable &#39;eldoc-documentation-function)
+  (setq-local eldoc-documentation-function &#39;hy-eldoc-documentation-function)
+  (eldoc-mode +1))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are three core components:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;hy--eldoc-send&lt;/code&gt; for sending a formatted string and cleaning its output.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hy--eldoc-get-inner-symbol&lt;/code&gt; getting opening form and completing the dot DSL.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;hy--eldoc-fontify-text&lt;/code&gt; for highlighting the final text string like in the image.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Lets look at fontifying first. We can&#39;t blindly apply Hy&#39;s font-locks as the
+   docstring isn&#39;t captured in quotes. Since the text is static, we just add the
+   faces to the string ourselves.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--fontify-text (text regexp &amp;amp;rest faces)
+  &amp;quot;Fontify portions of TEXT matching REGEXP with FACES.&amp;quot;
+  (when text
+    (-each
+        (s-matched-positions-all regexp text)
+      (-lambda ((beg . end))
+        (--each faces
+          (add-face-text-property beg end it nil text))))))
+
+(defun hy--eldoc-fontify-text (text)
+  &amp;quot;Fontify eldoc TEXT.&amp;quot;
+  (let ((kwd-rx
+         (rx string-start (1+ (not (any space &amp;quot;:&amp;quot;))) &amp;quot;:&amp;quot;))
+        (kwargs-rx
+         (rx symbol-start &amp;quot;&amp;amp;&amp;quot; (1+ word)))
+        (quoted-args-rx
+         (rx &amp;quot;`&amp;quot; (1+ (not space)) &amp;quot;`&amp;quot;)))
+    (hy--fontify-text
+     text kwd-rx &#39;font-lock-keyword-face)
+    (hy--fontify-text
+     text kwargs-rx &#39;font-lock-type-face)
+    (hy--fontify-text
+     text quoted-args-rx &#39;font-lock-constant-face &#39;bold-italic))
+  text)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next lets see the sending and formatting of the shell&#39;s raw eldoc output.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--eldoc-send (string)
+  &amp;quot;Send STRING for eldoc to internal process returning output.&amp;quot;
+  (-&amp;gt; string
+     hy--shell-send-async
+     hy--eldoc-chomp-output
+     hy--eldoc-remove-syntax-errors
+     hy--str-or-nil))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The string/output formatting are implementation details specific to Hy and so
+   won&#39;t be detailed. If we are dealing with an empty string, we return nil
+   rather than the empty string to pass-by parent &lt;code&gt;when&lt;/code&gt; clauses.&lt;/p&gt;
+
+&lt;p&gt;The meat of Eldoc is in extracting the innermost symbol of the current point&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--eldoc-get-inner-symbol ()
+  &amp;quot;Traverse and inspect innermost sexp and return formatted string for eldoc.&amp;quot;
+  (save-excursion
+    (-when-let* ((_ (hy-shell-get-process &#39;internal))
+                 (state (syntax-ppss))
+                 (start-pos (hy--sexp-inermost-char state))
+                 (_ (progn (goto-char start-pos)
+                           (not (hy--not-function-form-p))))
+                 (function (progn (forward-char)
+                                  (thing-at-point &#39;symbol))))
+
+      ;; Attribute method call (eg. &amp;quot;.format str&amp;quot;) needs following sexp
+      (if (s-starts-with? &amp;quot;.&amp;quot; function)
+          (when (ignore-errors (forward-sexp) (forward-char) t)
+            (pcase (char-after)
+              ;; Can&#39;t send just .method to eldoc
+              (?\) (setq function nil))
+              (?\s (setq function nil))
+              (?\C-j (setq function nil))  ; newline
+
+              ;; Dot dsl doesn&#39;t work on literals
+              (?\[ (concat &amp;quot;list&amp;quot; function))
+              (?\{ (concat &amp;quot;dict&amp;quot; function))
+              (?\  (concat &amp;quot;str&amp;quot; function))  ; the &amp;quot; is deleted in blog as breaks rainbow.js
+
+              ;; Otherwise complete the dot dsl
+              (_ (progn
+                   (forward-char)
+                   (concat (thing-at-point &#39;symbol) function)))))
+        function))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So Eldoc&#39;s path is to call &lt;code&gt;hy--eldoc-get-inner-symbol&lt;/code&gt; if an internal process
+   is active, &lt;code&gt;syntax-ppss&lt;/code&gt; indicates we are within a form, and that the
+   innermost form is a symbol. The completed string is sent off to the internal
+   process we&#39;ve built up, the output is chomped of quote characters and the
+   prompt and syntax errors (eg. completing &#34;str.&#34; while we are still typing)
+   are ignored. The result is fontified and returned by the documentation function.&lt;/p&gt;
+
+&lt;h2 id=&#34;spacemacs-shift-k-documentation-lookup&#34;&gt;Spacemacs shift-k documentation lookup&lt;/h2&gt;
+
+&lt;p&gt;A feature of Spacemacs is typing &#34;K&#34; to perform
+   &lt;code&gt;spacemacs/evil-smart-doc-lookup&lt;/code&gt; to get the full documentation of the
+   symbol-at-point in a separate buffer.&lt;/p&gt;
+
+&lt;p&gt;Using Eldoc&#39;s documentation functions, with slightly different formatting, we
+   already have most of shift-K implemented.&lt;/p&gt;
+
+&lt;p&gt;We moved most of &lt;code&gt;hy-eldoc-documentation-function&lt;/code&gt; into &lt;code&gt;hy--eldoc-get-docs&lt;/code&gt; which
+   distinctly accepts an optional argument for buffer-style rather than
+   eldoc-style formatting.&lt;/p&gt;
+
+&lt;p&gt;We then create a mirror of the documentation function as
+   &lt;code&gt;hy--docs-for-thing-at-point&lt;/code&gt;. We format the text to account for newlines
+   (newlines from process output are escaped so we must trim one backslash from
+   each newline).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--docs-for-thing-at-point ()
+  &amp;quot;Mirrors `hy-eldoc-documentation-function&#39; formatted for a buffer, not a msg.&amp;quot;
+  (-&amp;gt; (thing-at-point &#39;symbol)
+     (hy--eldoc-get-docs t)
+     hy--format-docs-for-buffer))
+
+(defun hy--format-docs-for-buffer (text)
+  &amp;quot;Format raw hydoc TEXT for inserting into hyconda buffer.&amp;quot;
+  (when text
+    (-let [kwarg-newline-regexp
+           (rx &amp;quot;,&amp;quot;
+               (1+ (not (any &amp;quot;,&amp;quot; &amp;quot;)&amp;quot;)))
+               (group-n 1 &amp;quot;\\\n&amp;quot;)
+               (1+ (not (any &amp;quot;,&amp;quot; &amp;quot;)&amp;quot;))))]
+      (--&amp;gt; text
+         (s-replace &amp;quot;\\n&amp;quot; &amp;quot;\n&amp;quot; it)
+         (replace-regexp-in-string kwarg-newline-regexp &amp;quot;newline&amp;quot; it nil t 1)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is interesting how &#34;K&#34; is actually called, I&#39;m not sure if any other
+   function operates quite the same. &#34;K&#34; calls the function bound to &#34;SPC m h h&#34;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(spacemacs/set-leader-keys-for-major-mode &#39;hy-mode
+  &amp;quot;hh&amp;quot; &#39;hy-describe-thing-at-point)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Lastly we need to create, switch-to, and insert the retrieved docs as &lt;code&gt;hy-describe-thing-at-point&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy-describe-thing-at-point ()
+  &amp;quot;Implement shift-k docs lookup for `spacemacs/evil-smart-doc-lookup&#39;.&amp;quot;
+  (interactive)
+  (-when-let* ((text (hy--docs-for-thing-at-point))
+               (doc-buffer &amp;quot;*Hyconda*&amp;quot;))
+    (with-current-buffer (get-buffer-create doc-buffer)
+      (erase-buffer)
+      (switch-to-buffer-other-window doc-buffer)
+
+      (insert text)
+      (goto-char (point-min))
+      (forward-line)
+
+      (insert &amp;quot;------\n&amp;quot;)
+      (fill-region (point) (point-max))
+
+      ;; Eventually make hyconda-view-minor-mode, atm this is sufficient
+      (local-set-key &amp;quot;q&amp;quot; &#39;quit-window)
+      (when (fboundp &#39;evil-local-set-key)
+        (evil-local-set-key &#39;normal &amp;quot;q&amp;quot; &#39;quit-window)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;closing&#34;&gt;Closing&lt;/h1&gt;
+
+&lt;p&gt;There are several other features worth discussion like font-locking the
+  shell prompt input and the &lt;code&gt;send-(form/region/buffer)-to-shell&lt;/code&gt; that are
+  sizable enough to warrant their own posts later. With this post, the series is
+  caught up to the current featureset. Linting would be the next big problem to
+  attack. I&#39;d also like to integrate &lt;code&gt;ert&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Going without Company and Eldoc has helped me appreciate the value in IDEs.
+  Hy is quickly becoming a pleasant development experience.&lt;/p&gt;
+
+&lt;p&gt;My only guidance was source code. I hope this series make the problem more
+  tractable for prospective major mode authors.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Emacs-lisp exercises and solutions</title>
+      <link>https://ekaschalk.github.io/post/elisp-exercises/</link>
+      <pubDate>Fri, 13 Oct 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/elisp-exercises/</guid>
+      <description>&lt;p&gt;I present exercises ordered by aspect and difficulty with the intent of making
+more tangible the Emacs slogan &#34;the infinitely customizable editor&#34;.&lt;/p&gt;
+
+&lt;p&gt;Be familiar with:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Lisp syntax.&lt;/li&gt;
+&lt;li&gt;Emacs help facilities like &lt;code&gt;describe-function&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To learn:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;How to work with Emacs &lt;code&gt;rx&lt;/code&gt; macro for regexes.&lt;/li&gt;
+&lt;li&gt;Traverse buffers and org-mode.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&#34;the-basics&#34;&gt;The basics&lt;/h1&gt;
+
+&lt;h2 id=&#34;regexes-and-the-rx-macro&#34;&gt;Regexes and the rx macro&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code&gt;rx&lt;/code&gt; macro makes maintaining and writing regexes enjoyable and easy.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;match-beginning&lt;/code&gt; and &lt;code&gt;match-end&lt;/code&gt; are Emacs facilities for extracting regex
+matches for particular groups.&lt;/p&gt;
+
+&lt;p&gt;Solve the following exercises with the &lt;code&gt;rx&lt;/code&gt; syntax.&lt;/p&gt;
+
+&lt;p&gt;Q1 (E) - Match the string in an org-mode header of any level.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(rx (1+ &amp;quot;*&amp;quot;)
+    space
+    (group (0+ not-newline)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is the &lt;code&gt;group-n&lt;/code&gt; construct for specifying the group of a particular
+particular part of the regex.&lt;/p&gt;
+
+&lt;p&gt;Q2 (E) - Match both the string and the level of an org-mode header.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(rx (group-n 1 (1+ &amp;quot;*&amp;quot;))
+    space
+    (group-n 2 (0+ not-newline)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;org-mode&#34;&gt;Org-mode&lt;/h2&gt;
+
+&lt;p&gt;Q1 (E) - Get the heading name string above the current point.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun ex-current-heading ()
+  (org-previous-visible-heading 1)
+  (re-search-forward (rx (1+ &amp;quot;*&amp;quot;) space))
+  (buffer-substring (point) (line-end-position)))
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Solving ligature spacing in Emacs - proof of concept</title>
       <link>https://ekaschalk.github.io/post/lig-spacing/</link>
       <pubDate>Thu, 05 Oct 2017 00:00:00 +0000</pubDate>
@@ -2506,6 +3179,123 @@ between in and not in is now instantaneous.&lt;/li&gt;
 &lt;p&gt;Besides the discussed caveats, the main downside is the disassociation between
 what you see and what you type. In my experience this has not been an issue and
 the adjustment has been quick.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://ekaschalk.github.io/post/shell-font-lock/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/shell-font-lock/</guid>
+      <description>&lt;h2 id=&#34;font-locking-the-shell-prompt&#34;&gt;Font locking the Shell Prompt&lt;/h2&gt;
+
+&lt;p&gt;This simple-sounding feature is involved and perhaps worth a post all its own.&lt;/p&gt;
+
+&lt;p&gt;I&#39;m not sure if any shells besides python implement this feature. For example,
+   type &lt;code&gt;(let ...)&lt;/code&gt; in &lt;code&gt;ielm&lt;/code&gt; and the let won&#39;t be highlighted.&lt;/p&gt;
+
+&lt;p&gt;Buffers taking from &lt;code&gt;comint-mode&lt;/code&gt; will not highlight the current prompt. Once
+   entered, the prompt output will switch to the &lt;code&gt;comint-highlight-input&lt;/code&gt; face.&lt;/p&gt;
+
+&lt;p&gt;We can&#39;t enable &lt;code&gt;font-lock-mode&lt;/code&gt; for &lt;code&gt;inferior-hy-mode&lt;/code&gt; as otherwise the
+   highlight input face will be overwritten, output will be colored
+   (undesirable), and colors outputted by the shell (like for errors) will be
+   overwritten.&lt;/p&gt;
+
+&lt;p&gt;Due to font-lock internals, turning on font-lock just for an ever-changing
+   marker range is also not possible.&lt;/p&gt;
+
+&lt;p&gt;The solution, adapted from &lt;code&gt;python-mode&lt;/code&gt;, is to capture the prompt while it&#39;s
+   being entered through the low-level &lt;code&gt;post-command-hook&lt;/code&gt;. This implementation
+   is not a copy of Python&#39;s - compare the two and you will see the extra
+   difficulty and complexity in the original implementation.&lt;/p&gt;
+
+&lt;p&gt;Two macros are core:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defmacro hy--shell-with-shell-buffer (&amp;amp;rest forms)
+  &amp;quot;Execute FORMS in the shell buffer.&amp;quot;
+  (-let [shell-process
+         (gensym)]
+    `(-let [,shell-process
+            (hy-shell-get-process)]
+       (with-current-buffer (process-buffer ,shell-process)
+         ,@forms))))
+
+(defmacro hy--shell-with-font-locked-shell-buffer (&amp;amp;rest forms)
+  &amp;quot;Execute FORMS in the shell buffer with font-lock turned on.&amp;quot;
+  `(hy--shell-with-shell-buffer
+    (save-current-buffer
+      (unless (hy--shell-buffer?)
+        (setq hy-shell-buffer (hy--shell-get-or-create-buffer)))
+      (set-buffer hy-shell-buffer)
+
+      (unless (font-lock-mode) (font-lock-mode 1))
+      (unless (derived-mode-p &#39;hy-mode) (hy-mode))
+
+      ,@forms)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is easier to see the point of this macro in the command hook.&lt;/p&gt;
+
+&lt;p&gt;If the situation calls for it, we extract the current prompt input from the
+   end of the last prompt via &lt;code&gt;comint-last-prompt&lt;/code&gt;. We do some basic buffer
+   management and startup the shell-font-lock macro.&lt;/p&gt;
+
+&lt;p&gt;The font lock is applied and the deleted region is replaced with the
+   extracted text with its face property moved to the font-lock-face property.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-faces-to-font-lock-faces (text &amp;amp;optional start-pos)
+  &amp;quot;Set all &#39;face in TEXT to &#39;font-lock-face optionally starting at START-POS.&amp;quot;
+  (let ((pos 0)
+        (start-pos (or start-pos 0)))
+    (while (and (/= pos (length text))
+                (setq next (next-single-property-change pos &#39;face text)))
+      (let* ((plist (text-properties-at pos text))
+             (plist (-if-let (face (plist-get plist &#39;face))
+                        (progn (plist-put plist &#39;face nil)  ; Swap face
+                               (plist-put plist &#39;font-lock-face face))
+                      plist)))
+        (set-text-properties (+ start-pos pos) (+ start-pos next) plist)
+        (setq pos next)))))
+
+(defun hy--shell-fontify-prompt-post-command-hook ()
+  &amp;quot;Fontify just the current line in `hy-shell-buffer&#39; for `post-command-hook&#39;.
+
+Constantly extracts current prompt text and executes and manages applying
+`hy--shell-faces-to-font-lock-faces&#39; to the text.&amp;quot;
+  (-when-let* (((_ . prompt-end) comint-last-prompt)
+               (_ (and prompt-end
+                       (&amp;gt; (point) prompt-end)  ; new command is being entered
+                       (hy--shell-current-buffer-a-process?))))  ; process alive?
+      (let* ((input (buffer-substring-no-properties prompt-end (point-max)))
+             (deactivate-mark nil)
+             (buffer-undo-list t)
+             (font-lock-buffer-pos nil)
+             (text (hy--shell-with-font-locked-shell-buffer
+                    (delete-region (line-beginning-position) (point-max))
+                    (setq font-lock-buffer-pos (point))
+                    (insert input)
+                    (font-lock-ensure)
+                    (buffer-substring font-lock-buffer-pos (point-max)))))
+        (hy--shell-faces-to-font-lock-faces text prompt-end))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
+(defun hy--shell-font-lock-turn-on ()
+  &amp;quot;Turn on fontification of current line for hy shell.&amp;quot;
+  (hy--shell-with-shell-buffer
+   (hy--shell-kill-buffer)
+
+   (setq-local hy-shell-buffer nil)
+
+   (add-hook &#39;post-command-hook
+             &#39;hy--shell-fontify-prompt-post-command-hook nil &#39;local)
+   (add-hook &#39;kill-buffer-hook
+             &#39;hy--shell-kill-buffer nil &#39;local)))
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
