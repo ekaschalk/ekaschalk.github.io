@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.38.2" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -238,16 +238,14 @@ packages.</p>
 
 <p>Layer dependencies to load first.</p>
 
-<pre><code class="language-lisp">
-(configuration-layer/declare-layers '(theming))
+<pre><code class="language-lisp">(configuration-layer/declare-layers '(theming))
 </code></pre>
 
 <h3 id="packages-el">packages.el</h3>
 
 <p>Packages added or configured by the layer.</p>
 
-<pre><code class="language-lisp">
-(setq my-layer-packages
+<pre><code class="language-lisp">(setq my-layer-packages
       '(a-pkg
         (github-pkg :location (recipe :fetcher github
                                       :repo &quot;github-user/repo-name&quot;))
@@ -258,8 +256,7 @@ packages.</p>
 <li><strong>Owned Packages:</strong> A layer owns a package if it defines <code>layer-name/init-pkg-name</code>. All packages not defined in <code>dotspacemacs/additional/packages</code> should have one and only one owner. It calls <code>use-package</code>. Common options are <code>:init</code> for before load config, <code>:config</code> for after, <code>:if</code> for loading if eg. a certain OS or executable is installed, <code>:after</code> for enforcing load order, and <code>:defer t</code> for deferred loading.</li>
 </ul>
 
-<pre><code class="language-lisp">
-(defun display/init-pretty-outlines ()
+<pre><code class="language-lisp">(defun display/init-pretty-outlines ()
   (use-package pretty-outlines
     :after outshine
     :config
@@ -273,8 +270,7 @@ packages.</p>
 <li><strong>Unowned Packages:</strong> A layer that does not own a package can configure it with <code>layer-name/pre-init-pkg-name</code> and <code>layer-name/post-init-pkg-name</code>.</li>
 </ul>
 
-<pre><code class="language-lisp">
-(defun config/pre-init-neotree ()
+<pre><code class="language-lisp">(defun config/pre-init-neotree ()
   (evil-global-set-key 'normal (kbd &quot;M-p&quot;)
                        'neotree-find-project-root))
 
@@ -292,16 +288,14 @@ packages.</p>
 
 <p>Package agnostic functions belong here.</p>
 
-<pre><code class="language-lisp">
-(defmacro with-face (STR &amp;rest PROPS)
+<pre><code class="language-lisp">(defmacro with-face (STR &amp;rest PROPS)
   &quot;Return STR propertized with PROPS.&quot;
   `(propertize ,STR 'face (list ,@PROPS)))
 </code></pre>
 
 <p>Guarding against particular packages being installed:</p>
 
-<pre><code class="language-lisp">
-(when (configuration-layer/package-usedp 'some-pkg)
+<pre><code class="language-lisp">(when (configuration-layer/package-usedp 'some-pkg)
   (defun my-func ()))
 </code></pre>
 
@@ -309,8 +303,7 @@ packages.</p>
 
 <p>Layer variables.</p>
 
-<pre><code class="language-lisp">
-;; python/config.el
+<pre><code class="language-lisp">;; python/config.el
 (defvar python-tab-width 4
   &quot;Tab width value for python buffers&quot;)
 
@@ -323,8 +316,7 @@ executed. Layer dependencies are actually loaded prior to config.el.</p>
 
 <p>This can be used for eg. setting theme updates with the <code>theming</code> layer.</p>
 
-<pre><code class="language-lisp">
-(setq theming-modifications
+<pre><code class="language-lisp">(setq theming-modifications
       `((solarized-dark (avy-background-face :foreground &quot;#586e75&quot;)
                         (font-lock-doc-face :foreground &quot;#2aa198&quot;))
         (solarized-light ...)))
@@ -334,8 +326,7 @@ executed. Layer dependencies are actually loaded prior to config.el.</p>
 
 <p>Package-agnostic key-bindings.</p>
 
-<pre><code class="language-lisp">
-(global-set-key (kbd &quot;M-d&quot;) 'spacemacs/delete-window)
+<pre><code class="language-lisp">(global-set-key (kbd &quot;M-d&quot;) 'spacemacs/delete-window)
 
 ;; Evil will be loaded
 (evil-define-key '(normal visual motion) outline-minor-mode-map
@@ -367,8 +358,7 @@ org-mode setup separately in a local <code>org-config</code> package.</p>
 
 <p>Anything, excluding spacemacs toggles, can be setup here. For instance:</p>
 
-<pre><code class="language-lisp">
-(setq config-packages '(evil ...))
+<pre><code class="language-lisp">(setq config-packages '(evil ...))
 
 (defun config/post-init-evil ()
   (setq evil-escape-key-sequence &quot;jk&quot;)
@@ -416,8 +406,7 @@ personal layer. This is only relevant if you write your own packages.</p>
 
 <p>I've organized my layers into several sections:</p>
 
-<pre><code class="language-lisp">
-(defvar dotspacemacs/layers/local
+<pre><code class="language-lisp">(defvar dotspacemacs/layers/local
   '((macros :location local)
     (config :location local)
     (display :location local)
@@ -489,8 +478,7 @@ your <code>init.el</code>.</p>
 <p>Spacemacs layers load ordering causes issues for extra themes. Theme packages
 cannot be put in a layer. As a result, to use solarized I set:</p>
 
-<pre><code class="language-lisp">
-;; ~/.spacemacs.d/init.el
+<pre><code class="language-lisp">;; ~/.spacemacs.d/init.el
 (defun dotspacemacs/layers ()
   (setq-default dotspacemacs-additional-packages '(solarized-theme)
                 ...))
@@ -509,8 +497,7 @@ files.</p>
 <p>Call <code>g d</code> or <code>(spacemacs/jump-to-definition)</code> in emacs lisp mode to jump to
 that layer's packages.el to check out its packages and configuration.</p>
 
-<pre><code class="language-lisp">
-(configuration-layer/declare-layers
+<pre><code class="language-lisp">(configuration-layer/declare-layers
  '(spacemacs-base
    spacemacs-completion
    spacemacs-layouts
@@ -568,20 +555,25 @@ improve on other configuration management methods.</p>
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/migrate-layers\/';
-    var disqus_title = 'Migrating to Spacemacs Layers';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/migrate-layers\/';
-
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
     (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ekaschalk-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
 </section>
 

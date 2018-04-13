@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.38.2" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -224,8 +224,7 @@ syntax.</p>
 <p>In any major mode run <code>describe-syntax</code> to see its syntax table. As we are
   working with a lisp, we copy its syntax-table to start with.</p>
 
-<pre><code class="language-lisp">
-(defconst hy-mode-syntax-table
+<pre><code class="language-lisp">(defconst hy-mode-syntax-table
   (-let [table
          (copy-syntax-table lisp-mode-syntax-table)]
     ;; syntax modifications...
@@ -246,8 +245,7 @@ syntax.</p>
     "(" or ")", and the second character should be the closing delimiter.
 </ul>
 
-<pre><code class="language-lisp">
-(modify-syntax-entry ?\{ &quot;(}&quot; table)
+<pre><code class="language-lisp">(modify-syntax-entry ?\{ &quot;(}&quot; table)
 (modify-syntax-entry ?\} &quot;){&quot; table)
 (modify-syntax-entry ?\[ &quot;(]&quot; table)
 (modify-syntax-entry ?\] &quot;)[&quot; table)
@@ -257,8 +255,7 @@ syntax.</p>
 <li>' : <code>prefix character</code>. Prefixes a symbol/word.</li>
 </ul>
 
-<pre><code class="language-lisp">
-;; Quote characters are prefixes
+<pre><code class="language-lisp">;; Quote characters are prefixes
 (modify-syntax-entry ?\~ &quot;'&quot; table)
 (modify-syntax-entry ?\@ &quot;'&quot; table)
 </code></pre>
@@ -267,8 +264,7 @@ syntax.</p>
 <li>_ and w : <code>symbol and word constituent</code> respectively.</li>
 </ul>
 
-<pre><code class="language-lisp">
-;; &quot;,&quot; is a symbol in Hy, namely the tuple constructor
+<pre><code class="language-lisp">;; &quot;,&quot; is a symbol in Hy, namely the tuple constructor
 (modify-syntax-entry ?\, &quot;_ p&quot; table)
 
 ;; &quot;|&quot; is a symbol in hy, naming the or operator
@@ -293,8 +289,7 @@ syntax.</p>
 
 <p>In the case of a lisp, we actually do:</p>
 
-<pre><code class="language-lisp">
-(setq-local indent-line-function 'lisp-indent-line)
+<pre><code class="language-lisp">(setq-local indent-line-function 'lisp-indent-line)
 (setq-local lisp-indent-function 'hy-indent-function)
 </code></pre>
 
@@ -307,8 +302,7 @@ syntax.</p>
 <p>As this is a (necessarily) excessive amount of information, I recommend as
   many other modes have done - define some aliases. I have:</p>
 
-<pre><code class="language-lisp">
-(defun hy--sexp-inermost-char (state) (nth 1 state))
+<pre><code class="language-lisp">(defun hy--sexp-inermost-char (state) (nth 1 state))
 (defun hy--start-of-last-sexp (state) (nth 2 state))
 (defun hy--in-string? (state) (nth 3 state))
 (defun hy--start-of-string (state) (nth 8 state))
@@ -321,8 +315,7 @@ syntax.</p>
 <p>These are the building blocks for indentation - we can then write utilities
   to better get our head around indentation like:</p>
 
-<pre><code class="language-lisp">
-(defun hy--prior-sexp? (state)
+<pre><code class="language-lisp">(defun hy--prior-sexp? (state)
   (number-or-marker-p (hy--start-of-last-sexp state)))
 </code></pre>
 
@@ -330,8 +323,7 @@ syntax.</p>
 
 <p>The three cases:</p>
 
-<pre><code class="language-lisp">
-;; Normal Indent
+<pre><code class="language-lisp">;; Normal Indent
 (normal b
         c)
 (normal
@@ -348,8 +340,7 @@ syntax.</p>
 
 <p>Hy's current indent function:</p>
 
-<pre><code class="language-lisp">
-(defun hy-indent-function (indent-point state)
+<pre><code class="language-lisp">(defun hy-indent-function (indent-point state)
   &quot;Indent at INDENT-POINT where STATE is `parse-partial-sexp' for INDENT-POINT.&quot;
   (goto-char (hy--sexp-inermost-char state))
 
@@ -377,8 +368,7 @@ syntax.</p>
     then regardless of whether the first line contains args or not, we indent
     the same.</p>
 
-<pre><code class="language-lisp">
-(defun hy--normal-indent (last-sexp)
+<pre><code class="language-lisp">(defun hy--normal-indent (last-sexp)
   &quot;Determine normal indentation column of LAST-SEXP.
 
 Example:
@@ -439,8 +429,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 <p>Two symbols are the entry points to be aware of into font locking:
   <code>hy-font-lock-kwds</code> and <code>hy-font-lock-syntactic-face-function</code>.</p>
 
-<pre><code class="language-lisp">
-(setq font-lock-defaults
+<pre><code class="language-lisp">(setq font-lock-defaults
         '(hy-font-lock-kwds
           nil nil
           ((&quot;+-*/.&lt;&gt;=!?$%_&amp;~^:@&quot; . &quot;w&quot;))  ; syntax alist
@@ -456,8 +445,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 
 <p>The approach taken in <code>hy-mode</code> is to separate out the language by category:</p>
 
-<pre><code class="language-lisp">
-(defconst hy--kwds-constants
+<pre><code class="language-lisp">(defconst hy--kwds-constants
   '(&quot;True&quot; &quot;False&quot; &quot;None&quot; &quot;Ellipsis&quot; &quot;NotImplemented&quot;)
   &quot;Hy constant keywords.&quot;)
 
@@ -483,8 +471,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 
 <p>The simplest definition:</p>
 
-<pre><code class="language-lisp">
-(defconst hy--font-lock-kwds-constants
+<pre><code class="language-lisp">(defconst hy--font-lock-kwds-constants
   (list
    (rx-to-string
     `(: (or ,@hy--kwds-constants)))
@@ -496,8 +483,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 
 <p>A more complex example with multiple groups taking different faces:</p>
 
-<pre><code class="language-lisp">
-(defconst hy--font-lock-kwds-defs
+<pre><code class="language-lisp">(defconst hy--font-lock-kwds-defs
   (list
    (rx-to-string
     `(: (group-n 1 (or ,@hy--kwds-defs))
@@ -513,8 +499,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 <p>Of course not all highlighting constructs are determined by symbol name. We
     can highlight the shebang line for instance as:</p>
 
-<pre><code class="language-lisp">
-(defconst hy--font-lock-kwds-shebang
+<pre><code class="language-lisp">(defconst hy--font-lock-kwds-shebang
   (list
    (rx buffer-start &quot;#!&quot; (0+ not-newline) eol)
 
@@ -525,8 +510,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
 
 <p>We then collect all our nice and modular font locks as <code>hy-font-lock-kwds</code> that we set earlier:</p>
 
-<pre><code class="language-lisp">
-(defconst hy-font-lock-kwds
+<pre><code class="language-lisp">(defconst hy-font-lock-kwds
   (list hy--font-lock-kwds-constants
         hy--font-lock-kwds-defs
         ;; lots more ...
@@ -541,8 +525,7 @@ the loop will terminate without error and the prior lines indentation is it.&quo
    docstrings, and comments. It does not need to be set unless you want to
    distinguish docstrings.</p>
 
-<pre><code class="language-lisp">
-(defun hy--string-in-doc-position? (state)
+<pre><code class="language-lisp">(defun hy--string-in-doc-position? (state)
   &quot;Is STATE within a docstring?&quot;
   (if (= 1 (hy--start-of-string state))  ; Identify module docstring
       t
@@ -589,8 +572,7 @@ a string or comment.&quot;
   <code>syntax.el</code> handles the internals of limiting and passing the start and end
   and applying/removing the text properties as the construct changes.</p>
 
-<pre><code class="language-lisp">
-(defun hy--match-bracket-string (limit)
+<pre><code class="language-lisp">(defun hy--match-bracket-string (limit)
   &quot;Search forward for a bracket string literal.&quot;
   (re-search-forward
    (rx &quot;#[&quot;
@@ -678,20 +660,25 @@ a string or comment.&quot;
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/major-mode-part-1\/';
-    var disqus_title = 'Deep diving into a major mode - Part 1';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/major-mode-part-1\/';
-
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
     (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ekaschalk-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
 </section>
 

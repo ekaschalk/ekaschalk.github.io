@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.38.2" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -223,8 +223,7 @@ and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.
    <code>inferior-lisp-program</code>, possibly adding setup code through
    <code>inferior-lisp-load-command</code>, then running the <code>inferior-lisp</code> command.</p>
 
-<pre><code class="language-lisp">
-;; within the define-derived-mode hy-mode setup...
+<pre><code class="language-lisp">;; within the define-derived-mode hy-mode setup...
 (setq-local inferior-lisp-program &quot;hy&quot;)
 (setq-local inferior-lisp-load-command &quot;(print \&quot;Hy there!\&quot;)&quot;)
 </code></pre>
@@ -242,8 +241,7 @@ and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.
 
 <p>Hy mode's prompt is a right arrow.</p>
 
-<pre><code class="language-lisp">
-(define-derived-mode inferior-hy-mode comint-mode &quot;Inferior Hy&quot;
+<pre><code class="language-lisp">(define-derived-mode inferior-hy-mode comint-mode &quot;Inferior Hy&quot;
   &quot;Major mode for Hy inferior process.&quot;
   (setq-local indent-tabs-mode nil)
 
@@ -278,8 +276,7 @@ and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.
 
 <p>The configuration required of <code>inferior-hy-mode</code> :</p>
 
-<pre><code class="language-lisp">
-;;; Configuration
+<pre><code class="language-lisp">;;; Configuration
 
 (defconst hy-shell-interpreter &quot;hy&quot;
   &quot;Default Hy interpreter name.&quot;)
@@ -310,8 +307,7 @@ and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.
 <p>The implementations are rather straightforward. To keep space down, only
     name and docstring are provided:</p>
 
-<pre><code class="language-lisp">
-(defun hy--shell-format-process-name (proc-name)
+<pre><code class="language-lisp">(defun hy--shell-format-process-name (proc-name)
   &quot;Format a PROC-NAME with closing astericks.&quot;)
 
 (defun hy-shell-get-process (&amp;optional internal)
@@ -342,8 +338,7 @@ and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.
 <p>The commands above are enough to build out some basic shell support. Lets
    look at <code>run-hy</code> :</p>
 
-<pre><code class="language-lisp">
-(defun run-hy (&amp;optional cmd)
+<pre><code class="language-lisp">(defun run-hy (&amp;optional cmd)
   &quot;Run an inferior Hy process.
 
 CMD defaults to the result of `hy--shell-calculate-command'.&quot;
@@ -359,8 +354,7 @@ CMD defaults to the result of `hy--shell-calculate-command'.&quot;
 <p>Most of the work is delegated to <code>hy--shell-make-comint</code> as we also must
     have the internal variant:</p>
 
-<pre><code class="language-lisp">
-(defun run-hy-internal ()
+<pre><code class="language-lisp">(defun run-hy-internal ()
   &quot;Start an inferior hy process in the background for autocompletion.&quot;
   (interactive)
   (unless (executable-find &quot;hy&quot;)
@@ -385,8 +379,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>Now we are ready to startup our <code>inferior-hy-mode</code> :</p>
 
-<pre><code class="language-lisp">
-(defun hy--shell-make-comint (cmd proc-name &amp;optional show internal)
+<pre><code class="language-lisp">(defun hy--shell-make-comint (cmd proc-name &amp;optional show internal)
   &quot;Create and return comint process PROC-NAME with CMD, opt. INTERNAL and SHOW.&quot;
   (-when-let* ((proc-buffer-name
                 (hy--shell-format-process-name proc-name))
@@ -427,8 +420,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>Like always, lets define some utilities:</p>
 
-<pre><code class="language-lisp">
-(defun hy--shell-end-of-output? (string)
+<pre><code class="language-lisp">(defun hy--shell-end-of-output? (string)
   &quot;Return non-nil if STRING ends with the prompt.&quot;
   (s-matches? comint-prompt-regexp string))
 
@@ -442,8 +434,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p><code>hy--shell-output-filter-in-progress</code> is the critical component. Lets see how
     it is used:</p>
 
-<pre><code class="language-lisp">
-(defun hy--shell-send-string (string &amp;optional process internal)
+<pre><code class="language-lisp">(defun hy--shell-send-string (string &amp;optional process internal)
   &quot;Internal implementation of shell send string functionality.&quot;
   (let ((process (or process (hy-shell-get-process internal)))
         (hy--shell-output-filter-in-progress t))
@@ -469,8 +460,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p>Looking back to <code>hy--shell-output-filter</code>, what are the outcomes of using it
     as a pre or standard filter? Lets look at the exposed send strings:</p>
 
-<pre><code class="language-lisp">
-(defun hy-shell-send-string-no-output (string &amp;optional process internal)
+<pre><code class="language-lisp">(defun hy-shell-send-string-no-output (string &amp;optional process internal)
   &quot;Send STRING to hy PROCESS and inhibit printing output.&quot;
   (-let [comint-preoutput-filter-functions
          '(hy--shell-output-filter)]
@@ -491,8 +481,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>The key is the 100ms <code>timeout</code> argument passed to <code>accept-process-output</code>.</p>
 
-<pre><code class="language-lisp">
-(defun hy--shell-send-async (string)
+<pre><code class="language-lisp">(defun hy--shell-send-async (string)
   &quot;Send STRING to internal hy process asynchronously.&quot;
   (let ((output-buffer &quot; *Comint Hy Redirect Work Buffer*&quot;)
         (proc (hy-shell-get-process 'internal)))
@@ -518,8 +507,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p>All the work for autocompletion was in setting up the asynchronous process
   support. Lets see how easy autocompletion becomes:</p>
 
-<pre><code class="language-lisp">
-(defconst hy-company-setup-code
+<pre><code class="language-lisp">(defconst hy-company-setup-code
   &quot;(import [hy.completer [Completer]])
 (setv --HYCOMPANY (Completer))&quot;
   &quot;Autocompletion setup code to send to the internal process.&quot;)
@@ -571,8 +559,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p><code>company-hy</code> can then be enabled either through adding to <code>company-backends</code> or
     for Spacemacs users adding:</p>
 
-<pre><code class="language-lisp">
-;; Technically this should be within a hy layer, but this still works uncaptured
+<pre><code class="language-lisp">;; Technically this should be within a hy layer, but this still works uncaptured
 (spacemacs|add-company-backends
   :backends company-hy
   :modes hy-mode inferior-hy-mode)
@@ -598,8 +585,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p>Next, your implementation must mirror any relevant DSLs. For lisps, Eldoc
   inspects the form opener. It is hydiomatic to:</p>
 
-<pre><code class="language-lisp">
-(setv x &quot;hi&quot;)
+<pre><code class="language-lisp">(setv x &quot;hi&quot;)
 (.format &quot;{} there&quot; x)
 (setv a-list [])
 (.append a-list &quot;friend&quot;)
@@ -612,8 +598,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>Eldoc is setup via the <code>eldoc-documentation-function</code> :</p>
 
-<pre><code class="language-lisp">
-(defun hy-eldoc-documentation-function ()
+<pre><code class="language-lisp">(defun hy-eldoc-documentation-function ()
   &quot;Drives `eldoc-mode', retrieves eldoc msg string for inner-most symbol.&quot;
   (-&gt; (hy--eldoc-get-inner-symbol)
      hy--eldoc-get-docs))
@@ -636,8 +621,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
    docstring isn't captured in quotes. Since the text is static, we just add the
    faces to the string ourselves.</p>
 
-<pre><code class="language-lisp">
-(defun hy--fontify-text (text regexp &amp;rest faces)
+<pre><code class="language-lisp">(defun hy--fontify-text (text regexp &amp;rest faces)
   &quot;Fontify portions of TEXT matching REGEXP with FACES.&quot;
   (when text
     (-each
@@ -665,8 +649,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>Next lets see the sending and formatting of the shell's raw eldoc output.</p>
 
-<pre><code class="language-lisp">
-(defun hy--eldoc-send (string)
+<pre><code class="language-lisp">(defun hy--eldoc-send (string)
   &quot;Send STRING for eldoc to internal process returning output.&quot;
   (-&gt; string
      hy--shell-send-async
@@ -681,8 +664,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 
 <p>The meat of Eldoc is in extracting the innermost symbol of the current point</p>
 
-<pre><code class="language-lisp">
-(defun hy--eldoc-get-inner-symbol ()
+<pre><code class="language-lisp">(defun hy--eldoc-get-inner-symbol ()
   &quot;Traverse and inspect innermost sexp and return formatted string for eldoc.&quot;
   (save-excursion
     (-when-let* ((_ (hy-shell-get-process 'internal))
@@ -739,8 +721,7 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
    (newlines from process output are escaped so we must trim one backslash from
    each newline).</p>
 
-<pre><code class="language-lisp">
-(defun hy--docs-for-thing-at-point ()
+<pre><code class="language-lisp">(defun hy--docs-for-thing-at-point ()
   &quot;Mirrors `hy-eldoc-documentation-function' formatted for a buffer, not a msg.&quot;
   (-&gt; (thing-at-point 'symbol)
      (hy--eldoc-get-docs t)
@@ -762,15 +743,13 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <p>It is interesting how "K" is actually called, I'm not sure if any other
    function operates quite the same. "K" calls the function bound to "SPC m h h".</p>
 
-<pre><code class="language-lisp">
-(spacemacs/set-leader-keys-for-major-mode 'hy-mode
+<pre><code class="language-lisp">(spacemacs/set-leader-keys-for-major-mode 'hy-mode
   &quot;hh&quot; 'hy-describe-thing-at-point)
 </code></pre>
 
 <p>Lastly we need to create, switch-to, and insert the retrieved docs as <code>hy-describe-thing-at-point</code>.</p>
 
-<pre><code class="language-lisp">
-(defun hy-describe-thing-at-point ()
+<pre><code class="language-lisp">(defun hy-describe-thing-at-point ()
   &quot;Implement shift-k docs lookup for `spacemacs/evil-smart-doc-lookup'.&quot;
   (interactive)
   (-when-let* ((text (hy--docs-for-thing-at-point))
@@ -820,6 +799,9 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
     
 
     
+    <li class="next"><a href="https://ekaschalk.github.io/post/advanced-syntax/">Advanced Syntax Highlighting - Variable Assignments <span
+      aria-hidden="true">&rarr;</span></a></li>
+    
   </ul>
 </nav>
 
@@ -830,20 +812,25 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/major-mode-part-2\/';
-    var disqus_title = 'Deep diving into a major mode - Part 2 (IDE Features)';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/major-mode-part-2\/';
-
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
     (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ekaschalk-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
 </section>
 

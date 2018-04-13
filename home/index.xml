@@ -8,7 +8,38 @@
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
     <lastBuildDate>Wed, 20 Apr 2016 00:00:00 +0000</lastBuildDate>
-    <atom:link href="/home/" rel="self" type="application/rss+xml" />
+    
+	<atom:link href="https://ekaschalk.github.io/home/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title></title>
+      <link>https://ekaschalk.github.io/home/posts/</link>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/home/posts/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>&lt;a itemprop=&#34;sameAs&#34; href=&#34;//github.com/ekaschalk/dotspacemacs&#34; target=&#34;_blank&#34;&gt;&lt;i class=&#34;fa fa-github big-icon&#34;&gt;&lt;/i&gt; Emacs Config&lt;/a&gt;</title>
+      <link>https://ekaschalk.github.io/home/spacemacs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/home/spacemacs/</guid>
+      <description>    Coding with Mathematical Notation               Eshell Improvements            Pretty Magit Commits            Fancy Outlines Outline-based Navigation          </description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://ekaschalk.github.io/home/about/</link>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/home/about/</guid>
+      <description>Software Engineer practicing scientific computing, full time lisper.
+Modern Emacs details my journey learning and hacking on Emacs.
+I hope to inspire creativity and personalization in your own Emacs.</description>
+    </item>
     
   </channel>
 </rss>

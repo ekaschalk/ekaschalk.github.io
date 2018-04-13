@@ -11,6 +11,295 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Advanced Syntax Highlighting - Variable Assignments</title>
+      <link>https://ekaschalk.github.io/post/advanced-syntax/</link>
+      <pubDate>Fri, 13 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/advanced-syntax/</guid>
+      <description>&lt;p&gt;Variable assignments in Emacs lisp are not highlighted.&lt;/p&gt;
+
+&lt;p&gt;That is, &lt;code&gt;(setq foo bar)&lt;/code&gt; will not apply &lt;code&gt;font-lock-variable-name-face&lt;/code&gt; to &lt;code&gt;foo&lt;/code&gt;.
+This case is easy enough to implement via regex.&lt;/p&gt;
+
+&lt;p&gt;But in Emacs lisp, assignment is variadic, accepting alternating name-value pairs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq foo bar
+      foo (more stuff) foo bar)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;How can we hope to highlight all the &lt;code&gt;foo&lt;/code&gt;?&lt;/p&gt;
+
+&lt;p&gt;In this post I demonstrate syntax-traversing highlighting, as applied to variable
+assignments.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/setv-highlighting-example.png&#34; alt=&#34;/img/setv-highlighting-example.png&#34; title=&#34;/img/setv-highlighting-example.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Plus and minus denote the name/value pairs. Names that are forms are not
+highlighted, as desired.&lt;/p&gt;
+
+&lt;p&gt;In this post I reference a &lt;code&gt;setv&lt;/code&gt; instead of &lt;code&gt;setq&lt;/code&gt;. Snippets depend on &lt;code&gt;dash&lt;/code&gt; and &lt;code&gt;smartparens&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&#34;syntax-highlighting&#34;&gt;Syntax Highlighting&lt;/h1&gt;
+
+&lt;h2 id=&#34;intro&#34;&gt;Intro&lt;/h2&gt;
+
+&lt;p&gt;Font locks are widely used in Emacs, responsible for most syntax highlighting.&lt;/p&gt;
+
+&lt;p&gt;Typically regexes and faces are paired together. The single pair case can be
+handled by adding the following list to &lt;code&gt;font-lock-keywords&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq setv-rgx
+      (rx symbol-start &amp;quot;setv&amp;quot; symbol-end (1+ space) (group (1+ word))))
+(setq setv-font-lock-kwd
+      (list setv-rgx &#39;(1 font-lock-variable-name-face)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;See &lt;a href=&#39;https://ekaschalk.github.io/post/major-mode-part-1/&#39;&gt;my post on writing a major
+mode&lt;/a&gt; for more examples of font-locking.&lt;/p&gt;
+
+&lt;p&gt;For most all cases, regexes are sufficient.&lt;/p&gt;
+
+&lt;h2 id=&#34;recursive-highlighting&#34;&gt;Recursive Highlighting&lt;/h2&gt;
+
+&lt;p&gt;Lets look at the smaller case of highlighting every other word occuring after &lt;code&gt;setv&lt;/code&gt; in:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setv foo bar foo bar foo bar)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We have an indeterminate number of alternating pairs.&lt;/p&gt;
+
+&lt;p&gt;For this usecase, &lt;code&gt;font-lock-keywords&lt;/code&gt; exposes something called &#34;match anchors&#34;.
+That is, we anchor on some initial match, the &lt;code&gt;setv&lt;/code&gt;, and then repeatedly
+try another match.&lt;/p&gt;
+
+&lt;p&gt;Lets update our font lock keyword to match every other word:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq every-other-word-rgx
+      (rx (1+ word) (1+ not-wordchar) (group (1+ word))))
+
+(add-to-list &#39;setv-font-lock-kwd
+             (list every-other-word-rgx
+                   nil nil
+                   &#39;(1 font-lock-variable-name-face)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we have every other word highlighting.&lt;/p&gt;
+
+&lt;h2 id=&#34;multiline-highlighting&#34;&gt;Multiline Highlighting&lt;/h2&gt;
+
+&lt;p&gt;Lets extend our example to span multiple lines:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setv foo bar foo bar foo bar
+      foo bar)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Font lock mode doesn&#39;t run over multiple lines by default. We can tell font lock
+mode to allow line-spanning highlights by setting &lt;code&gt;font-lock-multiline&lt;/code&gt; to true.&lt;/p&gt;
+
+&lt;p&gt;But this isn&#39;t enough. How would it know when to stop finding every other word?&lt;/p&gt;
+
+&lt;p&gt;The two &lt;code&gt;nil&lt;/code&gt; values in our keyword were for the &lt;code&gt;PRE-MATCH-FORM&lt;/code&gt; and &lt;code&gt;POST-MATCH-FORM&lt;/code&gt;. These allow extra flexibility over regexes for moving the point around during the traversal. Additionally, the &lt;code&gt;PRE-MATCH-FORM&lt;/code&gt; can return a point, which is used as the limit to the anchor.&lt;/p&gt;
+
+&lt;p&gt;So lets define a trivial pre-match function that tells font lock mode to check
+the next line when the anchor &lt;code&gt;setv&lt;/code&gt; is encountered.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun setv-pre-match-form ()
+  (forward-line))
+
+(add-to-list &#39;setv-font-lock-kwd
+             (list every-other-word-rgx
+                   &#39;(setv-pre-match-form) nil
+                   &#39;(1 font-lock-variable-name-face)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Closer now, the example works and can be adjusted quite easily to determine the
+right number of lines to move forward.&lt;/p&gt;
+
+&lt;p&gt;But, performing edits on one line can cause inconsistent changes or even lose
+highlighting entirely on other lines.&lt;/p&gt;
+
+&lt;p&gt;What is going wrong?&lt;/p&gt;
+
+&lt;h2 id=&#34;font-lock-regions&#34;&gt;Font Lock Regions&lt;/h2&gt;
+
+&lt;p&gt;Editing within an assignment can cause the search for the anchored &lt;code&gt;setv&lt;/code&gt; to
+occur from any point within the form. So finding the anchor will be unreliable.&lt;/p&gt;
+
+&lt;p&gt;Naturally the thought is: what if we traverse to the beginning of the form in
+the &lt;code&gt;setv-pre-match-form&lt;/code&gt; so we always catch the match?&lt;/p&gt;
+
+&lt;p&gt;This turns out to fail as we might encounter multiple start/end combinations
+each within the same &lt;code&gt;setv&lt;/code&gt; form, whom will buggily interact, overwrite, and
+possibly miss names entirely.&lt;/p&gt;
+
+&lt;p&gt;The arcane &lt;code&gt;font-lock-extend-region-functions&lt;/code&gt; is responsible for setting the
+begin and end search regions of multiline fontifications.&lt;/p&gt;
+
+&lt;p&gt;Its documentation puts it well:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;
+Its most common use is to solve the problem of &lt;em&gt;identification&lt;/em&gt; of multiline elements by providing a function that tries to find such elements and move the boundaries such that they do not fall in the middle of one.
+&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Promising!&lt;/p&gt;
+
+&lt;p&gt;Before we dive into it, lets understand the other remaining highlighting methods.&lt;/p&gt;
+
+&lt;h2 id=&#34;font-locking-with-functions&#34;&gt;Font Locking with Functions&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code&gt;MATCHER&lt;/code&gt; is the first form in a font lock keyword. The previous examples
+have it taking the value of a regex.&lt;/p&gt;
+
+&lt;p&gt;It can also be a function of one argument, a limiting point, that sets the &lt;code&gt;match-data&lt;/code&gt; just as a regexp would, returning true if a match occurred.&lt;/p&gt;
+
+&lt;p&gt;The following would be equivalent to having &lt;code&gt;setv-rgx&lt;/code&gt; as the &lt;code&gt;MATCHER&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun match-setv (limit)
+  (re-search-forward setv-rgx limit t))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But now we can do a lot more.&lt;/p&gt;
+
+&lt;p&gt;Lets restrict to matching &lt;code&gt;setv&lt;/code&gt; that are only one parenthesis deep.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun match-setv (limit)
+  (and (re-search-forward setv-rgx limit t)
+       (= 1 (nth 0 (syntax-ppss)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This matcher performs highlighting conditional on the syntax!&lt;/p&gt;
+
+&lt;p&gt;We now have the building blocks of syntax-traversing highlighting.&lt;/p&gt;
+
+&lt;h1 id=&#34;solution&#34;&gt;Solution&lt;/h1&gt;
+
+&lt;p&gt;A fully self-contained &lt;code&gt;setv-mode&lt;/code&gt; to try out:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq setv-rgx (rx symbol-start &amp;quot;setv&amp;quot; symbol-end (1+ space) (group (1+ word))))
+(setq setv-current-depth nil)
+
+(defun setv-font-lock-extend-region ()
+  &amp;quot;Extend assignment forms&#39; regions, see `font-lock-extend-region-functions&#39;.&amp;quot;
+  (save-excursion
+    (let ((start-beg font-lock-beg)
+          (start-end font-lock-end)
+          (depth (nth 0 (syntax-ppss))))
+      (when (and (&amp;lt; 0 depth)
+                 (sp-beginning-of-sexp)
+                 (string= &amp;quot;setv&amp;quot; (thing-at-point &#39;symbol)))
+
+        (setq setv-current-depth depth)
+
+        (setq font-lock-beg (1- (point)))
+        (sp-end-of-sexp)
+        (setq font-lock-end (1+ (point)))
+
+        (or (/= start-beg font-lock-beg)  ; Signal possible changes to font-lock
+            (/= start-end font-lock-end))))))
+
+(defun setv-match-assignments (limit)
+  &amp;quot;Recursively set `match-data&#39; assignment names containing point until LIMIT.
+
+`setv-font-lock-extend-region&#39; prepares this function to:
+1. Not traverse the same assignment form twice.
+2. Have the initial call at form&#39;s start and passed limit at form&#39;s end.
+
+The first name in each assignment is highlighted via a standard regex, so as to
+keep the initial condition simple.&amp;quot;
+  (-when-let* ((start (point))
+               (_ (sp-beginning-of-sexp))
+               (_ (re-search-forward setv-rgx limit t)))
+    (when (&amp;gt; start (point))  ; Resume traversal at last symbol
+      (goto-char start))
+
+    (sp-forward-sexp)
+
+    (when (&amp;lt; (point) limit)
+      (setq matched-word? (re-search-forward (rx (group (1+ word))) limit t))
+      (setq descended? (and setv-current-depth
+                            (&amp;gt; (nth 0 (syntax-ppss))
+                               setv-current-depth)))
+
+      (or (and matched-word? descended?
+               (sp-up-sexp)
+               (setv-match-assignments limit))
+          matched-word?
+          (setv-match-assignments limit)))))
+
+(define-derived-mode setv-mode lisp-mode &amp;quot;Setv&amp;quot;
+  (setq font-lock-multiline t)
+  (add-to-list &#39;font-lock-extend-region-functions
+               &#39;setv-font-lock-extend-region)
+
+  (setq setv-font-lock-kwds
+        `((setv-match-assignments 1 font-lock-variable-name-face)
+          (,setv-rgx 1 font-lock-variable-name-face)))
+
+  (setq font-lock-defaults
+        &#39;(setv-font-lock-kwds
+          nil nil
+          ((&amp;quot;+-*/.&amp;lt;&amp;gt;=!?$%_&amp;amp;~^:@&amp;quot; . &amp;quot;w&amp;quot;))
+          nil nil
+          (font-lock-mark-block-function . mark-defun))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I collapsed it into a major mode to allow for &lt;code&gt;M-x setv-mode&lt;/code&gt; to try out the highlighting yourself.&lt;/p&gt;
+
+&lt;p&gt;Lets break down what is occurring in each step:&lt;/p&gt;
+
+&lt;h3 id=&#34;extending-the-region&#34;&gt;Extending the region&lt;/h3&gt;
+
+&lt;p&gt;We check if the form-opener containing point is an assignment.&lt;/p&gt;
+
+&lt;p&gt;If it is we must conform to font-lock-mode&#39;s bookkeeping by:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Setting the dynamically bound &lt;code&gt;font-lock-beg&lt;/code&gt; and &lt;code&gt;font-lock-end&lt;/code&gt; to the&lt;/li&gt;
+   desired start/end of the form, for only assignment forms.
+&lt;li&gt;Tracking the depth of the assignment. The region expansion occurs once per&lt;/li&gt;
+   assignment while the searching is recursive, so we set the depth at
+   expansion-time.
+&lt;li&gt;Return whether the start or end changed during the region expansion.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;searching-for-assignments&#34;&gt;Searching for assignments&lt;/h3&gt;
+
+&lt;p&gt;Extending the region leaves us with the current point at the assignment form&#39;s
+opening and the limit at its close, and we will not restart the search from
+somewhere else within the form.&lt;/p&gt;
+
+&lt;p&gt;But we don&#39;t know whether the form is an assignment, we only know that the
+bounds are correct in the case that it is.&lt;/p&gt;
+
+&lt;p&gt;So first we check that the region we are considering is an assignment.
+We jump past one sexp, namely the value, and set match-data to the following
+with a regex search, as required by font-lock internals.&lt;/p&gt;
+
+&lt;p&gt;Now this match doesn&#39;t consider syntax, unlike the first jump. We check that we
+didn&#39;t just move forward into an embedded form. If we did, we need to skip this
+pair as we both do not want to highlight the form, and it would interfere with
+the &lt;code&gt;sp-beginning-of-sexp&lt;/code&gt; on future calls. So we jump out and recurse.&lt;/p&gt;
+
+&lt;h1 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h1&gt;
+
+&lt;p&gt;The example mode demonstrates a particularly difficult form of
+syntax-highlighting and pulls together many more advanced features of Emac&#39;s &lt;code&gt;font-lock-mode&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;However there are still issues:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;There is a performance cost to multiline highlighting, as noted in its documentation. How significant the impact is something I do not understand well yet.&lt;/li&gt;
+&lt;li&gt;While the names that are highlighted appear to be correct, application of highlighting to every name at all times is still inconsistent and might require edits on nearby parts of the buffer to take effect. My hunch is to investigate the other two region extension functions.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Altogether I&#39;m once again impressed at the flexibility Emacs offers to tailor
+the display of text to your liking.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Deep diving into a major mode - Part 2 (IDE Features)</title>
       <link>https://ekaschalk.github.io/post/major-mode-part-2/</link>
       <pubDate>Sun, 29 Oct 2017 00:00:00 +0000</pubDate>
@@ -32,8 +321,7 @@ and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-a
    &lt;code&gt;inferior-lisp-program&lt;/code&gt;, possibly adding setup code through
    &lt;code&gt;inferior-lisp-load-command&lt;/code&gt;, then running the &lt;code&gt;inferior-lisp&lt;/code&gt; command.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; within the define-derived-mode hy-mode setup...
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; within the define-derived-mode hy-mode setup...
 (setq-local inferior-lisp-program &amp;quot;hy&amp;quot;)
 (setq-local inferior-lisp-load-command &amp;quot;(print \&amp;quot;Hy there!\&amp;quot;)&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
@@ -51,8 +339,7 @@ and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-a
 
 &lt;p&gt;Hy mode&#39;s prompt is a right arrow.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(define-derived-mode inferior-hy-mode comint-mode &amp;quot;Inferior Hy&amp;quot;
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(define-derived-mode inferior-hy-mode comint-mode &amp;quot;Inferior Hy&amp;quot;
   &amp;quot;Major mode for Hy inferior process.&amp;quot;
   (setq-local indent-tabs-mode nil)
 
@@ -87,8 +374,7 @@ and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-a
 
 &lt;p&gt;The configuration required of &lt;code&gt;inferior-hy-mode&lt;/code&gt; :&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;;; Configuration
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;;; Configuration
 
 (defconst hy-shell-interpreter &amp;quot;hy&amp;quot;
   &amp;quot;Default Hy interpreter name.&amp;quot;)
@@ -119,8 +405,7 @@ and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-a
 &lt;p&gt;The implementations are rather straightforward. To keep space down, only
     name and docstring are provided:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-format-process-name (proc-name)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-format-process-name (proc-name)
   &amp;quot;Format a PROC-NAME with closing astericks.&amp;quot;)
 
 (defun hy-shell-get-process (&amp;amp;optional internal)
@@ -151,8 +436,7 @@ and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-a
 &lt;p&gt;The commands above are enough to build out some basic shell support. Lets
    look at &lt;code&gt;run-hy&lt;/code&gt; :&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun run-hy (&amp;amp;optional cmd)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun run-hy (&amp;amp;optional cmd)
   &amp;quot;Run an inferior Hy process.
 
 CMD defaults to the result of `hy--shell-calculate-command&#39;.&amp;quot;
@@ -168,8 +452,7 @@ CMD defaults to the result of `hy--shell-calculate-command&#39;.&amp;quot;
 &lt;p&gt;Most of the work is delegated to &lt;code&gt;hy--shell-make-comint&lt;/code&gt; as we also must
     have the internal variant:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun run-hy-internal ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun run-hy-internal ()
   &amp;quot;Start an inferior hy process in the background for autocompletion.&amp;quot;
   (interactive)
   (unless (executable-find &amp;quot;hy&amp;quot;)
@@ -194,8 +477,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;Now we are ready to startup our &lt;code&gt;inferior-hy-mode&lt;/code&gt; :&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-make-comint (cmd proc-name &amp;amp;optional show internal)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-make-comint (cmd proc-name &amp;amp;optional show internal)
   &amp;quot;Create and return comint process PROC-NAME with CMD, opt. INTERNAL and SHOW.&amp;quot;
   (-when-let* ((proc-buffer-name
                 (hy--shell-format-process-name proc-name))
@@ -236,8 +518,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;Like always, lets define some utilities:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-end-of-output? (string)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-end-of-output? (string)
   &amp;quot;Return non-nil if STRING ends with the prompt.&amp;quot;
   (s-matches? comint-prompt-regexp string))
 
@@ -251,8 +532,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;&lt;code&gt;hy--shell-output-filter-in-progress&lt;/code&gt; is the critical component. Lets see how
     it is used:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-send-string (string &amp;amp;optional process internal)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-send-string (string &amp;amp;optional process internal)
   &amp;quot;Internal implementation of shell send string functionality.&amp;quot;
   (let ((process (or process (hy-shell-get-process internal)))
         (hy--shell-output-filter-in-progress t))
@@ -278,8 +558,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;Looking back to &lt;code&gt;hy--shell-output-filter&lt;/code&gt;, what are the outcomes of using it
     as a pre or standard filter? Lets look at the exposed send strings:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy-shell-send-string-no-output (string &amp;amp;optional process internal)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy-shell-send-string-no-output (string &amp;amp;optional process internal)
   &amp;quot;Send STRING to hy PROCESS and inhibit printing output.&amp;quot;
   (-let [comint-preoutput-filter-functions
          &#39;(hy--shell-output-filter)]
@@ -300,8 +579,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;The key is the 100ms &lt;code&gt;timeout&lt;/code&gt; argument passed to &lt;code&gt;accept-process-output&lt;/code&gt;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-send-async (string)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-send-async (string)
   &amp;quot;Send STRING to internal hy process asynchronously.&amp;quot;
   (let ((output-buffer &amp;quot; *Comint Hy Redirect Work Buffer*&amp;quot;)
         (proc (hy-shell-get-process &#39;internal)))
@@ -327,8 +605,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;All the work for autocompletion was in setting up the asynchronous process
   support. Lets see how easy autocompletion becomes:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy-company-setup-code
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy-company-setup-code
   &amp;quot;(import [hy.completer [Completer]])
 (setv --HYCOMPANY (Completer))&amp;quot;
   &amp;quot;Autocompletion setup code to send to the internal process.&amp;quot;)
@@ -380,8 +657,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;&lt;code&gt;company-hy&lt;/code&gt; can then be enabled either through adding to &lt;code&gt;company-backends&lt;/code&gt; or
     for Spacemacs users adding:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Technically this should be within a hy layer, but this still works uncaptured
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Technically this should be within a hy layer, but this still works uncaptured
 (spacemacs|add-company-backends
   :backends company-hy
   :modes hy-mode inferior-hy-mode)
@@ -407,8 +683,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;Next, your implementation must mirror any relevant DSLs. For lisps, Eldoc
   inspects the form opener. It is hydiomatic to:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setv x &amp;quot;hi&amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setv x &amp;quot;hi&amp;quot;)
 (.format &amp;quot;{} there&amp;quot; x)
 (setv a-list [])
 (.append a-list &amp;quot;friend&amp;quot;)
@@ -421,8 +696,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;Eldoc is setup via the &lt;code&gt;eldoc-documentation-function&lt;/code&gt; :&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy-eldoc-documentation-function ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy-eldoc-documentation-function ()
   &amp;quot;Drives `eldoc-mode&#39;, retrieves eldoc msg string for inner-most symbol.&amp;quot;
   (-&amp;gt; (hy--eldoc-get-inner-symbol)
      hy--eldoc-get-docs))
@@ -445,8 +719,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
    docstring isn&#39;t captured in quotes. Since the text is static, we just add the
    faces to the string ourselves.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--fontify-text (text regexp &amp;amp;rest faces)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--fontify-text (text regexp &amp;amp;rest faces)
   &amp;quot;Fontify portions of TEXT matching REGEXP with FACES.&amp;quot;
   (when text
     (-each
@@ -474,8 +747,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;Next lets see the sending and formatting of the shell&#39;s raw eldoc output.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--eldoc-send (string)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--eldoc-send (string)
   &amp;quot;Send STRING for eldoc to internal process returning output.&amp;quot;
   (-&amp;gt; string
      hy--shell-send-async
@@ -490,8 +762,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 
 &lt;p&gt;The meat of Eldoc is in extracting the innermost symbol of the current point&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--eldoc-get-inner-symbol ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--eldoc-get-inner-symbol ()
   &amp;quot;Traverse and inspect innermost sexp and return formatted string for eldoc.&amp;quot;
   (save-excursion
     (-when-let* ((_ (hy-shell-get-process &#39;internal))
@@ -548,8 +819,7 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
    (newlines from process output are escaped so we must trim one backslash from
    each newline).&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--docs-for-thing-at-point ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--docs-for-thing-at-point ()
   &amp;quot;Mirrors `hy-eldoc-documentation-function&#39; formatted for a buffer, not a msg.&amp;quot;
   (-&amp;gt; (thing-at-point &#39;symbol)
      (hy--eldoc-get-docs t)
@@ -571,15 +841,13 @@ Eldoc, Anaconda, and other hy-mode features.&amp;quot;))
 &lt;p&gt;It is interesting how &#34;K&#34; is actually called, I&#39;m not sure if any other
    function operates quite the same. &#34;K&#34; calls the function bound to &#34;SPC m h h&#34;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(spacemacs/set-leader-keys-for-major-mode &#39;hy-mode
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(spacemacs/set-leader-keys-for-major-mode &#39;hy-mode
   &amp;quot;hh&amp;quot; &#39;hy-describe-thing-at-point)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Lastly we need to create, switch-to, and insert the retrieved docs as &lt;code&gt;hy-describe-thing-at-point&lt;/code&gt;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy-describe-thing-at-point ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy-describe-thing-at-point ()
   &amp;quot;Implement shift-k docs lookup for `spacemacs/evil-smart-doc-lookup&#39;.&amp;quot;
   (interactive)
   (-when-let* ((text (hy--docs-for-thing-at-point))
@@ -632,8 +900,7 @@ Notation&lt;/a&gt; for details and pictures.&lt;/p&gt;
 ligatures or without ligatures is correct, not both. So if someone that does not
 use ligatures works on your code, your indentation&#39;s will not match. An example:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; True indentation, what you want others to see
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; True indentation, what you want others to see
 (alpha b
        c)
 
@@ -703,8 +970,7 @@ disappear.&lt;/p&gt;
 
 &lt;p&gt;The solution is the &lt;code&gt;modification-hooks&lt;/code&gt; text-property.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun lig-mod-hook (overlay post-mod? start end &amp;amp;optional _)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun lig-mod-hook (overlay post-mod? start end &amp;amp;optional _)
   (when post-mod?
     (overlay-put overlay &#39;display nil)
     (overlay-put overlay &#39;modification-hooks nil)))  ; force evaporation
@@ -724,8 +990,7 @@ as we cannot determine in general the &#34;if necessary&#34; part.&lt;/p&gt;
 &lt;p&gt;The trick is to make the 5 first spaces display as one space. Because display
 doesn&#39;t modify indentation, subsequent lines will be indented properly.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(overlay-put space-overlay &#39;display &amp;quot; &amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(overlay-put space-overlay &#39;display &amp;quot; &amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h2 id=&#34;how-do-we-determine-the-indentation-we-want-to-see-then&#34;&gt;How do we determine the indentation we want to see then?&lt;/h2&gt;
@@ -759,8 +1024,7 @@ implement ligatures.&lt;/p&gt;
 
 &lt;p&gt;First we setup a basic major-mode for testing.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(provide &#39;lig-mode)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(provide &#39;lig-mode)
 
 (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.lig\\&#39;&amp;quot; . lig-mode))
 
@@ -772,8 +1036,7 @@ implement ligatures.&lt;/p&gt;
 &lt;p&gt;This is a proof-of-concept - we implement spacing for a single ligature for now.
 Lets replace &#34;hello&#34; with a smiley face.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun lig--match-lig (limit)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun lig--match-lig (limit)
   (re-search-forward (rx word-start &amp;quot;hello&amp;quot; word-end) limit t))
 
 (setq lig-char #x263a)
@@ -785,8 +1048,7 @@ Lets replace &#34;hello&#34; with a smiley face.&lt;/p&gt;
 &lt;p&gt;We copy the buffer contents to a temporary buffer, search and compose the
 symbols, indent the buffer, and copy the indentation for each line.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defvar lig-diff-indents nil)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defvar lig-diff-indents nil)
 
 (defun lig-get-diff-indents ()
   (setq lig-diff-indents nil)
@@ -824,8 +1086,7 @@ symbols, indent the buffer, and copy the indentation for each line.&lt;/p&gt;
 &lt;p&gt;Whenever we edit the buffer this hook will run, recalculating and visually
 collapsing all the leading spaces as needed.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun lig-syntax-propertize-function (start-limit end-limit)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun lig-syntax-propertize-function (start-limit end-limit)
   ;; Make sure visual indentations are current
   (run-lig-get-diff-indents)
 
@@ -873,8 +1134,7 @@ collapsing all the leading spaces as needed.&lt;/p&gt;
 
 &lt;p&gt;Enable &lt;code&gt;lig-mode&lt;/code&gt; to see:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; The true text
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; The true text
 (hello how
        are
        you (hello hi
@@ -924,8 +1184,7 @@ syntax.&lt;/p&gt;
 &lt;p&gt;In any major mode run &lt;code&gt;describe-syntax&lt;/code&gt; to see its syntax table. As we are
   working with a lisp, we copy its syntax-table to start with.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy-mode-syntax-table
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy-mode-syntax-table
   (-let [table
          (copy-syntax-table lisp-mode-syntax-table)]
     ;; syntax modifications...
@@ -946,8 +1205,7 @@ syntax.&lt;/p&gt;
     &#34;(&#34; or &#34;)&#34;, and the second character should be the closing delimiter.
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(modify-syntax-entry ?\{ &amp;quot;(}&amp;quot; table)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(modify-syntax-entry ?\{ &amp;quot;(}&amp;quot; table)
 (modify-syntax-entry ?\} &amp;quot;){&amp;quot; table)
 (modify-syntax-entry ?\[ &amp;quot;(]&amp;quot; table)
 (modify-syntax-entry ?\] &amp;quot;)[&amp;quot; table)
@@ -957,8 +1215,7 @@ syntax.&lt;/p&gt;
 &lt;li&gt;&#39; : &lt;code&gt;prefix character&lt;/code&gt;. Prefixes a symbol/word.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Quote characters are prefixes
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Quote characters are prefixes
 (modify-syntax-entry ?\~ &amp;quot;&#39;&amp;quot; table)
 (modify-syntax-entry ?\@ &amp;quot;&#39;&amp;quot; table)
 &lt;/code&gt;&lt;/pre&gt;
@@ -967,8 +1224,7 @@ syntax.&lt;/p&gt;
 &lt;li&gt;_ and w : &lt;code&gt;symbol and word constituent&lt;/code&gt; respectively.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; &amp;quot;,&amp;quot; is a symbol in Hy, namely the tuple constructor
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; &amp;quot;,&amp;quot; is a symbol in Hy, namely the tuple constructor
 (modify-syntax-entry ?\, &amp;quot;_ p&amp;quot; table)
 
 ;; &amp;quot;|&amp;quot; is a symbol in hy, naming the or operator
@@ -993,8 +1249,7 @@ syntax.&lt;/p&gt;
 
 &lt;p&gt;In the case of a lisp, we actually do:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq-local indent-line-function &#39;lisp-indent-line)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq-local indent-line-function &#39;lisp-indent-line)
 (setq-local lisp-indent-function &#39;hy-indent-function)
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1007,8 +1262,7 @@ syntax.&lt;/p&gt;
 &lt;p&gt;As this is a (necessarily) excessive amount of information, I recommend as
   many other modes have done - define some aliases. I have:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--sexp-inermost-char (state) (nth 1 state))
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--sexp-inermost-char (state) (nth 1 state))
 (defun hy--start-of-last-sexp (state) (nth 2 state))
 (defun hy--in-string? (state) (nth 3 state))
 (defun hy--start-of-string (state) (nth 8 state))
@@ -1021,8 +1275,7 @@ syntax.&lt;/p&gt;
 &lt;p&gt;These are the building blocks for indentation - we can then write utilities
   to better get our head around indentation like:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--prior-sexp? (state)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--prior-sexp? (state)
   (number-or-marker-p (hy--start-of-last-sexp state)))
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1030,8 +1283,7 @@ syntax.&lt;/p&gt;
 
 &lt;p&gt;The three cases:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Normal Indent
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Normal Indent
 (normal b
         c)
 (normal
@@ -1048,8 +1300,7 @@ syntax.&lt;/p&gt;
 
 &lt;p&gt;Hy&#39;s current indent function:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy-indent-function (indent-point state)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy-indent-function (indent-point state)
   &amp;quot;Indent at INDENT-POINT where STATE is `parse-partial-sexp&#39; for INDENT-POINT.&amp;quot;
   (goto-char (hy--sexp-inermost-char state))
 
@@ -1077,8 +1328,7 @@ syntax.&lt;/p&gt;
     then regardless of whether the first line contains args or not, we indent
     the same.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--normal-indent (last-sexp)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--normal-indent (last-sexp)
   &amp;quot;Determine normal indentation column of LAST-SEXP.
 
 Example:
@@ -1139,8 +1389,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 &lt;p&gt;Two symbols are the entry points to be aware of into font locking:
   &lt;code&gt;hy-font-lock-kwds&lt;/code&gt; and &lt;code&gt;hy-font-lock-syntactic-face-function&lt;/code&gt;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq font-lock-defaults
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq font-lock-defaults
         &#39;(hy-font-lock-kwds
           nil nil
           ((&amp;quot;+-*/.&amp;lt;&amp;gt;=!?$%_&amp;amp;~^:@&amp;quot; . &amp;quot;w&amp;quot;))  ; syntax alist
@@ -1156,8 +1405,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 
 &lt;p&gt;The approach taken in &lt;code&gt;hy-mode&lt;/code&gt; is to separate out the language by category:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy--kwds-constants
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy--kwds-constants
   &#39;(&amp;quot;True&amp;quot; &amp;quot;False&amp;quot; &amp;quot;None&amp;quot; &amp;quot;Ellipsis&amp;quot; &amp;quot;NotImplemented&amp;quot;)
   &amp;quot;Hy constant keywords.&amp;quot;)
 
@@ -1183,8 +1431,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 
 &lt;p&gt;The simplest definition:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy--font-lock-kwds-constants
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy--font-lock-kwds-constants
   (list
    (rx-to-string
     `(: (or ,@hy--kwds-constants)))
@@ -1196,8 +1443,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 
 &lt;p&gt;A more complex example with multiple groups taking different faces:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy--font-lock-kwds-defs
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy--font-lock-kwds-defs
   (list
    (rx-to-string
     `(: (group-n 1 (or ,@hy--kwds-defs))
@@ -1213,8 +1459,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 &lt;p&gt;Of course not all highlighting constructs are determined by symbol name. We
     can highlight the shebang line for instance as:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy--font-lock-kwds-shebang
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy--font-lock-kwds-shebang
   (list
    (rx buffer-start &amp;quot;#!&amp;quot; (0+ not-newline) eol)
 
@@ -1225,8 +1470,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
 
 &lt;p&gt;We then collect all our nice and modular font locks as &lt;code&gt;hy-font-lock-kwds&lt;/code&gt; that we set earlier:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defconst hy-font-lock-kwds
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defconst hy-font-lock-kwds
   (list hy--font-lock-kwds-constants
         hy--font-lock-kwds-defs
         ;; lots more ...
@@ -1241,8 +1485,7 @@ the loop will terminate without error and the prior lines indentation is it.&amp
    docstrings, and comments. It does not need to be set unless you want to
    distinguish docstrings.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--string-in-doc-position? (state)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--string-in-doc-position? (state)
   &amp;quot;Is STATE within a docstring?&amp;quot;
   (if (= 1 (hy--start-of-string state))  ; Identify module docstring
       t
@@ -1289,8 +1532,7 @@ a string or comment.&amp;quot;
   &lt;code&gt;syntax.el&lt;/code&gt; handles the internals of limiting and passing the start and end
   and applying/removing the text properties as the construct changes.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--match-bracket-string (limit)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--match-bracket-string (limit)
   &amp;quot;Search forward for a bracket string literal.&amp;quot;
   (re-search-forward
    (rx &amp;quot;#[&amp;quot;
@@ -1373,8 +1615,7 @@ underscores and mangles all incoming underscores to hyphens.&lt;/p&gt;
 
 &lt;p&gt;The following is all valid, hyphens and underscores can be used interchangeably:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(import a-module)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(import a-module)
 (import b_module)
 
 (defn a-func [x y]
@@ -1386,8 +1627,7 @@ underscores and mangles all incoming underscores to hyphens.&lt;/p&gt;
 
 &lt;p&gt;To use Hy from python:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-import hy
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import hy
 from my_hy_module import a_func
 
 a_func(1, 2)
@@ -1395,8 +1635,7 @@ a_func(1, 2)
 
 &lt;p&gt;Classes work as expected:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defclass AClass [object]
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defclass AClass [object]
   (defn --init-- [self])
 
   #@(staticmethod
@@ -1408,15 +1647,13 @@ a_func(1, 2)
 &lt;p&gt;Most all python features are implemented. For example, in master branch we
 have args/kwargs unpacking as:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(print #* [&amp;quot;hi&amp;quot; &amp;quot;there&amp;quot;] #** {&amp;quot;sep&amp;quot; &amp;quot;\n&amp;quot;})
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(print #* [&amp;quot;hi&amp;quot; &amp;quot;there&amp;quot;] #** {&amp;quot;sep&amp;quot; &amp;quot;\n&amp;quot;})
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Some features that were once in python but were removed are also implemented,
 for instance parameter unpacking:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defn add [x [y z]]
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defn add [x [y z]]
   (+ x y z))
 
 (add 1 [2 3])
@@ -1426,14 +1663,12 @@ for instance parameter unpacking:&lt;/p&gt;
 
 &lt;p&gt;Most operators are shadowed. This enables:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(map + [1 2] [2 3])
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(map + [1 2] [2 3])
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;whereas in python you would have to do a comprehension or:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-import op
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import op
 
 map(op.add, [1, 2], [2, 3])
 &lt;/code&gt;&lt;/pre&gt;
@@ -1443,8 +1678,7 @@ map(op.add, [1, 2], [2, 3])
 &lt;p&gt;Python restricts the characters you can use in setting variable and functions.
 Hy does not have most of these restrictions.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defn assert~ [x y]
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defn assert~ [x y]
   (npt.assert-almost-equal x y))
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1452,8 +1686,7 @@ Hy does not have most of these restrictions.&lt;/p&gt;
 
 &lt;p&gt;Hy works with pytest. Add &lt;code&gt;project_root/conftest.py&lt;/code&gt; with:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-import hy
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import hy
 from _pytest.python import Module
 
 
@@ -1479,8 +1712,7 @@ fallacy&#34;. Instead, consider this example of macros reducing pytest boilerpla
 
 &lt;p&gt;The macro definitions are &lt;a href=&#34;https://gist.github.com/ekaschalk/240b213aabe83f565aa74bc70161bfaf&#34; title=&#34;contained in this gist&#34;&gt;contained in this gist&lt;/a&gt;.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(deffixture numbers
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(deffixture numbers
   &amp;quot;Some numbers.&amp;quot;
   [[[1 2] 1 [2 3] [2 3]
    [[1 2] 2 [3 4] [2 4]]
@@ -1496,8 +1728,7 @@ fallacy&#34;. Instead, consider this example of macros reducing pytest boilerpla
   (assert~ (* i x) y))
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-@pytest.fixture(params=[
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;@pytest.fixture(params=[
     ([1, 2], 1, [2, 3], [2, 3]),
     ([1, 2], 2, [3, 4], [2, 4])
 ])
@@ -1532,8 +1763,7 @@ exactly and only the testing logic.&lt;/p&gt;
 &lt;p&gt;Reader macros are macros with a shortened syntax.
 The ones I use most are:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(import [toolz.curried :as tz])
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(import [toolz.curried :as tz])
 
 (deftag t [expr]
   &amp;quot;Cast form to a tuple.&amp;quot;
@@ -1549,8 +1779,7 @@ The ones I use most are:&lt;/p&gt;
 
 &lt;p&gt;Or in python:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-tuple(map(lambda x: x+1, [1, 2]))
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;tuple(map(lambda x: x+1, [1, 2]))
 tuple(x+1 for x in [1, 2])
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1563,8 +1792,7 @@ tuple(x+1 for x in [1, 2])
 
 &lt;p&gt;Lisp syntax allows for editing the AST directly.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Initial text
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Initial text
 map [1 2] (+ 1)
 ;; wrap map with &amp;quot;w&amp;quot; followed by three slurps 3*&amp;quot;s&amp;quot;
 (map [1 2] (+ 1))
@@ -1726,16 +1954,14 @@ packages.&lt;/p&gt;
 
 &lt;p&gt;Layer dependencies to load first.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(configuration-layer/declare-layers &#39;(theming))
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(configuration-layer/declare-layers &#39;(theming))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;h3 id=&#34;packages-el&#34;&gt;packages.el&lt;/h3&gt;
 
 &lt;p&gt;Packages added or configured by the layer.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq my-layer-packages
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq my-layer-packages
       &#39;(a-pkg
         (github-pkg :location (recipe :fetcher github
                                       :repo &amp;quot;github-user/repo-name&amp;quot;))
@@ -1746,8 +1972,7 @@ packages.&lt;/p&gt;
 &lt;li&gt;&lt;strong&gt;Owned Packages:&lt;/strong&gt; A layer owns a package if it defines &lt;code&gt;layer-name/init-pkg-name&lt;/code&gt;. All packages not defined in &lt;code&gt;dotspacemacs/additional/packages&lt;/code&gt; should have one and only one owner. It calls &lt;code&gt;use-package&lt;/code&gt;. Common options are &lt;code&gt;:init&lt;/code&gt; for before load config, &lt;code&gt;:config&lt;/code&gt; for after, &lt;code&gt;:if&lt;/code&gt; for loading if eg. a certain OS or executable is installed, &lt;code&gt;:after&lt;/code&gt; for enforcing load order, and &lt;code&gt;:defer t&lt;/code&gt; for deferred loading.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun display/init-pretty-outlines ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun display/init-pretty-outlines ()
   (use-package pretty-outlines
     :after outshine
     :config
@@ -1761,8 +1986,7 @@ packages.&lt;/p&gt;
 &lt;li&gt;&lt;strong&gt;Unowned Packages:&lt;/strong&gt; A layer that does not own a package can configure it with &lt;code&gt;layer-name/pre-init-pkg-name&lt;/code&gt; and &lt;code&gt;layer-name/post-init-pkg-name&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun config/pre-init-neotree ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun config/pre-init-neotree ()
   (evil-global-set-key &#39;normal (kbd &amp;quot;M-p&amp;quot;)
                        &#39;neotree-find-project-root))
 
@@ -1780,16 +2004,14 @@ packages.&lt;/p&gt;
 
 &lt;p&gt;Package agnostic functions belong here.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defmacro with-face (STR &amp;amp;rest PROPS)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defmacro with-face (STR &amp;amp;rest PROPS)
   &amp;quot;Return STR propertized with PROPS.&amp;quot;
   `(propertize ,STR &#39;face (list ,@PROPS)))
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Guarding against particular packages being installed:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(when (configuration-layer/package-usedp &#39;some-pkg)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(when (configuration-layer/package-usedp &#39;some-pkg)
   (defun my-func ()))
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1797,8 +2019,7 @@ packages.&lt;/p&gt;
 
 &lt;p&gt;Layer variables.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; python/config.el
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; python/config.el
 (defvar python-tab-width 4
   &amp;quot;Tab width value for python buffers&amp;quot;)
 
@@ -1811,8 +2032,7 @@ executed. Layer dependencies are actually loaded prior to config.el.&lt;/p&gt;
 
 &lt;p&gt;This can be used for eg. setting theme updates with the &lt;code&gt;theming&lt;/code&gt; layer.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq theming-modifications
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq theming-modifications
       `((solarized-dark (avy-background-face :foreground &amp;quot;#586e75&amp;quot;)
                         (font-lock-doc-face :foreground &amp;quot;#2aa198&amp;quot;))
         (solarized-light ...)))
@@ -1822,8 +2042,7 @@ executed. Layer dependencies are actually loaded prior to config.el.&lt;/p&gt;
 
 &lt;p&gt;Package-agnostic key-bindings.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(global-set-key (kbd &amp;quot;M-d&amp;quot;) &#39;spacemacs/delete-window)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(global-set-key (kbd &amp;quot;M-d&amp;quot;) &#39;spacemacs/delete-window)
 
 ;; Evil will be loaded
 (evil-define-key &#39;(normal visual motion) outline-minor-mode-map
@@ -1855,8 +2074,7 @@ org-mode setup separately in a local &lt;code&gt;org-config&lt;/code&gt; package
 
 &lt;p&gt;Anything, excluding spacemacs toggles, can be setup here. For instance:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq config-packages &#39;(evil ...))
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq config-packages &#39;(evil ...))
 
 (defun config/post-init-evil ()
   (setq evil-escape-key-sequence &amp;quot;jk&amp;quot;)
@@ -1904,8 +2122,7 @@ personal layer. This is only relevant if you write your own packages.&lt;/p&gt;
 
 &lt;p&gt;I&#39;ve organized my layers into several sections:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defvar dotspacemacs/layers/local
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defvar dotspacemacs/layers/local
   &#39;((macros :location local)
     (config :location local)
     (display :location local)
@@ -1977,8 +2194,7 @@ your &lt;code&gt;init.el&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Spacemacs layers load ordering causes issues for extra themes. Theme packages
 cannot be put in a layer. As a result, to use solarized I set:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; ~/.spacemacs.d/init.el
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; ~/.spacemacs.d/init.el
 (defun dotspacemacs/layers ()
   (setq-default dotspacemacs-additional-packages &#39;(solarized-theme)
                 ...))
@@ -1997,8 +2213,7 @@ files.&lt;/p&gt;
 &lt;p&gt;Call &lt;code&gt;g d&lt;/code&gt; or &lt;code&gt;(spacemacs/jump-to-definition)&lt;/code&gt; in emacs lisp mode to jump to
 that layer&#39;s packages.el to check out its packages and configuration.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(configuration-layer/declare-layers
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(configuration-layer/declare-layers
  &#39;(spacemacs-base
    spacemacs-completion
    spacemacs-layouts
@@ -2068,8 +2283,7 @@ improve on other configuration management methods.&lt;/p&gt;
 
 &lt;p&gt;The package can be found at: &lt;a href=&#34;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&#34; title=&#34;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&#34;&gt;https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines&lt;/a&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(require &#39;dash)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
 (require &#39;outshine)
 (require &#39;s)
 
@@ -2174,8 +2388,7 @@ outlines.&lt;/p&gt;
 
 &lt;p&gt;Enable outlines and outshine with:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Require packages for following code
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Require packages for following code
 (require &#39;dash)
 (require &#39;outshine)
 
@@ -2192,8 +2405,7 @@ outlines.&lt;/p&gt;
 leader-key based bindings. Reference org-mode for developing your own
 emacs-style bindings.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Narrowing now works within the headline rather than requiring to be on it
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Narrowing now works within the headline rather than requiring to be on it
 (advice-add &#39;outshine-narrow-to-subtree :before
             (lambda (&amp;amp;rest args) (unless (outline-on-heading-p t)
                                    (outline-previous-visible-heading 1))))
@@ -2239,8 +2451,7 @@ highlight and make obvious the different sections.&lt;/p&gt;
 &lt;p&gt;This can be done by updating the &lt;code&gt;outline-1/2/3...&lt;/code&gt; faces.
 Org mode header faces can set separately using the &lt;code&gt;org-level-1/2/3...&lt;/code&gt; faces.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq my-black &amp;quot;#1b1b1e&amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq my-black &amp;quot;#1b1b1e&amp;quot;)
 
 (custom-theme-set-faces
  &#39;solarized-dark
@@ -2267,8 +2478,7 @@ python.&lt;/p&gt;
 
 &lt;p&gt;UPDATE: Check &lt;a href=&#39;https://ekaschalk.github.io/post/outline-bullets/&#39;&gt;this post for full implementation.&lt;/a&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
   (font-lock-add-keywords
    nil (--map (-let (((rgx uni-point) it))
                 `(,rgx (0 (progn
@@ -2320,8 +2530,7 @@ collapsed headers.&lt;/p&gt;
 
 &lt;p&gt;We can set our own outline ellipsis icon as follows:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defvar outline-display-table (make-display-table))
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defvar outline-display-table (make-display-table))
 (set-display-table-slot outline-display-table &#39;selective-display
                         (vector (make-glyph-code ?▼ &#39;escape-glyph)))
 (defun set-outline-display-table ()
@@ -2366,8 +2575,7 @@ only top-level headings matching spacemacs. It also overrides &lt;code&gt;ivy-ma
 
 &lt;p&gt;The default configuration:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defvar oi-height 20
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defvar oi-height 20
   &amp;quot;Number of outlines to display, overrides ivy-height.&amp;quot;)
 
 (defface oi-match-face
@@ -2469,8 +2677,7 @@ My personal choices for leaders are:
 &lt;p&gt;I also fontify origin and master with the github icon and branch icon
 respectively, and exclude these from the commit prompts.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(require &#39;dash)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
 
 (defmacro pretty-magit (WORD ICON PROPS &amp;amp;optional NO-PROMPT?)
   &amp;quot;Replace sanitized WORD with ICON, PROPS and by default add to prompts.&amp;quot;
@@ -2527,8 +2734,7 @@ We can only distinguish a plain new commit by the call of &lt;code&gt;magit-comm
 &lt;p&gt;With these observations, we must advise &lt;code&gt;magit-commit&lt;/code&gt; to let the hook know
 whether to call the prompt.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(setq use-magit-commit-prompt-p nil)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq use-magit-commit-prompt-p nil)
 (defun use-magit-commit-prompt (&amp;amp;rest args)
   (setq use-magit-commit-prompt-p t))
 
@@ -2567,7 +2773,7 @@ whether to call the prompt.&lt;/p&gt;
    deep Magit propertize magic.
 &lt;/ol&gt;
 
-&lt;p&gt;There are many possible leaders, consider these options&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a rel=&#34;footnote&#34; href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+&lt;p&gt;There are many possible leaders, consider these options&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
 
 &lt;dl&gt;
 &lt;dt&gt;Add&lt;/dt&gt;
@@ -2628,8 +2834,7 @@ while the latter distinguishes your commands.&lt;/p&gt;
 evaluated, and optionally face properties. They create anonymous functions which
 will be evaluated and concatenated at prompt-time.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(require &#39;dash)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
 (require &#39;s)
 
 (defmacro with-face (STR &amp;amp;rest PROPS)
@@ -2662,8 +2867,7 @@ will be evaluated and concatenated at prompt-time.&lt;/p&gt;
 
 &lt;p&gt;Now lets define the needed configuration.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-;; Separator between esh-sections
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Separator between esh-sections
 (setq esh-sep &amp;quot;  &amp;quot;)  ; or &amp;quot; | &amp;quot;
 
 ;; Separator between an esh-section icon and form
@@ -2682,8 +2886,7 @@ will be evaluated and concatenated at prompt-time.&lt;/p&gt;
 then it will be skipped, so the effect of eg. python virtual environments will
 only appear when you have an active venv.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(esh-section esh-dir
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(esh-section esh-dir
              &amp;quot;\xf07c&amp;quot;  ;  (faicon folder)
              (abbreviate-file-name (eshell/pwd))
              &#39;(:foreground &amp;quot;gold&amp;quot; :bold ultra-bold :underline t))
@@ -2738,8 +2941,7 @@ emacs tweaks.&lt;/p&gt;
       <guid>https://ekaschalk.github.io/post/xi-macro/</guid>
       <description>&lt;p&gt;Clojure has anonymous functions with the reader macro &lt;code&gt;#(&lt;/code&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-clojure&#34;&gt;
-(#(print %2 %1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-clojure&#34;&gt;(#(print %2 %1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Emacs Lisp doesn&#39;t have reader macros, but we can take direction from Hylang, a
@@ -2748,14 +2950,12 @@ lisp dialect similar to Clojure inter-oping with Python.&lt;/p&gt;
 &lt;p&gt;It implements the anonymous functions as the aptly named &lt;code&gt;xi&lt;/code&gt; macro, where the
 lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt; .&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;We can implement the &lt;code&gt;xi&lt;/code&gt; macro in Emacs Lisp roughly as:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(require &#39;dash)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
 (require &#39;s)
 
 (defmacro xi (&amp;amp;rest FORMS)
@@ -2767,8 +2967,7 @@ lambda has arguments determined by presence of &lt;code&gt;x1 ... xi&lt;/code&gt
 
 &lt;p&gt;This enables:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(funcall (xi print (concat x2 x1)) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(funcall (xi print (concat x2 x1)) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
 ;; expands to
 (funcall (lambda (x1 x2) (print (concat x2 x1))) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)
 &lt;/code&gt;&lt;/pre&gt;
@@ -2781,8 +2980,7 @@ Lastly it does not distinguish xis as part of say strings.&lt;/p&gt;
 &lt;p&gt;This macro is especially useful for lambdas without arguments, like adding hooks
 and keybindings.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(add-hook &#39;eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(add-hook &#39;eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
 ;; Becomes
 (add-hook &#39;eshell-exit-hook (xi setq esh-prompt-num 0))
 &lt;/code&gt;&lt;/pre&gt;
@@ -2813,8 +3011,7 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 
 &lt;p&gt;All the code:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(require &#39;cl)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;cl)
 (require &#39;dash)
 
 (setq blog-dir &amp;quot;~/dev/blog&amp;quot;
@@ -2866,8 +3063,7 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 
 &lt;p&gt;For reference, this blog post is an ordinary org file with just the headers:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-org&#34;&gt;
-#+TITLE: An Emacs Blogging Workflow
+&lt;pre&gt;&lt;code class=&#34;language-org&#34;&gt;#+TITLE: An Emacs Blogging Workflow
 #+SLUG: org-mode-blogging
 #+DATE: 2017-06-20
 #+CATEGORIES: emacs org-mode
@@ -2892,8 +3088,7 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 
 &lt;p&gt;In your emacs config include:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(global-prettify-symbols-mode 1)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(global-prettify-symbols-mode 1)
 (add-hook &#39;python-mode-hook
           (lambda ()
             (mapc (lambda (pair) (push pair prettify-symbols-alist))
@@ -2906,8 +3101,7 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 &lt;p&gt;Optionally &lt;code&gt;pip install toolz&lt;/code&gt;, a functional programming library, otherwise you
 can define the infix operations yourself.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-import toolz.curried as tz
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import toolz.curried as tz
 from infix import custom_infix as infix
 
 @infix(&#39;__rmatmul__&#39;, &#39;__matmul__&#39;)
@@ -3147,8 +3341,7 @@ the adjustment has been quick.&lt;/p&gt;
 
 &lt;p&gt;Two macros are core:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defmacro hy--shell-with-shell-buffer (&amp;amp;rest forms)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defmacro hy--shell-with-shell-buffer (&amp;amp;rest forms)
   &amp;quot;Execute FORMS in the shell buffer.&amp;quot;
   (-let [shell-process
          (gensym)]
@@ -3180,8 +3373,7 @@ the adjustment has been quick.&lt;/p&gt;
 &lt;p&gt;The font lock is applied and the deleted region is replaced with the
    extracted text with its face property moved to the font-lock-face property.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-faces-to-font-lock-faces (text &amp;amp;optional start-pos)
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-faces-to-font-lock-faces (text &amp;amp;optional start-pos)
   &amp;quot;Set all &#39;face in TEXT to &#39;font-lock-face optionally starting at START-POS.&amp;quot;
   (let ((pos 0)
         (start-pos (or start-pos 0)))
@@ -3217,8 +3409,7 @@ Constantly extracts current prompt text and executes and manages applying
         (hy--shell-faces-to-font-lock-faces text prompt-end))))
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;
-(defun hy--shell-font-lock-turn-on ()
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-font-lock-turn-on ()
   &amp;quot;Turn on fontification of current line for hy shell.&amp;quot;
   (hy--shell-with-shell-buffer
    (hy--shell-kill-buffer)

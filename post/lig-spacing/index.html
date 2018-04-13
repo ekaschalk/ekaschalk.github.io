@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.38.2" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -216,8 +216,7 @@ Notation</a> for details and pictures.</p>
 ligatures or without ligatures is correct, not both. So if someone that does not
 use ligatures works on your code, your indentation's will not match. An example:</p>
 
-<pre><code class="language-lisp">
-;; True indentation, what you want others to see
+<pre><code class="language-lisp">;; True indentation, what you want others to see
 (alpha b
        c)
 
@@ -287,8 +286,7 @@ disappear.</p>
 
 <p>The solution is the <code>modification-hooks</code> text-property.</p>
 
-<pre><code class="language-lisp">
-(defun lig-mod-hook (overlay post-mod? start end &amp;optional _)
+<pre><code class="language-lisp">(defun lig-mod-hook (overlay post-mod? start end &amp;optional _)
   (when post-mod?
     (overlay-put overlay 'display nil)
     (overlay-put overlay 'modification-hooks nil)))  ; force evaporation
@@ -308,8 +306,7 @@ as we cannot determine in general the "if necessary" part.</p>
 <p>The trick is to make the 5 first spaces display as one space. Because display
 doesn't modify indentation, subsequent lines will be indented properly.</p>
 
-<pre><code class="language-lisp">
-(overlay-put space-overlay 'display &quot; &quot;)
+<pre><code class="language-lisp">(overlay-put space-overlay 'display &quot; &quot;)
 </code></pre>
 
 <h2 id="how-do-we-determine-the-indentation-we-want-to-see-then">How do we determine the indentation we want to see then?</h2>
@@ -343,8 +340,7 @@ implement ligatures.</p>
 
 <p>First we setup a basic major-mode for testing.</p>
 
-<pre><code class="language-lisp">
-(provide 'lig-mode)
+<pre><code class="language-lisp">(provide 'lig-mode)
 
 (add-to-list 'auto-mode-alist '(&quot;\\.lig\\'&quot; . lig-mode))
 
@@ -356,8 +352,7 @@ implement ligatures.</p>
 <p>This is a proof-of-concept - we implement spacing for a single ligature for now.
 Lets replace "hello" with a smiley face.</p>
 
-<pre><code class="language-lisp">
-(defun lig--match-lig (limit)
+<pre><code class="language-lisp">(defun lig--match-lig (limit)
   (re-search-forward (rx word-start &quot;hello&quot; word-end) limit t))
 
 (setq lig-char #x263a)
@@ -369,8 +364,7 @@ Lets replace "hello" with a smiley face.</p>
 <p>We copy the buffer contents to a temporary buffer, search and compose the
 symbols, indent the buffer, and copy the indentation for each line.</p>
 
-<pre><code class="language-lisp">
-(defvar lig-diff-indents nil)
+<pre><code class="language-lisp">(defvar lig-diff-indents nil)
 
 (defun lig-get-diff-indents ()
   (setq lig-diff-indents nil)
@@ -408,8 +402,7 @@ symbols, indent the buffer, and copy the indentation for each line.</p>
 <p>Whenever we edit the buffer this hook will run, recalculating and visually
 collapsing all the leading spaces as needed.</p>
 
-<pre><code class="language-lisp">
-(defun lig-syntax-propertize-function (start-limit end-limit)
+<pre><code class="language-lisp">(defun lig-syntax-propertize-function (start-limit end-limit)
   ;; Make sure visual indentations are current
   (run-lig-get-diff-indents)
 
@@ -457,8 +450,7 @@ collapsing all the leading spaces as needed.</p>
 
 <p>Enable <code>lig-mode</code> to see:</p>
 
-<pre><code class="language-lisp">
-;; The true text
+<pre><code class="language-lisp">;; The true text
 (hello how
        are
        you (hello hi
@@ -510,20 +502,25 @@ ligatures.</p>
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/lig-spacing\/';
-    var disqus_title = 'Solving ligature spacing in Emacs - proof of concept';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/lig-spacing\/';
-
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
     (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ekaschalk-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
 </section>
 

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.22-DEV" />
+  <meta name="generator" content="Hugo 0.38.2" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -227,8 +227,7 @@ underscores and mangles all incoming underscores to hyphens.</p>
 
 <p>The following is all valid, hyphens and underscores can be used interchangeably:</p>
 
-<pre><code class="language-lisp">
-(import a-module)
+<pre><code class="language-lisp">(import a-module)
 (import b_module)
 
 (defn a-func [x y]
@@ -240,8 +239,7 @@ underscores and mangles all incoming underscores to hyphens.</p>
 
 <p>To use Hy from python:</p>
 
-<pre><code class="language-python">
-import hy
+<pre><code class="language-python">import hy
 from my_hy_module import a_func
 
 a_func(1, 2)
@@ -249,8 +247,7 @@ a_func(1, 2)
 
 <p>Classes work as expected:</p>
 
-<pre><code class="language-lisp">
-(defclass AClass [object]
+<pre><code class="language-lisp">(defclass AClass [object]
   (defn --init-- [self])
 
   #@(staticmethod
@@ -262,15 +259,13 @@ a_func(1, 2)
 <p>Most all python features are implemented. For example, in master branch we
 have args/kwargs unpacking as:</p>
 
-<pre><code class="language-lisp">
-(print #* [&quot;hi&quot; &quot;there&quot;] #** {&quot;sep&quot; &quot;\n&quot;})
+<pre><code class="language-lisp">(print #* [&quot;hi&quot; &quot;there&quot;] #** {&quot;sep&quot; &quot;\n&quot;})
 </code></pre>
 
 <p>Some features that were once in python but were removed are also implemented,
 for instance parameter unpacking:</p>
 
-<pre><code class="language-lisp">
-(defn add [x [y z]]
+<pre><code class="language-lisp">(defn add [x [y z]]
   (+ x y z))
 
 (add 1 [2 3])
@@ -280,14 +275,12 @@ for instance parameter unpacking:</p>
 
 <p>Most operators are shadowed. This enables:</p>
 
-<pre><code class="language-lisp">
-(map + [1 2] [2 3])
+<pre><code class="language-lisp">(map + [1 2] [2 3])
 </code></pre>
 
 <p>whereas in python you would have to do a comprehension or:</p>
 
-<pre><code class="language-python">
-import op
+<pre><code class="language-python">import op
 
 map(op.add, [1, 2], [2, 3])
 </code></pre>
@@ -297,8 +290,7 @@ map(op.add, [1, 2], [2, 3])
 <p>Python restricts the characters you can use in setting variable and functions.
 Hy does not have most of these restrictions.</p>
 
-<pre><code class="language-lisp">
-(defn assert~ [x y]
+<pre><code class="language-lisp">(defn assert~ [x y]
   (npt.assert-almost-equal x y))
 </code></pre>
 
@@ -306,8 +298,7 @@ Hy does not have most of these restrictions.</p>
 
 <p>Hy works with pytest. Add <code>project_root/conftest.py</code> with:</p>
 
-<pre><code class="language-python">
-import hy
+<pre><code class="language-python">import hy
 from _pytest.python import Module
 
 
@@ -333,8 +324,7 @@ fallacy". Instead, consider this example of macros reducing pytest boilerplate.<
 
 <p>The macro definitions are <a href="https://gist.github.com/ekaschalk/240b213aabe83f565aa74bc70161bfaf" title="contained in this gist">contained in this gist</a>.</p>
 
-<pre><code class="language-lisp">
-(deffixture numbers
+<pre><code class="language-lisp">(deffixture numbers
   &quot;Some numbers.&quot;
   [[[1 2] 1 [2 3] [2 3]
    [[1 2] 2 [3 4] [2 4]]
@@ -350,8 +340,7 @@ fallacy". Instead, consider this example of macros reducing pytest boilerplate.<
   (assert~ (* i x) y))
 </code></pre>
 
-<pre><code class="language-python">
-@pytest.fixture(params=[
+<pre><code class="language-python">@pytest.fixture(params=[
     ([1, 2], 1, [2, 3], [2, 3]),
     ([1, 2], 2, [3, 4], [2, 4])
 ])
@@ -386,8 +375,7 @@ exactly and only the testing logic.</p>
 <p>Reader macros are macros with a shortened syntax.
 The ones I use most are:</p>
 
-<pre><code class="language-lisp">
-(import [toolz.curried :as tz])
+<pre><code class="language-lisp">(import [toolz.curried :as tz])
 
 (deftag t [expr]
   &quot;Cast form to a tuple.&quot;
@@ -403,8 +391,7 @@ The ones I use most are:</p>
 
 <p>Or in python:</p>
 
-<pre><code class="language-python">
-tuple(map(lambda x: x+1, [1, 2]))
+<pre><code class="language-python">tuple(map(lambda x: x+1, [1, 2]))
 tuple(x+1 for x in [1, 2])
 </code></pre>
 
@@ -417,8 +404,7 @@ tuple(x+1 for x in [1, 2])
 
 <p>Lisp syntax allows for editing the AST directly.</p>
 
-<pre><code class="language-lisp">
-;; Initial text
+<pre><code class="language-lisp">;; Initial text
 map [1 2] (+ 1)
 ;; wrap map with &quot;w&quot; followed by three slurps 3*&quot;s&quot;
 (map [1 2] (+ 1))
@@ -571,20 +557,25 @@ from the comfort of Lisp.</p>
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script type="text/javascript">
-    var disqus_shortname = 'ekaschalk-github-io';
-    var disqus_identifier = 'https:\/\/ekaschalk.github.io\/post\/mile-hy\/';
-    var disqus_title = 'A mile Hy - My experience with lispy Python';
-    var disqus_url = 'https:\/\/ekaschalk.github.io\/post\/mile-hy\/';
-
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
     (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "ekaschalk-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
     })();
 </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
   </div>
 </section>
 
