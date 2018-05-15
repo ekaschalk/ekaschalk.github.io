@@ -11,6 +11,76 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Pretty for loops</title>
+      <link>https://ekaschalk.github.io/post/pretty-for-loops/</link>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/pretty-for-loops/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://www.reddit.com/r/emacs/comments/8jlmcr/display_for_each_loops_in_a_mathematical_maner/&#34; title=&#34;This reddit post&#34;&gt;This reddit post&lt;/a&gt; posed a fun challenge: display &lt;code&gt;for(auto&amp;amp;&amp;amp; foo : bar){...}&lt;/code&gt; with mathematical notation.&lt;/p&gt;
+
+&lt;p&gt;In python this is trivial with &lt;code&gt;prettify-symbols-mode&lt;/code&gt; as its syntax is simply &lt;code&gt;for foo in bar:&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/pretty-for-loops.png&#34; alt=&#34;/img/pretty-for-loops.png&#34; title=&#34;/img/pretty-for-loops.png&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Turns out is possible... whether it is a good idea or not is still questionable.&lt;/p&gt;
+
+&lt;h1 id=&#34;how-it-works&#34;&gt;How it works&lt;/h1&gt;
+
+&lt;p&gt;First we write a regex for the for-auto construct. Two groups are set, one for
+locating the for-all symbol and another for the in symbol. The &lt;code&gt;rx&lt;/code&gt; macro makes
+this rather large regex a breeze.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq pretty-for-rgx
+      (rx (group &amp;quot;for(auto&amp;amp;&amp;amp;&amp;quot;)
+          (1+ space)
+          (1+ word)
+          (1+ space)
+          (group &amp;quot;:&amp;quot;)
+          (1+ space)
+          (1+ word)))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we need to compose the symbols.&lt;/p&gt;
+
+&lt;p&gt;Ligatures in Emacs are typically set via &lt;code&gt;prettyify-symbols-mode&lt;/code&gt; or manually
+through hacking &lt;code&gt;compose-region&lt;/code&gt; into &lt;code&gt;font-lock-mode&lt;/code&gt; syntax highlighting.&lt;/p&gt;
+
+&lt;p&gt;Personal ligatures are typically done through prettify, for instance replacing
+lambdas with the greek lambda symbol, or simple for/in loops in Python.&lt;/p&gt;
+
+&lt;p&gt;Ligatures from fonts, like Fira code, are typically done through
+~compose-region~ calls.&lt;/p&gt;
+
+&lt;p&gt;We need to go the composition route here.&lt;/p&gt;
+
+&lt;p&gt;We write a hook updating &lt;code&gt;font-lock-keywords&lt;/code&gt; with the composition regex.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun pretty-for-add ()
+  (setq font-lock-keywords nil)
+  (font-lock-add-keywords
+   nil
+   `((,pretty-for-rgx 0 (prog1 nil
+                          (compose-region
+                           (match-beginning 1) (match-end 1)
+                           `(?\∀ (Br . Bl) ?\())
+                          (compose-region
+                           (match-beginning 2) (match-end 2)
+                           ,(concat &amp;quot;\t&amp;quot; (list #x2203))))))))
+
+(add-hook &#39;c-mode-hook &#39;pretty-for-add)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Notice that in &lt;code&gt;for(auto&amp;amp;&amp;amp; ...&lt;/code&gt; we are replacing both the for and auto but keeping
+the parenthesis. The &lt;code&gt;(Br . Bl)&lt;/code&gt; is a &lt;code&gt;composition rule&lt;/code&gt; that allows attaching
+the for-all symbol and the parenthesis.&lt;/p&gt;
+
+&lt;p&gt;We set font lock keywords to nil because some keyword(s) are interfering with
+the compositions. If anyone has the interest to figure out which ones, please
+leave a comment here.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Advanced Syntax Highlighting - Variable Assignments</title>
       <link>https://ekaschalk.github.io/post/advanced-syntax/</link>
       <pubDate>Fri, 13 Apr 2018 00:00:00 +0000</pubDate>
@@ -3307,120 +3377,6 @@ between in and not in is now instantaneous.&lt;/li&gt;
 &lt;p&gt;Besides the discussed caveats, the main downside is the disassociation between
 what you see and what you type. In my experience this has not been an issue and
 the adjustment has been quick.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title></title>
-      <link>https://ekaschalk.github.io/post/shell-font-lock/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/post/shell-font-lock/</guid>
-      <description>&lt;h2 id=&#34;font-locking-the-shell-prompt&#34;&gt;Font locking the Shell Prompt&lt;/h2&gt;
-
-&lt;p&gt;This simple-sounding feature is involved and perhaps worth a post all its own.&lt;/p&gt;
-
-&lt;p&gt;I&#39;m not sure if any shells besides python implement this feature. For example,
-   type &lt;code&gt;(let ...)&lt;/code&gt; in &lt;code&gt;ielm&lt;/code&gt; and the let won&#39;t be highlighted.&lt;/p&gt;
-
-&lt;p&gt;Buffers taking from &lt;code&gt;comint-mode&lt;/code&gt; will not highlight the current prompt. Once
-   entered, the prompt output will switch to the &lt;code&gt;comint-highlight-input&lt;/code&gt; face.&lt;/p&gt;
-
-&lt;p&gt;We can&#39;t enable &lt;code&gt;font-lock-mode&lt;/code&gt; for &lt;code&gt;inferior-hy-mode&lt;/code&gt; as otherwise the
-   highlight input face will be overwritten, output will be colored
-   (undesirable), and colors outputted by the shell (like for errors) will be
-   overwritten.&lt;/p&gt;
-
-&lt;p&gt;Due to font-lock internals, turning on font-lock just for an ever-changing
-   marker range is also not possible.&lt;/p&gt;
-
-&lt;p&gt;The solution, adapted from &lt;code&gt;python-mode&lt;/code&gt;, is to capture the prompt while it&#39;s
-   being entered through the low-level &lt;code&gt;post-command-hook&lt;/code&gt;. This implementation
-   is not a copy of Python&#39;s - compare the two and you will see the extra
-   difficulty and complexity in the original implementation.&lt;/p&gt;
-
-&lt;p&gt;Two macros are core:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defmacro hy--shell-with-shell-buffer (&amp;amp;rest forms)
-  &amp;quot;Execute FORMS in the shell buffer.&amp;quot;
-  (-let [shell-process
-         (gensym)]
-    `(-let [,shell-process
-            (hy-shell-get-process)]
-       (with-current-buffer (process-buffer ,shell-process)
-         ,@forms))))
-
-(defmacro hy--shell-with-font-locked-shell-buffer (&amp;amp;rest forms)
-  &amp;quot;Execute FORMS in the shell buffer with font-lock turned on.&amp;quot;
-  `(hy--shell-with-shell-buffer
-    (save-current-buffer
-      (unless (hy--shell-buffer?)
-        (setq hy-shell-buffer (hy--shell-get-or-create-buffer)))
-      (set-buffer hy-shell-buffer)
-
-      (unless (font-lock-mode) (font-lock-mode 1))
-      (unless (derived-mode-p &#39;hy-mode) (hy-mode))
-
-      ,@forms)))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;It is easier to see the point of this macro in the command hook.&lt;/p&gt;
-
-&lt;p&gt;If the situation calls for it, we extract the current prompt input from the
-   end of the last prompt via &lt;code&gt;comint-last-prompt&lt;/code&gt;. We do some basic buffer
-   management and startup the shell-font-lock macro.&lt;/p&gt;
-
-&lt;p&gt;The font lock is applied and the deleted region is replaced with the
-   extracted text with its face property moved to the font-lock-face property.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-faces-to-font-lock-faces (text &amp;amp;optional start-pos)
-  &amp;quot;Set all &#39;face in TEXT to &#39;font-lock-face optionally starting at START-POS.&amp;quot;
-  (let ((pos 0)
-        (start-pos (or start-pos 0)))
-    (while (and (/= pos (length text))
-                (setq next (next-single-property-change pos &#39;face text)))
-      (let* ((plist (text-properties-at pos text))
-             (plist (-if-let (face (plist-get plist &#39;face))
-                        (progn (plist-put plist &#39;face nil)  ; Swap face
-                               (plist-put plist &#39;font-lock-face face))
-                      plist)))
-        (set-text-properties (+ start-pos pos) (+ start-pos next) plist)
-        (setq pos next)))))
-
-(defun hy--shell-fontify-prompt-post-command-hook ()
-  &amp;quot;Fontify just the current line in `hy-shell-buffer&#39; for `post-command-hook&#39;.
-
-Constantly extracts current prompt text and executes and manages applying
-`hy--shell-faces-to-font-lock-faces&#39; to the text.&amp;quot;
-  (-when-let* (((_ . prompt-end) comint-last-prompt)
-               (_ (and prompt-end
-                       (&amp;gt; (point) prompt-end)  ; new command is being entered
-                       (hy--shell-current-buffer-a-process?))))  ; process alive?
-      (let* ((input (buffer-substring-no-properties prompt-end (point-max)))
-             (deactivate-mark nil)
-             (buffer-undo-list t)
-             (font-lock-buffer-pos nil)
-             (text (hy--shell-with-font-locked-shell-buffer
-                    (delete-region (line-beginning-position) (point-max))
-                    (setq font-lock-buffer-pos (point))
-                    (insert input)
-                    (font-lock-ensure)
-                    (buffer-substring font-lock-buffer-pos (point-max)))))
-        (hy--shell-faces-to-font-lock-faces text prompt-end))))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun hy--shell-font-lock-turn-on ()
-  &amp;quot;Turn on fontification of current line for hy shell.&amp;quot;
-  (hy--shell-with-shell-buffer
-   (hy--shell-kill-buffer)
-
-   (setq-local hy-shell-buffer nil)
-
-   (add-hook &#39;post-command-hook
-             &#39;hy--shell-fontify-prompt-post-command-hook nil &#39;local)
-   (add-hook &#39;kill-buffer-hook
-             &#39;hy--shell-kill-buffer nil &#39;local)))
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

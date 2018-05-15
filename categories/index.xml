@@ -7,14 +7,33 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
+    <lastBuildDate>Tue, 15 May 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://ekaschalk.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>C</title>
+      <link>https://ekaschalk.github.io/categories/c/</link>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/c/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>C&#43;&#43;</title>
+      <link>https://ekaschalk.github.io/categories/c&#43;&#43;/</link>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/c&#43;&#43;/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Emacs</title>
       <link>https://ekaschalk.github.io/categories/emacs/</link>
-      <pubDate>Fri, 13 Apr 2018 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/categories/emacs/</guid>
       <description></description>
