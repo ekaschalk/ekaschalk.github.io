@@ -200,10 +200,11 @@ import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;_
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/shell-font-lock/</guid>
-      <description>Font locking the Shell Prompt This simple-sounding feature is involved and perhaps worth a post all its own.
-I&#39;m not sure if any shells besides python implement this feature. For example, type (let ...) in ielm and the let won&#39;t be highlighted.
-Buffers taking from comint-mode will not highlight the current prompt. Once entered, the prompt output will switch to the comint-highlight-input face.
-We can&#39;t enable font-lock-mode for inferior-hy-mode as otherwise the highlight input face will be overwritten, output will be colored (undesirable), and colors outputted by the shell (like for errors) will be overwritten.</description>
+      <description>** Font locking the Shell Prompt
+This simple-sounding feature is involved and perhaps worth a post all its own.
+I&amp;rsquo;m not sure if any shells besides python implement this feature. For example, type ~(let &amp;hellip;)~ in ~ielm~ and the let won&amp;rsquo;t be highlighted.
+Buffers taking from ~comint-mode~ will not highlight the current prompt. Once entered, the prompt output will switch to the ~comint-highlight-input~ face.
+We can&amp;rsquo;t enable ~font-lock-mode~ for ~inferior-hy-mode~ as otherwise the highlight input face will be overwritten, output will be colored (undesirable), and colors outputted by the shell (like for errors) will be overwritten.</description>
     </item>
     
   </channel>

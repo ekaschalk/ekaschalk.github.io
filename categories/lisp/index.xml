@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <lastBuildDate>Fri, 13 Apr 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 11 Mar 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://ekaschalk.github.io/categories/lisp/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Notating Programs - Introduction</title>
+      <link>https://ekaschalk.github.io/drafts/notate-part-1/</link>
+      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/drafts/notate-part-1/</guid>
+      <description>Notate is xxx.</description>
+    </item>
     
     <item>
       <title>Advanced Syntax Highlighting - Variable Assignments</title>

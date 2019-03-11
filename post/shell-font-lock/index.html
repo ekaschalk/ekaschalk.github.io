@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.40.3" />
+  <meta name="generator" content="Hugo 0.54.0" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -196,17 +196,17 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <h2 id="font-locking-the-shell-prompt">Font locking the Shell Prompt</h2>
+      <p>** Font locking the Shell Prompt</p>
 
 <p>This simple-sounding feature is involved and perhaps worth a post all its own.</p>
 
-<p>I'm not sure if any shells besides python implement this feature. For example,
-   type <code>(let ...)</code> in <code>ielm</code> and the let won't be highlighted.</p>
+<p>I&rsquo;m not sure if any shells besides python implement this feature. For example,
+   type ~(let &hellip;)~ in ~ielm~ and the let won&rsquo;t be highlighted.</p>
 
-<p>Buffers taking from <code>comint-mode</code> will not highlight the current prompt. Once
-   entered, the prompt output will switch to the <code>comint-highlight-input</code> face.</p>
+<p>Buffers taking from ~comint-mode~ will not highlight the current prompt. Once
+   entered, the prompt output will switch to the ~comint-highlight-input~ face.</p>
 
-<p>We can't enable <code>font-lock-mode</code> for <code>inferior-hy-mode</code> as otherwise the
+<p>We can&rsquo;t enable ~font-lock-mode~ for ~inferior-hy-mode~ as otherwise the
    highlight input face will be overwritten, output will be colored
    (undesirable), and colors outputted by the shell (like for errors) will be
    overwritten.</p>
@@ -214,93 +214,97 @@
 <p>Due to font-lock internals, turning on font-lock just for an ever-changing
    marker range is also not possible.</p>
 
-<p>The solution, adapted from <code>python-mode</code>, is to capture the prompt while it's
-   being entered through the low-level <code>post-command-hook</code>. This implementation
-   is not a copy of Python's - compare the two and you will see the extra
+<p>The solution, adapted from ~python-mode~, is to capture the prompt while it&rsquo;s
+   being entered through the low-level ~post-command-hook~. This implementation
+   is not a copy of Python&rsquo;s - compare the two and you will see the extra
    difficulty and complexity in the original implementation.</p>
 
 <p>Two macros are core:</p>
 
-<pre><code class="language-lisp">(defmacro hy--shell-with-shell-buffer (&amp;rest forms)
-  &quot;Execute FORMS in the shell buffer.&quot;
+<p>#+BEGIN_SRC lisp
+(defmacro hy&ndash;shell-with-shell-buffer (&amp;rest forms)
+  &ldquo;Execute FORMS in the shell buffer.&rdquo;
   (-let [shell-process
          (gensym)]
-    `(-let [,shell-process
-            (hy-shell-get-process)]
-       (with-current-buffer (process-buffer ,shell-process)
-         ,@forms))))
+    `(-let <a href="with-current-buffer (process-buffer ,shell-process)
+         ,@forms">,shell-process
+            (hy-shell-get-process)</a>)))</p>
 
-(defmacro hy--shell-with-font-locked-shell-buffer (&amp;rest forms)
-  &quot;Execute FORMS in the shell buffer with font-lock turned on.&quot;
-  `(hy--shell-with-shell-buffer
+<p>(defmacro hy&ndash;shell-with-font-locked-shell-buffer (&amp;rest forms)
+  &ldquo;Execute FORMS in the shell buffer with font-lock turned on.&rdquo;
+  `(hy&ndash;shell-with-shell-buffer
     (save-current-buffer
-      (unless (hy--shell-buffer?)
-        (setq hy-shell-buffer (hy--shell-get-or-create-buffer)))
-      (set-buffer hy-shell-buffer)
+      (unless (hy&ndash;shell-buffer?)
+        (setq hy-shell-buffer (hy&ndash;shell-get-or-create-buffer)))
+      (set-buffer hy-shell-buffer)</p>
 
-      (unless (font-lock-mode) (font-lock-mode 1))
-      (unless (derived-mode-p 'hy-mode) (hy-mode))
+<pre><code>  (unless (font-lock-mode) (font-lock-mode 1))
+  (unless (derived-mode-p 'hy-mode) (hy-mode))
 
-      ,@forms)))
+  ,@forms)))
 </code></pre>
+
+<p>#+END_SRC</p>
 
 <p>It is easier to see the point of this macro in the command hook.</p>
 
 <p>If the situation calls for it, we extract the current prompt input from the
-   end of the last prompt via <code>comint-last-prompt</code>. We do some basic buffer
+   end of the last prompt via ~comint-last-prompt~. We do some basic buffer
    management and startup the shell-font-lock macro.</p>
 
 <p>The font lock is applied and the deleted region is replaced with the
    extracted text with its face property moved to the font-lock-face property.</p>
 
-<pre><code class="language-lisp">(defun hy--shell-faces-to-font-lock-faces (text &amp;optional start-pos)
-  &quot;Set all 'face in TEXT to 'font-lock-face optionally starting at START-POS.&quot;
+<p>#+BEGIN_SRC lisp
+(defun hy&ndash;shell-faces-to-font-lock-faces (text &amp;optional start-pos)
+  &ldquo;Set all &lsquo;face in TEXT to &lsquo;font-lock-face optionally starting at START-POS.&rdquo;
   (let ((pos 0)
         (start-pos (or start-pos 0)))
     (while (and (/= pos (length text))
-                (setq next (next-single-property-change pos 'face text)))
+                (setq next (next-single-property-change pos &lsquo;face text)))
       (let* ((plist (text-properties-at pos text))
-             (plist (-if-let (face (plist-get plist 'face))
-                        (progn (plist-put plist 'face nil)  ; Swap face
-                               (plist-put plist 'font-lock-face face))
+             (plist (-if-let (face (plist-get plist &lsquo;face))
+                        (progn (plist-put plist &lsquo;face nil)  ; Swap face
+                               (plist-put plist &lsquo;font-lock-face face))
                       plist)))
         (set-text-properties (+ start-pos pos) (+ start-pos next) plist)
-        (setq pos next)))))
+        (setq pos next)))))</p>
 
-(defun hy--shell-fontify-prompt-post-command-hook ()
-  &quot;Fontify just the current line in `hy-shell-buffer' for `post-command-hook'.
+<p>(defun hy&ndash;shell-fontify-prompt-post-command-hook ()
+  &ldquo;Fontify just the current line in <code>hy-shell-buffer' for</code>post-command-hook&rsquo;.</p>
 
-Constantly extracts current prompt text and executes and manages applying
-`hy--shell-faces-to-font-lock-faces' to the text.&quot;
+<p>Constantly extracts current prompt text and executes and manages applying
+`hy&ndash;shell-faces-to-font-lock-faces&rsquo; to the text.&rdquo;
   (-when-let* (((_ . prompt-end) comint-last-prompt)
                (_ (and prompt-end
                        (&gt; (point) prompt-end)  ; new command is being entered
-                       (hy--shell-current-buffer-a-process?))))  ; process alive?
+                       (hy&ndash;shell-current-buffer-a-process?))))  ; process alive?
       (let* ((input (buffer-substring-no-properties prompt-end (point-max)))
              (deactivate-mark nil)
              (buffer-undo-list t)
              (font-lock-buffer-pos nil)
-             (text (hy--shell-with-font-locked-shell-buffer
+             (text (hy&ndash;shell-with-font-locked-shell-buffer
                     (delete-region (line-beginning-position) (point-max))
                     (setq font-lock-buffer-pos (point))
                     (insert input)
                     (font-lock-ensure)
                     (buffer-substring font-lock-buffer-pos (point-max)))))
-        (hy--shell-faces-to-font-lock-faces text prompt-end))))
-</code></pre>
+        (hy&ndash;shell-faces-to-font-lock-faces text prompt-end))))
+#+END_SRC</p>
 
-<pre><code class="language-lisp">(defun hy--shell-font-lock-turn-on ()
-  &quot;Turn on fontification of current line for hy shell.&quot;
-  (hy--shell-with-shell-buffer
-   (hy--shell-kill-buffer)
+<p>#+BEGIN_SRC lisp
+(defun hy&ndash;shell-font-lock-turn-on ()
+  &ldquo;Turn on fontification of current line for hy shell.&rdquo;
+  (hy&ndash;shell-with-shell-buffer
+   (hy&ndash;shell-kill-buffer)</p>
 
-   (setq-local hy-shell-buffer nil)
+<p>(setq-local hy-shell-buffer nil)</p>
 
-   (add-hook 'post-command-hook
-             'hy--shell-fontify-prompt-post-command-hook nil 'local)
-   (add-hook 'kill-buffer-hook
-             'hy--shell-kill-buffer nil 'local)))
-</code></pre>
+<p>(add-hook &lsquo;post-command-hook
+             &lsquo;hy&ndash;shell-fontify-prompt-post-command-hook nil &lsquo;local)
+   (add-hook &lsquo;kill-buffer-hook
+             &lsquo;hy&ndash;shell-kill-buffer nil &lsquo;local)))
+#+END_SRC</p>
 
     </div>
   </div>
@@ -326,7 +330,7 @@ Constantly extracts current prompt text and executes and manages applying
 <section id="comments">
   <div id="disqus_thread">
     <div id="disqus_thread"></div>
-<script>
+<script type="application/javascript">
     var disqus_config = function () {
     
     
