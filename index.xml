@@ -11,12 +11,227 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
-      <title>Notating Programs - Introduction</title>
-      <link>https://ekaschalk.github.io/drafts/notate-part-1/</link>
-      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      <title>Testing Emacs programs with Buttercup</title>
+      <link>https://ekaschalk.github.io/post/testing-emacs/</link>
+      <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://ekaschalk.github.io/drafts/notate-part-1/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://github.com/ekaschalk/notate&#34; title=&#34;Notate&#34;&gt;Notate&lt;/a&gt; is xxx.&lt;/p&gt;
+      <guid>https://ekaschalk.github.io/post/testing-emacs/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://github.com/jorgenschaefer/emacs-buttercup&#34; title=&#34;Buttercup&#34;&gt;Buttercup&lt;/a&gt; is a testing framework for emacs-lisp. It is used by large projects
+like &lt;a href=&#34;https://github.com/clojure-emacs/cider&#34; title=&#34;Clojure&#39;s CIDER&#34;&gt;Clojure&#39;s CIDER&lt;/a&gt; to write clean, concise, and descriptive tests.&lt;/p&gt;
+
+&lt;p&gt;I introduce Buttercup and build up to advanced usages with the faint, unlikely
+dream that some Emacs programmer decides to add tests to their library...&lt;/p&gt;
+
+&lt;h1 id=&#34;what-is-buttercup&#34;&gt;What is Buttercup?&lt;/h1&gt;
+
+&lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;
+
+&lt;p&gt;Buttercup&#39;s entry points are: &lt;code&gt;describe&lt;/code&gt;, &lt;code&gt;it&lt;/code&gt;, and &lt;code&gt;expect&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;We &lt;code&gt;describe&lt;/code&gt; a test suite with a name. Test cases within the possibly nested
+suites are done with &lt;code&gt;it&lt;/code&gt; and assertions as &lt;code&gt;expect&lt;/code&gt; blocks within.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(describe &amp;quot;Four&amp;quot;
+  (describe &amp;quot;comparisons&amp;quot;
+    (it &amp;quot;is greater than one&amp;quot;
+      (expect (&amp;gt; 4 1)))
+    (it &amp;quot;and less than five&amp;quot;
+      (expect 4 :to-be-less-than 5)))
+
+  (it &amp;quot;is a number&amp;quot;
+    (expect (numberp 4))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;passes with testing output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Four
+  comparisons
+    is greater than one (0.24ms)
+    and less than five (0.12ms)
+  is a number (0.09ms)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;setup-and-teardown&#34;&gt;Setup and Teardown&lt;/h3&gt;
+
+&lt;p&gt;Buttercup provides &lt;code&gt;before-each&lt;/code&gt;, &lt;code&gt;after-each&lt;/code&gt;, &lt;code&gt;before-all&lt;/code&gt;, and &lt;code&gt;after-all&lt;/code&gt; to
+reduce boilerplate with setting up and tearing down test suites.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(describe &amp;quot;Lisp mode syntax&amp;quot;
+  (before-all (set-syntax-table lisp-mode-syntax-table))
+  (after-each (delete-region (point-min) (point-max)))
+
+  (it &amp;quot;sets comments&amp;quot;
+    (insert &amp;quot;;; foo&amp;quot;)
+    (expect (nth 4 (syntax-ppss))))
+
+  (it &amp;quot;sets strings&amp;quot;
+    (insert &amp;quot;\&amp;quot;foo\&amp;quot;&amp;quot;)
+    (backward-char)
+    (expect (nth 3 (syntax-ppss)))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;matchers&#34;&gt;Matchers&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;expect&lt;/code&gt; has more utility than simple tests of truth. &lt;strong&gt;Matchers&lt;/strong&gt; are
+keywords that tailor the expectation.&lt;/p&gt;
+
+&lt;p&gt;Some example matcher expansions:&lt;/p&gt;
+
+&lt;dl&gt;
+&lt;dt&gt;:to-be&lt;/dt&gt;
+&lt;dd&gt;&lt;code&gt;(eq foo bar)&lt;/code&gt;&lt;/dd&gt;
+&lt;dt&gt;:to-equal&lt;/dt&gt;
+&lt;dd&gt;&lt;code&gt;(equal foo bar)&lt;/code&gt;&lt;/dd&gt;
+&lt;dt&gt;:to-be-in&lt;/dt&gt;
+&lt;dd&gt;&lt;code&gt;(member foo bar)&lt;/code&gt;&lt;/dd&gt;
+&lt;dt&gt;:to-be-close-to&lt;/dt&gt;
+&lt;dd&gt;&lt;code&gt;(foo bar precisision)&lt;/code&gt;&lt;/dd&gt;
+&lt;dt&gt;:to-throw&lt;/dt&gt;
+&lt;dd&gt;&lt;code&gt;(expr &amp;amp;optional signal signal-args)&lt;/code&gt;&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Some other more advanced matchers include: &lt;code&gt;:to-have-same-items-as&lt;/code&gt;, &lt;code&gt;:to-match&lt;/code&gt;, and &lt;code&gt;:to-have-been-called&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;These matchers may be combined too: eg. &lt;code&gt;(expect 4 :not :to-be-greater-than 5)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Matchers are more than just transforms+comparisons. They give information about
+the failure.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(describe &amp;quot;Example Matchers&amp;quot;
+  (it &amp;quot;regexes&amp;quot;
+    (expect (s-concat &amp;quot;foo&amp;quot; &amp;quot;bar&amp;quot;)
+            :to-match (rx word-start &amp;quot;foo&amp;quot; word-end))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;Expected `(s-concat &amp;quot;foo&amp;quot; &amp;quot;bar&amp;quot;)&#39; with value &amp;quot;foobar&amp;quot; to match the regexp &amp;quot;\\&amp;lt;foo\\&amp;gt;&amp;quot;, but instead it was &amp;quot;foobar&amp;quot;.&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;running-it&#34;&gt;Running It&lt;/h3&gt;
+
+&lt;p&gt;I recommend using &lt;code&gt;Cask&lt;/code&gt; and executing tests with &lt;code&gt;cask exec buttercup -L .&lt;/code&gt; in the project root.&lt;/p&gt;
+
+&lt;p&gt;For example, have a file named &lt;code&gt;Cask&lt;/code&gt; in the project root with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(source gnu)
+(source melpa)
+
+(package-file &amp;quot;test-stuff-i-beg-you-mode.el&amp;quot;)
+
+;; Project Dependencies
+(depends-on &amp;quot;dash&amp;quot;)
+
+;; Additional Testing Dependencies
+(development
+ (depends-on &amp;quot;buttercup&amp;quot;)
+ (depends-on &amp;quot;faceup&amp;quot;))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;A folder named &lt;code&gt;test/&lt;/code&gt; should be present and contain &lt;code&gt;test-stuff-i-beg-you-mode-test.el&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;This file should have your tests, set up the load path if needed, and require
+everything you need.&lt;/p&gt;
+
+&lt;p&gt;Lastly I will mention some other useful features before diving in to Buttercup:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Variables can be defined with let syntax with &lt;code&gt;:var&lt;/code&gt; in &lt;code&gt;describe&lt;/code&gt; blocks.&lt;/li&gt;
+&lt;li&gt;Buttercup has good support for spying on function calls.&lt;/li&gt;
+&lt;li&gt;Adding an &lt;code&gt;x&lt;/code&gt;, so it&#39;s &lt;code&gt;xit&lt;/code&gt; and &lt;code&gt;xdescribe&lt;/code&gt;, mark the test as pending so it&lt;/li&gt;
+  won&#39;t be executed.
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;case-study-testing-indentation&#34;&gt;Case Study: Testing Indentation&lt;/h1&gt;
+
+&lt;p&gt;You have written &lt;code&gt;yet-another-lisp-like-mode&lt;/code&gt; you affectionately call &lt;code&gt;yall-mode&lt;/code&gt; and want to test its indentation.&lt;/p&gt;
+
+&lt;p&gt;Lets write a skeleton to test the simplest cases:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;;; Want to test these two cases:
+;; (foo
+;;  bar)
+
+;; (foo bar
+;;      baz)
+
+(describe &amp;quot;Indentation&amp;quot;
+  (before-all (setq indent-line-function #&#39;yall-indent-line))
+
+  (describe &amp;quot;standard cases&amp;quot;
+    (it &amp;quot;opening line has one sexp - so indentation doesn&#39;t carry&amp;quot;
+      (expect ???))
+
+    (it &amp;quot;opening line has two+ sexps - so indentation carries&amp;quot;
+      (expect ???))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To test indentation - all we need is the text we expect, as the text alone
+determines the indent.&lt;/p&gt;
+
+&lt;p&gt;Buttercup allows us to achieve this via &lt;strong&gt;custom matchers&lt;/strong&gt;. We can bypass &lt;em&gt;all
+boilerplate&lt;/em&gt; and write our expectations as simply as:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(expect &amp;quot;
+(foo
+ bar)
+&amp;quot; :indented)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The macro &lt;code&gt;buttercup-define-matcher&lt;/code&gt; allows defining our own matcher, that will
+perform transforms, assertions, and &lt;em&gt;give descriptive failures&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Lets implement our &lt;code&gt;:indented&lt;/code&gt; matcher:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(defun yall-trim-indent (text)
+  &amp;quot;Remove indentation from TEXT.&amp;quot;
+  (-&amp;gt;&amp;gt; text s-lines (-map #&#39;s-trim-left) (s-join &amp;quot;\n&amp;quot;)))
+
+(defun yall-buffer-string ()
+  &amp;quot;Return buffer as text with beginning and ending empty space trimmed.&amp;quot;
+  (s-trim (buffer-substring-no-properties (point-min) (point-max))))
+
+(buttercup-define-matcher :indented (text)
+  (let* ((text (s-trim (funcall text)))
+         (text-no-indent (yall-trim-indent text)))
+    (insert text-no-indent)
+    (indent-region-line-by-line (point-min) (point-max))
+
+    (let ((text-with-indent (yall-buffer-string)))
+      (delete-region (point-min) (point-max))
+
+      (if (string= text text-with-indent)
+          t
+        `(nil . ,(format &amp;quot;\nGiven indented text \n%s\nwas instead indented to \n%s\n&amp;quot;
+                         text text-with-indent))))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we can see the power of buttercup when we accidentally write:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(describe &amp;quot;Indentation&amp;quot;
+  (before-all (setq indent-line-function #&#39;yall-indent-line))
+
+  (describe &amp;quot;standard cases&amp;quot;
+    (it &amp;quot;opening line has two+ sexps - so indentation carries&amp;quot;
+      (expect &amp;quot;
+(foo bar
+      baz)
+&amp;quot; :indented))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;and are given the failure:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FAILED:
+Given indented text
+(foo bar
+      baz)
+was instead indented to
+(foo bar
+     baz)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We know exactly what went wrong, with nearly all the implementation details
+separated from the testcase with boilerplate just &lt;code&gt;:indented&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Testing Emacs programs doesn&#39;t have to be painful - buttercup is a great and
+battle-tested library for writing quality Emacs programs.&lt;/p&gt;
 </description>
     </item>
     

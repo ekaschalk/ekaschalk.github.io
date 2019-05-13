@@ -5,8 +5,8 @@
     
     <url>
     
-      <loc>https://ekaschalk.github.io/drafts/notate-part-1/</loc>
-      <lastmod>2019-03-11T00:00:00+00:00</lastmod>
+      <loc>https://ekaschalk.github.io/post/testing-emacs/</loc>
+      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
     </url>
     
   
@@ -205,18 +205,8 @@
     
     <url>
     
-      <loc>https://ekaschalk.github.io/drafts/</loc>
-      <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
       <loc>https://ekaschalk.github.io/categories/emacs/</loc>
-      <lastmod>2019-03-11T00:00:00+00:00</lastmod>
+      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     
@@ -246,7 +236,7 @@
     <url>
     
       <loc>https://ekaschalk.github.io/categories/lisp/</loc>
-      <lastmod>2019-03-11T00:00:00+00:00</lastmod>
+      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     
@@ -307,6 +297,16 @@
     
       <loc>https://ekaschalk.github.io/tags/</loc>
       <lastmod>2017-01-01T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/testing/</loc>
+      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     

@@ -13,6 +13,18 @@
     
     
     <item>
+      <title>Testing Emacs programs with Buttercup</title>
+      <link>https://ekaschalk.github.io/post/testing-emacs/</link>
+      <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/testing-emacs/</guid>
+      <description>Buttercup is a testing framework for emacs-lisp. It is used by large projects like Clojure&#39;s CIDER to write clean, concise, and descriptive tests.
+I introduce Buttercup and build up to advanced usages with the faint, unlikely dream that some Emacs programmer decides to add tests to their library...
+What is Buttercup? Introduction Buttercup&#39;s entry points are: describe, it, and expect.
+We describe a test suite with a name. Test cases within the possibly nested suites are done with it and assertions as expect blocks within.</description>
+    </item>
+    
+    <item>
       <title>Pretty for loops</title>
       <link>https://ekaschalk.github.io/post/pretty-for-loops/</link>
       <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
