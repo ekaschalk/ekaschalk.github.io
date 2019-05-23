@@ -13,6 +13,19 @@
     
     
     <item>
+      <title>Colorful ielm - font-locking comint</title>
+      <link>https://ekaschalk.github.io/post/comint-highlighting/</link>
+      <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/comint-highlighting/</guid>
+      <description>If you ever used ielm, or other comint-mode derivatives, you will notice that the text you input is not highlighted according to the major-mode.
+If I type (setq foo bar) into ielm, the setq won&#39;t be highlighted.
+Why is this? And how do we change this?
+Naive solution Look at font-lock-keywords in ielm and it is suspiciously near-empty. We could copy over emacs-lisp&#39;s keywords:
+(setq-local font-lock-keywords `(,@lisp-el-font-lock-keywords-2 ,@lisp-cl-font-lock-keywords-2))  But what if I type in (princ &amp;quot;(setq foo bar)&amp;quot;)?</description>
+    </item>
+    
+    <item>
       <title>Testing Emacs programs with Buttercup</title>
       <link>https://ekaschalk.github.io/post/testing-emacs/</link>
       <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>

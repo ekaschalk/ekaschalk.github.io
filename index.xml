@@ -11,6 +11,100 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Colorful ielm - font-locking comint</title>
+      <link>https://ekaschalk.github.io/post/comint-highlighting/</link>
+      <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/post/comint-highlighting/</guid>
+      <description>&lt;p&gt;If you ever used &lt;code&gt;ielm&lt;/code&gt;, or other &lt;code&gt;comint-mode&lt;/code&gt; derivatives, you will notice
+that the text you input is not highlighted according to the major-mode.&lt;/p&gt;
+
+&lt;p&gt;If I type &lt;code&gt;(setq foo bar)&lt;/code&gt; into ielm, the setq won&#39;t be highlighted.&lt;/p&gt;
+
+&lt;p&gt;Why is this? And how do we change this?&lt;/p&gt;
+
+&lt;h1 id=&#34;naive-solution&#34;&gt;Naive solution&lt;/h1&gt;
+
+&lt;p&gt;Look at &lt;code&gt;font-lock-keywords&lt;/code&gt; in ielm and it is suspiciously near-empty. We could
+copy over emacs-lisp&#39;s keywords:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(setq-local font-lock-keywords `(,@lisp-el-font-lock-keywords-2
+                                 ,@lisp-cl-font-lock-keywords-2))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;But what if I type in &lt;code&gt;(princ &amp;quot;(setq foo bar)&amp;quot;)&lt;/code&gt;? The output will inherit the
+highlighting.&lt;/p&gt;
+
+&lt;p&gt;Naively enabling font locking in comint buffers can lead to a mess of syntax
+highlighting in the output. While the example above is contrived, it is in
+general not a trivial problem.&lt;/p&gt;
+
+&lt;p&gt;I wrote and support &lt;a href=&#34;https://github.com/hylang/hy-mode&#34; title=&#34;hy-mode&#34;&gt;hy-mode&lt;/a&gt;, a lisp embedded in Python. When the interpreter is
+given &#34;--spy&#34;, the translation of the Hy code to Python is given in the output
+before the result of the Hy code. This translation would inherit Hy&#39;s syntax
+highlighting and look like a mess.&lt;/p&gt;
+
+&lt;h1 id=&#34;python-mode-s-solution&#34;&gt;Python-mode&#39;s solution&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;python-mode&lt;/code&gt; actually implements fontification of shell input. How do they do it?&lt;/p&gt;
+
+&lt;p&gt;They add a &lt;code&gt;post-command-hook&lt;/code&gt; that essentially extracts the current input being
+entered, fontifies it according to python, then reinserts it into the prompt.&lt;/p&gt;
+
+&lt;p&gt;There is quite a bit going on to make this work in practice - check out &lt;code&gt;python-shell-font-lock-post-command-hook&lt;/code&gt; if you are interested.&lt;/p&gt;
+
+&lt;p&gt;I had success using this approach for &lt;code&gt;hy-mode&lt;/code&gt; but always thought it was a
+kludge and difficult to understand and work with. Can&#39;t I just use &lt;code&gt;font-lock-mode&lt;/code&gt; directly?&lt;/p&gt;
+
+&lt;h1 id=&#34;my-solution&#34;&gt;My solution&lt;/h1&gt;
+
+&lt;p&gt;I came up with a hookless, pure font-lock-mode solution that &lt;em&gt;should&lt;/em&gt; work for
+arbitrary modes.&lt;/p&gt;
+
+&lt;p&gt;I convert every &lt;code&gt;font-lock-keyword&lt;/code&gt; MATCHER component to check that we are
+within a prompt before calling the MATCHER if it is a function or matching on it
+if it is a regex.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
+
+(defun kwd-&amp;gt;comint-kwd (kwd)
+  &amp;quot;Converts a `font-lock-keywords&#39; KWD for `comint-mode&#39; input fontification.
+
+The KWD must have as MATCHER a regex. The highlights may take any form as
+defined in `font-lock-keywords&#39;, typically just one or more MATCH-HIGHLIGHTs.&amp;quot;
+  (-let (((matcher . match-highlights) kwd))
+    ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
+    ;; make sure to capture first paren in a ` if copying!
+    ((lambda (limit)
+       ;; Matcher can be a function or a regex
+       (when ,(if (symbolp matcher)
+                  `(,matcher limit)
+                `(re-search-forward ,matcher limit t))
+         ;; While the SUBEXP can be anything, this search always can use zero
+         (-let ((start (match-beginning 0))
+                ((comint-last-start . comint-last-end) comint-last-prompt)
+                (state (syntax-ppss)))
+           (and (&amp;gt; start comint-last-start)
+                ;; Make sure not in comment or string
+                ;; have to manually do this in custom MATCHERs
+                (not (or (nth 3 state) (nth 4 state)))))))
+     ,@match-highlights)))
+
+(setq my-ielm-font-lock-kwds
+      `(,@(-map #&#39;kwd-&amp;gt;comint-kwd lisp-el-font-lock-keywords-2)
+        ,@(-map #&#39;kwd-&amp;gt;comint-kwd lisp-cl-font-lock-keywords-2)))
+
+(defun set-my-ielm-kwds ()
+  (interactive)
+  (setq-local font-lock-keywords my-ielm-font-lock-kwds))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now &lt;code&gt;ielm&lt;/code&gt;, my own &lt;code&gt;hy-mode&lt;/code&gt;, etc. highlights shell input without messing with
+the output if I call &lt;code&gt;set-my-ielm-kwds&lt;/code&gt; in an ielm buffer.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Testing Emacs programs with Buttercup</title>
       <link>https://ekaschalk.github.io/post/testing-emacs/</link>
       <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
@@ -3367,53 +3461,6 @@ org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;And hugo takes care of the rest.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Unicode Python Infix Operators</title>
-      <link>https://ekaschalk.github.io/post/python-infix/</link>
-      <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/post/python-infix/</guid>
-      <description>&lt;p&gt;Custom infix operators can be emulated in Python using &lt;strong&gt;prettify-symbols-mode&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://ekaschalk.github.io/img/python-infix.png&#34; width=700px&gt;&lt;/p&gt;
-&lt;!-- [[file:/img/python-infix.png]] --&gt;
-
-&lt;p&gt;In your emacs config include:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(global-prettify-symbols-mode 1)
-(add-hook &#39;python-mode-hook
-          (lambda ()
-            (mapc (lambda (pair) (push pair prettify-symbols-alist))
-                  &#39;((&amp;quot;@compose@&amp;quot;  . #X2218)
-                    (&amp;quot;@pipe@&amp;quot;     . #Xe135)))))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now &lt;code&gt;pip install infix&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Optionally &lt;code&gt;pip install toolz&lt;/code&gt;, a functional programming library, otherwise you
-can define the infix operations yourself.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import toolz.curried as tz
-from infix import custom_infix as infix
-
-@infix(&#39;__rmatmul__&#39;, &#39;__matmul__&#39;)
-def compose(a, b):
-    return tz.compose(a, b)
-
-@infix(&#39;__rmatmul__&#39;, &#39;__matmul__&#39;)
-def pipe(a, b):
-    return tz.pipe(a, b)
-
-[1, 2, 3] @pipe@ (tuple @compose@ tz.map(lambda x: x+1))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Other interesting functions - cons as &#39;:&#39; and concatv/itertools.chain as &#39;++&#39;.&lt;/p&gt;
-
-&lt;p&gt;I do not recommend using this trick in production but it is certainly cool to see
-emacs enabling these shenanigans.&lt;/p&gt;
 </description>
     </item>
     
