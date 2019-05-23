@@ -68,10 +68,7 @@ if it is a regex.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;(require &#39;dash)
 
 (defun kwd-&amp;gt;comint-kwd (kwd)
-  &amp;quot;Converts a `font-lock-keywords&#39; KWD for `comint-mode&#39; input fontification.
-
-The KWD must have as MATCHER a regex. The highlights may take any form as
-defined in `font-lock-keywords&#39;, typically just one or more MATCH-HIGHLIGHTs.&amp;quot;
+  &amp;quot;Converts a `font-lock-keywords&#39; KWD for `comint-mode&#39; input fontification.&amp;quot;
   (-let (((matcher . match-highlights) kwd))
     ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
     ;; make sure to capture first paren in a ` if copying!

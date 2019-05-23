@@ -262,10 +262,7 @@ if it is a regex.</p>
 <pre><code class="language-lisp">(require 'dash)
 
 (defun kwd-&gt;comint-kwd (kwd)
-  &quot;Converts a `font-lock-keywords' KWD for `comint-mode' input fontification.
-
-The KWD must have as MATCHER a regex. The highlights may take any form as
-defined in `font-lock-keywords', typically just one or more MATCH-HIGHLIGHTs.&quot;
+  &quot;Converts a `font-lock-keywords' KWD for `comint-mode' input fontification.&quot;
   (-let (((matcher . match-highlights) kwd))
     ;; below is ` quoted but breaks my blogs syntax higlighting, so removing it!
     ;; make sure to capture first paren in a ` if copying!
