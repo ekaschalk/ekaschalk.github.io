@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -213,67 +213,83 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p><a href="https://www.reddit.com/r/emacs/comments/8jlmcr/display_for_each_loops_in_a_mathematical_maner/" title="This reddit post">This reddit post</a> posed a fun challenge: display <code>for(auto&amp;&amp; foo : bar){...}</code> with mathematical notation.</p>
-
-<p>In python this is trivial with <code>prettify-symbols-mode</code> as its syntax is simply <code>for foo in bar:</code>.</p>
-
-<p><img src="/img/pretty-for-loops.png" alt="/img/pretty-for-loops.png" title="/img/pretty-for-loops.png" /></p>
-
-<p>Turns out is possible... whether it is a good idea or not is still questionable.</p>
-
-<h1 id="how-it-works">How it works</h1>
-
-<p>First we write a regex for the for-auto construct. Two groups are set, one for
+      
+<p>
+<a href="https://www.reddit.com/r/emacs/comments/8jlmcr/display_for_each_loops_in_a_mathematical_maner/">This reddit post</a> posed a fun challenge: display <code>for(auto&amp;&amp; foo : bar){...}</code> with mathematical notation.
+</p>
+<p>
+In python this is trivial with <code>prettify-symbols-mode</code> as its syntax is simply <code>for foo in bar:</code>.
+</p>
+<p>
+<img src="/img/pretty-for-loops.png" alt="/img/pretty-for-loops.png" title="/img/pretty-for-loops.png" />
+</p>
+<p>
+Turns out is possible… whether it is a good idea or not is still questionable.
+</p>
+<h1 id="headline-1">
+How it works
+</h1>
+<p>
+First we write a regex for the for-auto construct. Two groups are set, one for
 locating the for-all symbol and another for the in symbol. The <code>rx</code> macro makes
-this rather large regex a breeze.</p>
-
-<pre><code class="language-lisp">(setq pretty-for-rgx
-      (rx (group &quot;for(auto&amp;&amp;&quot;)
-          (1+ space)
-          (1+ word)
-          (1+ space)
-          (group &quot;:&quot;)
-          (1+ space)
-          (1+ word)))
-</code></pre>
-
-<p>Now we need to compose the symbols.</p>
-
-<p>Ligatures in Emacs are typically set via <code>prettyify-symbols-mode</code> or manually
-through hacking <code>compose-region</code> into <code>font-lock-mode</code> syntax highlighting.</p>
-
-<p>Personal ligatures are typically done through prettify, for instance replacing
-lambdas with the greek lambda symbol, or simple for/in loops in Python.</p>
-
-<p>Ligatures from fonts, like Fira code, are typically done through
-~compose-region~ calls.</p>
-
-<p>We need to go the composition route here.</p>
-
-<p>We write a hook updating <code>font-lock-keywords</code> with the composition regex.</p>
-
-<pre><code class="language-lisp">(defun pretty-for-add ()
-  (setq font-lock-keywords nil)
+this rather large regex a breeze.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> pretty-for-rgx
+      (rx (group <span style="color:#e6db74">&#34;for(auto&amp;&amp;&#34;</span>)
+          (<span style="color:#a6e22e">1+</span> space)
+          (<span style="color:#a6e22e">1+</span> word)
+          (<span style="color:#a6e22e">1+</span> space)
+          (group <span style="color:#e6db74">&#34;:&#34;</span>)
+          (<span style="color:#a6e22e">1+</span> space)
+          (<span style="color:#a6e22e">1+</span> word)))</code></pre></div>
+</div>
+<p>
+Now we need to compose the symbols.
+</p>
+<p>
+Ligatures in Emacs are typically set via <code>prettyify-symbols-mode</code> or manually
+through hacking <code>compose-region</code> into <code>font-lock-mode</code> syntax highlighting.
+</p>
+<p>
+Personal ligatures are typically done through prettify, for instance replacing
+lambdas with the greek lambda symbol, or simple for/in loops in Python.
+</p>
+<p>
+Ligatures from fonts, like Fira code, are typically done through
+<code>compose-region</code> calls.
+</p>
+<p>
+We need to go the composition route here.
+</p>
+<p>
+We write a hook updating <code>font-lock-keywords</code> with the composition regex.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun pretty-for-add ()
+  (<span style="color:#66d9ef">setq</span> font-lock-keywords <span style="color:#66d9ef">nil</span>)
   (font-lock-add-keywords
-   nil
-   `((,pretty-for-rgx 0 (prog1 nil
+   <span style="color:#66d9ef">nil</span>
+   <span style="color:#f92672">`</span>((<span style="color:#f92672">,</span>pretty-for-rgx <span style="color:#ae81ff">0</span> (prog1 <span style="color:#66d9ef">nil</span>
                           (compose-region
-                           (match-beginning 1) (match-end 1)
-                           `(?\∀ (Br . Bl) ?\())
+                           (match-beginning <span style="color:#ae81ff">1</span>) (match-end <span style="color:#ae81ff">1</span>)
+                           <span style="color:#f92672">`</span>(?\∀ (Br <span style="color:#f92672">.</span> Bl) ?\())
                           (compose-region
-                           (match-beginning 2) (match-end 2)
-                           ,(concat &quot;\t&quot; (list #x2203))))))))
+                           (match-beginning <span style="color:#ae81ff">2</span>) (match-end <span style="color:#ae81ff">2</span>)
+                           <span style="color:#f92672">,</span>(concat <span style="color:#e6db74">&#34;\t&#34;</span> (<span style="color:#a6e22e">list</span> <span style="color:#ae81ff">#x2203</span>))))))))
 
-(add-hook 'c-mode-hook 'pretty-for-add)
-</code></pre>
-
-<p>Notice that in <code>for(auto&amp;&amp; ...</code> we are replacing both the for and auto but keeping
+(add-hook <span style="color:#e6db74">&#39;c-mode-hook</span> <span style="color:#e6db74">&#39;pretty-for-add</span>)</code></pre></div>
+</div>
+<p>
+Notice that in <code>for(auto&amp;&amp; ...</code> we are replacing both the for and auto but keeping
 the parenthesis. The <code>(Br . Bl)</code> is a <code>composition rule</code> that allows attaching
-the for-all symbol and the parenthesis.</p>
-
-<p>We set font lock keywords to nil because some keyword(s) are interfering with
+the for-all symbol and the parenthesis.
+</p>
+<p>
+We set font lock keywords to nil because some keyword(s) are interfering with
 the compositions. If anyone has the interest to figure out which ones, please
-leave a comment here.</p>
+leave a comment here.
+</p>
 
     </div>
   </div>

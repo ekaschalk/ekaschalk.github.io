@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -207,118 +207,129 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>I have written utilities for choosing what information, icons, and faces your
-eshell prompt presents.</p>
-
-<p>Example eshell prompts:</p>
-
-<p><img src="/img/esh-ex.png" alt="/img/esh-ex.png" title="/img/esh-ex.png" />
-<img src="/img/esh-me.png" alt="/img/esh-me.png" title="/img/esh-me.png" /></p>
-
-<p>Eshell prompt customization takes place in <code>eshell-prompt-function</code> and
- <code>eshell-prompt-regexp</code>. The former determines the content of your prompt
-while the latter distinguishes your commands.</p>
-
-<p>I define a macro <code>esh-section</code> taking a name, an icon, a form or variable to be
+      <p>
+I have written utilities for choosing what information, icons, and faces your
+eshell prompt presents.
+</p>
+<p>
+Example eshell prompts:
+</p>
+<p>
+<img src="/img/esh-ex.png" alt="/img/esh-ex.png" title="/img/esh-ex.png" />
+<img src="/img/esh-me.png" alt="/img/esh-me.png" title="/img/esh-me.png" />
+</p>
+<p>
+Eshell prompt customization takes place in <code>eshell-prompt-function</code> and
+<code>eshell-prompt-regexp</code>. The former determines the content of your prompt
+while the latter distinguishes your commands.
+</p>
+<p>
+I define a macro <code>esh-section</code> taking a name, an icon, a form or variable to be
 evaluated, and optionally face properties. They create anonymous functions which
-will be evaluated and concatenated at prompt-time.</p>
+will be evaluated and concatenated at prompt-time.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;dash</span>)
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;s</span>)
 
-<pre><code class="language-lisp">(require 'dash)
-(require 's)
+(defmacro with-face (STR <span style="color:#66d9ef">&amp;rest</span> PROPS)
+  <span style="color:#e6db74">&#34;Return STR propertized with PROPS.&#34;</span>
+  <span style="color:#f92672">`</span>(propertize <span style="color:#f92672">,</span>STR <span style="color:#e6db74">&#39;face</span> (<span style="color:#a6e22e">list</span> <span style="color:#f92672">,@</span>PROPS)))
 
-(defmacro with-face (STR &amp;rest PROPS)
-  &quot;Return STR propertized with PROPS.&quot;
-  `(propertize ,STR 'face (list ,@PROPS)))
-
-(defmacro esh-section (NAME ICON FORM &amp;rest PROPS)
-  &quot;Build eshell section NAME with ICON prepended to evaled FORM with PROPS.&quot;
-  `(setq ,NAME
-         (lambda () (when ,FORM
-                      (-&gt; ,ICON
-                          (concat esh-section-delim ,FORM)
-                          (with-face ,@PROPS))))))
+(defmacro esh-section (NAME ICON FORM <span style="color:#66d9ef">&amp;rest</span> PROPS)
+  <span style="color:#e6db74">&#34;Build eshell section NAME with ICON prepended to evaled FORM with PROPS.&#34;</span>
+  <span style="color:#f92672">`</span>(<span style="color:#66d9ef">setq</span> <span style="color:#f92672">,</span>NAME
+         (lambda () (when <span style="color:#f92672">,</span>FORM
+                      (-&gt; <span style="color:#f92672">,</span>ICON
+                          (concat esh-section-delim <span style="color:#f92672">,</span>FORM)
+                          (with-face <span style="color:#f92672">,@</span>PROPS))))))
 
 (defun esh-acc (acc x)
-  &quot;Accumulator for evaluating and concatenating esh-sections.&quot;
-  (--if-let (funcall x)
-      (if (s-blank? acc)
+  <span style="color:#e6db74">&#34;Accumulator for evaluating and concatenating esh-sections.&#34;</span>
+  (--if-let (<span style="color:#a6e22e">funcall</span> x)
+      (<span style="color:#66d9ef">if</span> (s-blank? acc)
           it
         (concat acc esh-sep it))
     acc))
 
 (defun esh-prompt-func ()
-  &quot;Build `eshell-prompt-function'&quot;
+  <span style="color:#e6db74">&#34;Build `eshell-prompt-function&#39;&#34;</span>
   (concat esh-header
-          (-reduce-from 'esh-acc &quot;&quot; eshell-funcs)
-          &quot;\n&quot;
-          eshell-prompt-string))
-</code></pre>
+          (-reduce-from <span style="color:#e6db74">&#39;esh-acc</span> <span style="color:#e6db74">&#34;&#34;</span> eshell-funcs)
+          <span style="color:#e6db74">&#34;\n&#34;</span>
+          eshell-prompt-string))</code></pre></div>
+</div>
+<p>
+Now lets define the needed configuration.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; Separator between esh-sections</span>
+(<span style="color:#66d9ef">setq</span> esh-sep <span style="color:#e6db74">&#34;  &#34;</span>)  <span style="color:#75715e">; or &#34; | &#34;</span>
 
-<p>Now lets define the needed configuration.</p>
+<span style="color:#75715e">;; Separator between an esh-section icon and form</span>
+(<span style="color:#66d9ef">setq</span> esh-section-delim <span style="color:#e6db74">&#34; &#34;</span>)
 
-<pre><code class="language-lisp">;; Separator between esh-sections
-(setq esh-sep &quot;  &quot;)  ; or &quot; | &quot;
+<span style="color:#75715e">;; Eshell prompt header</span>
+(<span style="color:#66d9ef">setq</span> esh-header <span style="color:#e6db74">&#34;\n &#34;</span>)  <span style="color:#75715e">; or &#34;\n┌─&#34;</span>
 
-;; Separator between an esh-section icon and form
-(setq esh-section-delim &quot; &quot;)
-
-;; Eshell prompt header
-(setq esh-header &quot;\n &quot;)  ; or &quot;\n┌─&quot;
-
-;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.
-;; your login, these can be the same.
-(setq eshell-prompt-regexp &quot; &quot;)   ; or &quot;└─&gt; &quot;
-(setq eshell-prompt-string &quot; &quot;)   ; or &quot;└─&gt; &quot;
-</code></pre>
-
-<p>Now we are set to build some sections. A note, if a section's form returns nil,
+<span style="color:#75715e">;; Eshell prompt regexp and string. Unless you are varying the prompt by eg.</span>
+<span style="color:#75715e">;; your login, these can be the same.</span>
+(<span style="color:#66d9ef">setq</span> eshell-prompt-regexp <span style="color:#e6db74">&#34; &#34;</span>)   <span style="color:#75715e">; or &#34;└─&gt; &#34;</span>
+(<span style="color:#66d9ef">setq</span> eshell-prompt-string <span style="color:#e6db74">&#34; &#34;</span>)   <span style="color:#75715e">; or &#34;└─&gt; &#34;</span></code></pre></div>
+</div>
+<p>
+Now we are set to build some sections. A note, if a section&#39;s form returns nil,
 then it will be skipped, so the effect of eg. python virtual environments will
-only appear when you have an active venv.</p>
-
-<pre><code class="language-lisp">(esh-section esh-dir
-             &quot;\xf07c&quot;  ;  (faicon folder)
+only appear when you have an active venv.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(esh-section esh-dir
+             <span style="color:#e6db74">&#34;\xf07c&#34;</span>  <span style="color:#75715e">;  (faicon folder)</span>
              (abbreviate-file-name (eshell/pwd))
-             '(:foreground &quot;gold&quot; :bold ultra-bold :underline t))
+             <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;gold&#34;</span> <span style="color:#e6db74">:bold</span> ultra-bold <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">t</span>))
 
 (esh-section esh-git
-             &quot;\xe907&quot;  ;  (git icon)
+             <span style="color:#e6db74">&#34;\xe907&#34;</span>  <span style="color:#75715e">;  (git icon)</span>
              (magit-get-current-branch)
-             '(:foreground &quot;pink&quot;))
+             <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;pink&#34;</span>))
 
 (esh-section esh-python
-             &quot;\xe928&quot;  ;  (python icon)
+             <span style="color:#e6db74">&#34;\xe928&#34;</span>  <span style="color:#75715e">;  (python icon)</span>
              pyvenv-virtual-env-name)
 
 (esh-section esh-clock
-             &quot;\xf017&quot;  ;  (clock icon)
-             (format-time-string &quot;%H:%M&quot; (current-time))
-             '(:foreground &quot;forest green&quot;))
+             <span style="color:#e6db74">&#34;\xf017&#34;</span>  <span style="color:#75715e">;  (clock icon)</span>
+             (format-time-string <span style="color:#e6db74">&#34;%H:%M&#34;</span> (current-time))
+             <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;forest green&#34;</span>))
 
-;; Below I implement a &quot;prompt number&quot; section
-(setq esh-prompt-num 0)
-(add-hook 'eshell-exit-hook (lambda () (setq esh-prompt-num 0)))
-(advice-add 'eshell-send-input :before
-            (lambda (&amp;rest args) (setq esh-prompt-num (incf esh-prompt-num))))
+<span style="color:#75715e">;; Below I implement a &#34;prompt number&#34; section</span>
+(<span style="color:#66d9ef">setq</span> esh-prompt-num <span style="color:#ae81ff">0</span>)
+(add-hook <span style="color:#e6db74">&#39;eshell-exit-hook</span> (lambda () (<span style="color:#66d9ef">setq</span> esh-prompt-num <span style="color:#ae81ff">0</span>)))
+(advice-add <span style="color:#e6db74">&#39;eshell-send-input</span> <span style="color:#e6db74">:before</span>
+            (lambda (<span style="color:#66d9ef">&amp;rest</span> args) (<span style="color:#66d9ef">setq</span> esh-prompt-num (incf esh-prompt-num))))
 
 (esh-section esh-num
-             &quot;\xf0c9&quot;  ;  (list icon)
+             <span style="color:#e6db74">&#34;\xf0c9&#34;</span>  <span style="color:#75715e">;  (list icon)</span>
              (number-to-string esh-prompt-num)
-             '(:foreground &quot;brown&quot;))
+             <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;brown&#34;</span>))
 
-;; Choose which eshell-funcs to enable
-(setq eshell-funcs (list esh-dir esh-git esh-python esh-clock esh-num))
+<span style="color:#75715e">;; Choose which eshell-funcs to enable</span>
+(<span style="color:#66d9ef">setq</span> eshell-funcs (<span style="color:#a6e22e">list</span> esh-dir esh-git esh-python esh-clock esh-num))
 
-;; Enable the new eshell prompt
-(setq eshell-prompt-function 'esh-prompt-func)
-</code></pre>
-
-<p>Further extensions to explore are predicate-based face application for eg.
-distinguishing master and other branches and modeline-like foreground separation.</p>
-
-<p><a href="https://gist.github.com/ekaschalk/f0ac91c406ad99e53bb97752683811a5" title="I've hosted the code altogether at this gist">I've hosted the code altogether at this gist</a>.</p>
-
-<p><a href="https://github.com/ekaschalk/dotspacemacs/blob/master/.spacemacs" title="display/shell in my config">display/shell in my config</a> will host the most recent iteration and all my other
-emacs tweaks.</p>
+<span style="color:#75715e">;; Enable the new eshell prompt</span>
+(<span style="color:#66d9ef">setq</span> eshell-prompt-function <span style="color:#e6db74">&#39;esh-prompt-func</span>)</code></pre></div>
+</div>
+<p>
+Further extensions to explore are predicate-based face application for eg.
+distinguishing master and other branches and modeline-like foreground separation.
+</p>
+<p>
+<a href="https://gist.github.com/ekaschalk/f0ac91c406ad99e53bb97752683811a5">I&#39;ve hosted the code altogether at this gist</a>.
+</p>
+<p>
+<a href="https://github.com/ekaschalk/dotspacemacs/blob/master/.spacemacs">display/shell in my config</a> will host the most recent iteration and all my other
+emacs tweaks.
+</p>
 
     </div>
   </div>

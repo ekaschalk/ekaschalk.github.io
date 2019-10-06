@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -213,222 +213,287 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p><a href="https://github.com/jorgenschaefer/emacs-buttercup" title="Buttercup">Buttercup</a> is a testing framework for emacs-lisp. It is used by large projects
-like <a href="https://github.com/clojure-emacs/cider" title="Clojure's CIDER">Clojure's CIDER</a> to write clean, concise, and descriptive tests.</p>
+      
+<p>
+<a href="https://github.com/jorgenschaefer/emacs-buttercup">Buttercup</a> is a testing framework for emacs-lisp. It is used by large projects
+like <a href="https://github.com/clojure-emacs/cider">Clojure&#39;s CIDER</a> to write clean, concise, and descriptive tests.
+</p>
+<p>
+I introduce Buttercup and build up to advanced usages with the faint, unlikely
+dream that some Emacs programmer decides to add tests to their library…
+</p>
+<h1 id="headline-1">
+What is Buttercup?
+</h1>
+<h3 id="headline-2">
+Introduction
+</h3>
+<p>
+Buttercup&#39;s entry points are: <code>describe</code>, <code>it</code>, and <code>expect</code>.
+</p>
+<p>
+We <code>describe</code> a test suite with a name. Test cases within the possibly nested
+suites are done with <code>it</code> and assertions as <code>expect</code> blocks within.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;Four&#34;</span>
+  (<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;comparisons&#34;</span>
+    (it <span style="color:#e6db74">&#34;is greater than one&#34;</span>
+      (expect (<span style="color:#a6e22e">&gt;</span> <span style="color:#ae81ff">4</span> <span style="color:#ae81ff">1</span>)))
+    (it <span style="color:#e6db74">&#34;and less than five&#34;</span>
+      (expect <span style="color:#ae81ff">4</span> <span style="color:#e6db74">:to-be-less-than</span> <span style="color:#ae81ff">5</span>)))
 
-<p>I introduce Buttercup and build up to advanced usages with the faint, unlikely
-dream that some Emacs programmer decides to add tests to their library...</p>
-
-<h1 id="what-is-buttercup">What is Buttercup?</h1>
-
-<h3 id="introduction">Introduction</h3>
-
-<p>Buttercup's entry points are: <code>describe</code>, <code>it</code>, and <code>expect</code>.</p>
-
-<p>We <code>describe</code> a test suite with a name. Test cases within the possibly nested
-suites are done with <code>it</code> and assertions as <code>expect</code> blocks within.</p>
-
-<pre><code class="language-lisp">(describe &quot;Four&quot;
-  (describe &quot;comparisons&quot;
-    (it &quot;is greater than one&quot;
-      (expect (&gt; 4 1)))
-    (it &quot;and less than five&quot;
-      (expect 4 :to-be-less-than 5)))
-
-  (it &quot;is a number&quot;
-    (expect (numberp 4))))
-</code></pre>
-
-<p>passes with testing output:</p>
-
-<pre><code>Four
+  (it <span style="color:#e6db74">&#34;is a number&#34;</span>
+    (expect (<span style="color:#a6e22e">numberp</span> <span style="color:#ae81ff">4</span>))))</code></pre></div>
+</div>
+<p>
+passes with testing output:
+</p>
+<pre class="example">
+Four
   comparisons
     is greater than one (0.24ms)
     and less than five (0.12ms)
   is a number (0.09ms)
-</code></pre>
-
-<h3 id="setup-and-teardown">Setup and Teardown</h3>
-
-<p>Buttercup provides <code>before-each</code>, <code>after-each</code>, <code>before-all</code>, and <code>after-all</code> to
-reduce boilerplate with setting up and tearing down test suites.</p>
-
-<pre><code class="language-lisp">(describe &quot;Lisp mode syntax&quot;
+</pre>
+<h3 id="headline-3">
+Setup and Teardown
+</h3>
+<p>
+Buttercup provides <code>before-each</code>, <code>after-each</code>, <code>before-all</code>, and <code>after-all</code> to
+reduce boilerplate with setting up and tearing down test suites.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;Lisp mode syntax&#34;</span>
   (before-all (set-syntax-table lisp-mode-syntax-table))
   (after-each (delete-region (point-min) (point-max)))
 
-  (it &quot;sets comments&quot;
-    (insert &quot;;; foo&quot;)
-    (expect (nth 4 (syntax-ppss))))
+  (it <span style="color:#e6db74">&#34;sets comments&#34;</span>
+    (insert <span style="color:#e6db74">&#34;;; foo&#34;</span>)
+    (expect (<span style="color:#a6e22e">nth</span> <span style="color:#ae81ff">4</span> (syntax-ppss))))
 
-  (it &quot;sets strings&quot;
-    (insert &quot;\&quot;foo\&quot;&quot;)
+  (it <span style="color:#e6db74">&#34;sets strings&#34;</span>
+    (insert <span style="color:#e6db74">&#34;\&#34;foo\&#34;&#34;</span>)
     (backward-char)
-    (expect (nth 3 (syntax-ppss)))))
-</code></pre>
-
-<h3 id="matchers">Matchers</h3>
-
-<p>The <code>expect</code> has more utility than simple tests of truth. <strong>Matchers</strong> are
-keywords that tailor the expectation.</p>
-
-<p>Some example matcher expansions:</p>
-
+    (expect (<span style="color:#a6e22e">nth</span> <span style="color:#ae81ff">3</span> (syntax-ppss)))))</code></pre></div>
+</div>
+<h3 id="headline-4">
+Matchers
+</h3>
+<p>
+The <code>expect</code> has more utility than simple tests of truth. <strong>Matchers</strong> are
+keywords that tailor the expectation.
+</p>
+<p>
+Some example matcher expansions:
+</p>
 <dl>
-<dt>:to-be</dt>
-<dd><code>(eq foo bar)</code></dd>
-<dt>:to-equal</dt>
-<dd><code>(equal foo bar)</code></dd>
-<dt>:to-be-in</dt>
-<dd><code>(member foo bar)</code></dd>
-<dt>:to-be-close-to</dt>
-<dd><code>(foo bar precisision)</code></dd>
-<dt>:to-throw</dt>
-<dd><code>(expr &amp;optional signal signal-args)</code></dd>
+<dt>
+:to-be<dd>
+<p>
+<code>(eq foo bar)</code>
+</p>
+<dd>
+<dt>
+:to-equal<dd>
+<p>
+<code>(equal foo bar)</code>
+</p>
+<dd>
+<dt>
+:to-be-in<dd>
+<p>
+<code>(member foo bar)</code>
+</p>
+<dd>
+<dt>
+:to-be-close-to<dd>
+<p>
+<code>(foo bar precisision)</code>
+</p>
+<dd>
+<dt>
+:to-throw<dd>
+<p>
+<code>(expr &amp;optional signal signal-args)</code>
+</p>
+<dd>
 </dl>
-
-<p>Some other more advanced matchers include: <code>:to-have-same-items-as</code>, <code>:to-match</code>, and <code>:to-have-been-called</code>.</p>
-
-<p>These matchers may be combined too: eg. <code>(expect 4 :not :to-be-greater-than 5)</code>.</p>
-
-<p>Matchers are more than just transforms+comparisons. They give information about
-the failure.</p>
-
-<pre><code class="language-lisp">(describe &quot;Example Matchers&quot;
-  (it &quot;regexes&quot;
-    (expect (s-concat &quot;foo&quot; &quot;bar&quot;)
-            :to-match (rx word-start &quot;foo&quot; word-end))))
-</code></pre>
-
-<p><code>Expected `(s-concat &quot;foo&quot; &quot;bar&quot;)' with value &quot;foobar&quot; to match the regexp &quot;\\&lt;foo\\&gt;&quot;, but instead it was &quot;foobar&quot;.</code></p>
-
-<h3 id="running-it">Running It</h3>
-
-<p>I recommend using <code>Cask</code> and executing tests with <code>cask exec buttercup -L .</code> in the project root.</p>
-
-<p>For example, have a file named <code>Cask</code> in the project root with:</p>
-
-<pre><code class="language-lisp">(source gnu)
+<p>
+Some other more advanced matchers include: <code>:to-have-same-items-as</code>, <code>:to-match</code>, and <code>:to-have-been-called</code>.
+</p>
+<p>
+These matchers may be combined too: eg. <code>(expect 4 :not :to-be-greater-than 5)</code>.
+</p>
+<p>
+Matchers are more than just transforms+comparisons. They give information about
+the failure.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;Example Matchers&#34;</span>
+  (it <span style="color:#e6db74">&#34;regexes&#34;</span>
+    (expect (s-concat <span style="color:#e6db74">&#34;foo&#34;</span> <span style="color:#e6db74">&#34;bar&#34;</span>)
+            <span style="color:#e6db74">:to-match</span> (rx word-start <span style="color:#e6db74">&#34;foo&#34;</span> word-end))))</code></pre></div>
+</div>
+<p>
+<code>Expected `(s-concat &#34;foo&#34; &#34;bar&#34;)&#39; with value &#34;foobar&#34; to match the regexp &#34;\\&lt;foo\\&gt;&#34;, but instead it was &#34;foobar&#34;.</code>
+</p>
+<h3 id="headline-5">
+Running It
+</h3>
+<p>
+I recommend using <code>Cask</code> and executing tests with <code>cask exec buttercup -L .</code> in the project root.
+</p>
+<p>
+For example, have a file named <code>Cask</code> in the project root with:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(source gnu)
 (source melpa)
 
-(package-file &quot;test-stuff-i-beg-you-mode.el&quot;)
+(package-file <span style="color:#e6db74">&#34;test-stuff-i-beg-you-mode.el&#34;</span>)
 
-;; Project Dependencies
-(depends-on &quot;dash&quot;)
+<span style="color:#75715e">;; Project Dependencies</span>
+(depends-on <span style="color:#e6db74">&#34;dash&#34;</span>)
 
-;; Additional Testing Dependencies
+<span style="color:#75715e">;; Additional Testing Dependencies</span>
 (development
- (depends-on &quot;buttercup&quot;)
- (depends-on &quot;faceup&quot;))
-</code></pre>
-
-<p>A folder named <code>test/</code> should be present and contain <code>test-stuff-i-beg-you-mode-test.el</code>.</p>
-
-<p>This file should have your tests, set up the load path if needed, and require
-everything you need.</p>
-
-<p>Lastly I will mention some other useful features before diving in to Buttercup:</p>
-
+ (depends-on <span style="color:#e6db74">&#34;buttercup&#34;</span>)
+ (depends-on <span style="color:#e6db74">&#34;faceup&#34;</span>))</code></pre></div>
+</div>
+<p>
+A folder named <code>test/</code> should be present and contain <code>test-stuff-i-beg-you-mode-test.el</code>.
+</p>
+<p>
+This file should have your tests, set up the load path if needed, and require
+everything you need.
+</p>
+<p>
+Lastly I will mention some other useful features before diving in to Buttercup:
+</p>
 <ul>
-<li>Variables can be defined with let syntax with <code>:var</code> in <code>describe</code> blocks.</li>
-<li>Buttercup has good support for spying on function calls.</li>
-<li>Adding an <code>x</code>, so it's <code>xit</code> and <code>xdescribe</code>, mark the test as pending so it</li>
-  won't be executed.
+<li>
+<p>
+Variables can be defined with let syntax with <code>:var</code> in <code>describe</code> blocks.
+</p>
+</li>
+<li>
+<p>
+Buttercup has good support for spying on function calls.
+</p>
+</li>
+<li>
+<p>
+Adding an <code>x</code>, so it&#39;s <code>xit</code> and <code>xdescribe</code>, mark the test as pending so it
+won&#39;t be executed.
+</p>
+</li>
 </ul>
+<h1 id="headline-6">
+Case Study: Testing Indentation
+</h1>
+<p>
+You have written <code>yet-another-lisp-like-mode</code> you affectionately call <code>yall-mode</code> and want to test its indentation.
+</p>
+<p>
+Lets write a skeleton to test the simplest cases:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; Want to test these two cases:</span>
+<span style="color:#75715e">;; (foo</span>
+<span style="color:#75715e">;;  bar)</span>
 
-<h1 id="case-study-testing-indentation">Case Study: Testing Indentation</h1>
+<span style="color:#75715e">;; (foo bar</span>
+<span style="color:#75715e">;;      baz)</span>
 
-<p>You have written <code>yet-another-lisp-like-mode</code> you affectionately call <code>yall-mode</code> and want to test its indentation.</p>
+(<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;Indentation&#34;</span>
+  (before-all (<span style="color:#66d9ef">setq</span> indent-line-function <span style="color:#a6e22e">#&#39;</span>yall-indent-line))
 
-<p>Lets write a skeleton to test the simplest cases:</p>
-
-<pre><code class="language-lisp">;; Want to test these two cases:
-;; (foo
-;;  bar)
-
-;; (foo bar
-;;      baz)
-
-(describe &quot;Indentation&quot;
-  (before-all (setq indent-line-function #'yall-indent-line))
-
-  (describe &quot;standard cases&quot;
-    (it &quot;opening line has one sexp - so indentation doesn't carry&quot;
+  (<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;standard cases&#34;</span>
+    (it <span style="color:#e6db74">&#34;opening line has one sexp - so indentation doesn&#39;t carry&#34;</span>
       (expect ???))
 
-    (it &quot;opening line has two+ sexps - so indentation carries&quot;
-      (expect ???))))
-</code></pre>
-
-<p>To test indentation - all we need is the text we expect, as the text alone
-determines the indent.</p>
-
-<p>Buttercup allows us to achieve this via <strong>custom matchers</strong>. We can bypass <em>all
-boilerplate</em> and write our expectations as simply as:</p>
-
-<pre><code class="language-lisp">(expect &quot;
-(foo
- bar)
-&quot; :indented)
-</code></pre>
-
-<p>The macro <code>buttercup-define-matcher</code> allows defining our own matcher, that will
-perform transforms, assertions, and <em>give descriptive failures</em>.</p>
-
-<p>Lets implement our <code>:indented</code> matcher:</p>
-
-<pre><code class="language-lisp">(defun yall-trim-indent (text)
-  &quot;Remove indentation from TEXT.&quot;
-  (-&gt;&gt; text s-lines (-map #'s-trim-left) (s-join &quot;\n&quot;)))
+    (it <span style="color:#e6db74">&#34;opening line has two+ sexps - so indentation carries&#34;</span>
+      (expect ???))))</code></pre></div>
+</div>
+<p>
+To test indentation - all we need is the text we expect, as the text alone
+determines the indent.
+</p>
+<p>
+Buttercup allows us to achieve this via <strong>custom matchers</strong>. We can bypass <em>all
+boilerplate</em> and write our expectations as simply as:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(expect <span style="color:#e6db74">&#34;
+</span><span style="color:#e6db74">(foo
+</span><span style="color:#e6db74"> bar)
+</span><span style="color:#e6db74">&#34;</span> <span style="color:#e6db74">:indented</span>)</code></pre></div>
+</div>
+<p>
+The macro <code>buttercup-define-matcher</code> allows defining our own matcher, that will
+perform transforms, assertions, and <em>give descriptive failures</em>.
+</p>
+<p>
+Lets implement our <code>:indented</code> matcher:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun yall-trim-indent (text)
+  <span style="color:#e6db74">&#34;Remove indentation from TEXT.&#34;</span>
+  (-&gt;&gt; text s-lines (-map <span style="color:#a6e22e">#&#39;</span>s-trim-left) (s-join <span style="color:#e6db74">&#34;\n&#34;</span>)))
 
 (defun yall-buffer-string ()
-  &quot;Return buffer as text with beginning and ending empty space trimmed.&quot;
+  <span style="color:#e6db74">&#34;Return buffer as text with beginning and ending empty space trimmed.&#34;</span>
   (s-trim (buffer-substring-no-properties (point-min) (point-max))))
 
-(buttercup-define-matcher :indented (text)
-  (let* ((text (s-trim (funcall text)))
+(buttercup-define-matcher <span style="color:#e6db74">:indented</span> (text)
+  (<span style="color:#66d9ef">let*</span> ((text (s-trim (<span style="color:#a6e22e">funcall</span> text)))
          (text-no-indent (yall-trim-indent text)))
     (insert text-no-indent)
     (indent-region-line-by-line (point-min) (point-max))
 
-    (let ((text-with-indent (yall-buffer-string)))
+    (<span style="color:#66d9ef">let</span> ((text-with-indent (yall-buffer-string)))
       (delete-region (point-min) (point-max))
 
-      (if (string= text text-with-indent)
-          t
-        `(nil . ,(format &quot;\nGiven indented text \n%s\nwas instead indented to \n%s\n&quot;
-                         text text-with-indent))))))
-</code></pre>
+      (<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">string=</span> text text-with-indent)
+          <span style="color:#66d9ef">t</span>
+        <span style="color:#f92672">`</span>(<span style="color:#66d9ef">nil</span> <span style="color:#f92672">.</span> <span style="color:#f92672">,</span>(<span style="color:#a6e22e">format</span> <span style="color:#e6db74">&#34;\nGiven indented text \n%s\nwas instead indented to \n%s\n&#34;</span>
+                         text text-with-indent))))))</code></pre></div>
+</div>
+<p>
+Now we can see the power of buttercup when we accidentally write:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;Indentation&#34;</span>
+  (before-all (<span style="color:#66d9ef">setq</span> indent-line-function <span style="color:#a6e22e">#&#39;</span>yall-indent-line))
 
-<p>Now we can see the power of buttercup when we accidentally write:</p>
-
-<pre><code class="language-lisp">(describe &quot;Indentation&quot;
-  (before-all (setq indent-line-function #'yall-indent-line))
-
-  (describe &quot;standard cases&quot;
-    (it &quot;opening line has two+ sexps - so indentation carries&quot;
-      (expect &quot;
-(foo bar
-      baz)
-&quot; :indented))))
-</code></pre>
-
-<p>and are given the failure:</p>
-
-<pre><code>FAILED:
+  (<span style="color:#a6e22e">describe</span> <span style="color:#e6db74">&#34;standard cases&#34;</span>
+    (it <span style="color:#e6db74">&#34;opening line has two+ sexps - so indentation carries&#34;</span>
+      (expect <span style="color:#e6db74">&#34;
+</span><span style="color:#e6db74">(foo bar
+</span><span style="color:#e6db74">      baz)
+</span><span style="color:#e6db74">&#34;</span> <span style="color:#e6db74">:indented</span>))))</code></pre></div>
+</div>
+<p>
+and are given the failure:
+</p>
+<pre class="example">
+FAILED:
 Given indented text
 (foo bar
       baz)
 was instead indented to
 (foo bar
      baz)
-</code></pre>
-
-<p>We know exactly what went wrong, with nearly all the implementation details
-separated from the testcase with boilerplate just <code>:indented</code>.</p>
-
-<p>Testing Emacs programs doesn't have to be painful - buttercup is a great and
-battle-tested library for writing quality Emacs programs.</p>
+</pre>
+<p>
+We know exactly what went wrong, with nearly all the implementation details
+separated from the testcase with boilerplate just <code>:indented</code>.
+</p>
+<p>
+Testing Emacs programs doesn&#39;t have to be painful - buttercup is a great and
+battle-tested library for writing quality Emacs programs.
+</p>
 
     </div>
   </div>

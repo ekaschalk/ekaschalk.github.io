@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Math on Modern Emacs</title>
+    <title>math on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/math/</link>
-    <description>Recent content in Math on Modern Emacs</description>
+    <description>Recent content in math on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,11 +18,7 @@
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/python-infix/</guid>
-      <description>Custom infix operators can be emulated in Python using prettify-symbols-mode.
-In your emacs config include:
-(global-prettify-symbols-mode 1) (add-hook &#39;python-mode-hook (lambda () (mapc (lambda (pair) (push pair prettify-symbols-alist)) &#39;((&amp;quot;@compose@&amp;quot; . #X2218) (&amp;quot;@pipe@&amp;quot; . #Xe135)))))  Now pip install infix.
-Optionally pip install toolz, a functional programming library, otherwise you can define the infix operations yourself.
-import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;__rmatmul__&#39;, &#39;__matmul__&#39;) def compose(a, b): return tz.</description>
+      <description>Mimicking custom python unicode infix operators in Emacs.</description>
     </item>
     
     <item>
@@ -31,8 +27,7 @@ import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;_
       <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/prettify-mode/</guid>
-      <description>Sequences of characters are represented as a single token using:
- Pretty-mode Pretty-mode provides Greeks, subscripts, and more symbols. Prettify-symbols-mode Prettify Symbols ships with Emacs as of 24.4 and adds support for custom Unicode replacement of symbols. Ligatures Unicode replacements of common operators (see Fira Code, the font I use, and Pragmata Pro fonts)  Any combination of these tools may be chosen; Fira Code is not required to utilize prettify-symbols or pretty-mode.</description>
+      <description>Programming with unicode replacements that only you see.</description>
     </item>
     
   </channel>

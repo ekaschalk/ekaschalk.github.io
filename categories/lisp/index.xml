@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Lisp on Modern Emacs</title>
+    <title>lisp on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/lisp/</link>
-    <description>Recent content in Lisp on Modern Emacs</description>
+    <description>Recent content in lisp on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,11 +18,7 @@
       <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/comint-highlighting/</guid>
-      <description>If you ever used ielm, or other comint-mode derivatives, you will notice that the text you input is not highlighted according to the major-mode.
-If I type (setq foo bar) into ielm, the setq won&#39;t be highlighted.
-Why is this? And how do we change this?
-Naive solution Look at font-lock-keywords in ielm and it is suspiciously near-empty. We could copy over emacs-lisp&#39;s keywords:
-(setq-local font-lock-keywords `(,@lisp-el-font-lock-keywords-2 ,@lisp-cl-font-lock-keywords-2))  But what if I type in (princ &amp;quot;(setq foo bar)&amp;quot;)?</description>
+      <description>More advanced usage of font-lock mode.</description>
     </item>
     
     <item>
@@ -31,10 +27,7 @@ Naive solution Look at font-lock-keywords in ielm and it is suspiciously near-em
       <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/testing-emacs/</guid>
-      <description>Buttercup is a testing framework for emacs-lisp. It is used by large projects like Clojure&#39;s CIDER to write clean, concise, and descriptive tests.
-I introduce Buttercup and build up to advanced usages with the faint, unlikely dream that some Emacs programmer decides to add tests to their library...
-What is Buttercup? Introduction Buttercup&#39;s entry points are: describe, it, and expect.
-We describe a test suite with a name. Test cases within the possibly nested suites are done with it and assertions as expect blocks within.</description>
+      <description>Being emacs-lisp isn&amp;#39;t an excuse to not test</description>
     </item>
     
     <item>
@@ -43,12 +36,7 @@ We describe a test suite with a name. Test cases within the possibly nested suit
       <pubDate>Fri, 13 Apr 2018 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/advanced-syntax/</guid>
-      <description>Variable assignments in Emacs lisp are not highlighted.
-That is, (setq foo bar) will not apply font-lock-variable-name-face to foo. This case is easy enough to implement via regex.
-But in Emacs lisp, assignment is variadic, accepting alternating name-value pairs.
-(setq foo bar foo (more stuff) foo bar)  How can we hope to highlight all the foo?
-In this post I demonstrate syntax-traversing highlighting, as applied to variable assignments.
-Plus and minus denote the name/value pairs.</description>
+      <description>Syntax-traversing highlighting.</description>
     </item>
     
     <item>
@@ -57,9 +45,7 @@ Plus and minus denote the name/value pairs.</description>
       <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/mile-hy/</guid>
-      <description>Roughly, Hy is to Python as Clojure is to Java. Hy completely inter-ops with Python.
-I&#39;ve hit commit 1,500 in my Hy project at work. I wanted to share my experience working with Hy, where I feel it shines and where it falls short.
-Intro to Hy Basic syntax Hy is a lisp and so uses hyphens as its delimiter. Hy unmangles all hyphens as underscores and mangles all incoming underscores to hyphens.</description>
+      <description>Maintaining a large hy codebase.</description>
     </item>
     
   </channel>

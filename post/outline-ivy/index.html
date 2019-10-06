@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -207,197 +207,245 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>I consider outlines an under-utilized yet killer feature of Emacs.</p>
-
-<p>This post is split into two parts:</p>
-
+      
+<p>
+I consider outlines an under-utilized yet killer feature of Emacs.
+</p>
+<p>
+This post is split into two parts:
+</p>
 <ol>
-<li>Introducing and customizing <code>outline-mode</code> and <code>outshine-mode</code>.</li>
-<li><a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el" title="My package">My package</a> <code>outline-ivy</code> for jumping to outlines.</li>
+<li>
+<p>
+Introducing and customizing <code>outline-mode</code> and <code>outshine-mode</code>.
+</p>
+</li>
+<li>
+<p>
+[<a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el">My package</a> <code>outline-ivy</code> for jumping to outlines.
+</p>
+</li>
 </ol>
-
-<p><img src="/img/outline-ivy.gif" alt="/img/outline-ivy.gif" title="/img/outline-ivy.gif" /></p>
-
-<h1 id="intro-to-outlines">Intro to Outlines</h1>
-
-<h2 id="background">Background</h2>
-
-<p>Outline-mode is a general framework for headers. Org-mode itself uses
-outline-mode.</p>
-
-<p>Headers are demarcated by the current major-mode's comment syntax, typically
-with levels determined by the proceeding number of <code>*</code>.</p>
-
+<p>
+<img src="/img/outline-ivy.gif" alt="/img/outline-ivy.gif" title="/img/outline-ivy.gif" />
+</p>
+<h1 id="headline-1">
+Intro to Outlines
+</h1>
+<h2 id="headline-2">
+Background
+</h2>
+<p>
+Outline-mode is a general framework for headers. Org-mode itself uses
+outline-mode.
+</p>
+<p>
+Headers are demarcated by the current major-mode&#39;s comment syntax, typically
+with levels determined by the proceeding number of <code>*</code>.
+</p>
 <ul>
-<li>Python: <code># *</code> is a level 1 header, <code># **</code> a level 2 header...</li>
-<li>Haskell: <code>--*</code> <code>--**</code></li>
-<li>Clojure: <code>;; *</code> <code>;; **</code></li>
+<li>
+<p>
+Python: <code># *</code> is a level 1 header, <code># **</code> a level 2 header…
+</p>
+</li>
+<li>
+<p>
+Haskell: <code>--*</code> <code>--**</code>
+</p>
+</li>
+<li>
+<p>
+Clojure: <code>;; *</code> <code>;; **</code>
+</p>
+</li>
 </ul>
+<p>
+Emacs lisp uses <code>;;;</code>, <code>;;;;</code>, … for compatibility with the many packages that
+use the original, not asterisk-based, outline format.
+</p>
+<p>
+The package <code>outshine</code> gives utility like narrowing and cycling to these
+outlines.
+</p>
+<h2 id="headline-3">
+Setup
+</h2>
+<p>
+Enable outlines and outshine with:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; Require packages for following code</span>
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;dash</span>)
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;outshine</span>)
 
-<p>Emacs lisp uses <code>;;;</code>, <code>;;;;</code>, ... for compatibility with the many packages that
-use the original, not asterisk-based, outline format.</p>
+<span style="color:#75715e">;; Required for outshine</span>
+(add-hook <span style="color:#e6db74">&#39;outline-minor-mode-hook</span> <span style="color:#e6db74">&#39;outshine-hook-function</span>)
 
-<p>The package <code>outshine</code> gives utility like narrowing and cycling to these
-outlines.</p>
-
-<h2 id="setup">Setup</h2>
-
-<p>Enable outlines and outshine with:</p>
-
-<pre><code class="language-lisp">;; Require packages for following code
-(require 'dash)
-(require 'outshine)
-
-;; Required for outshine
-(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
-
-;; Enables outline-minor-mode for *ALL* programming buffers
-(add-hook 'prog-mode-hook 'outline-minor-mode)
-</code></pre>
-
-<h2 id="keybindings">Keybindings</h2>
-
-<p>I remap <code>outline-minor-mode-map</code> to mirror org-mode. Provided are evil and
+<span style="color:#75715e">;; Enables outline-minor-mode for *ALL* programming buffers</span>
+(add-hook <span style="color:#e6db74">&#39;prog-mode-hook</span> <span style="color:#e6db74">&#39;outline-minor-mode</span>)</code></pre></div>
+</div>
+<h2 id="headline-4">
+Keybindings
+</h2>
+<p>
+I remap <code>outline-minor-mode-map</code> to mirror org-mode. Provided are evil and
 leader-key based bindings. Reference org-mode for developing your own
-emacs-style bindings.</p>
-
-<pre><code class="language-lisp">;; Narrowing now works within the headline rather than requiring to be on it
-(advice-add 'outshine-narrow-to-subtree :before
-            (lambda (&amp;rest args) (unless (outline-on-heading-p t)
-                                   (outline-previous-visible-heading 1))))
+emacs-style bindings.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; Narrowing now works within the headline rather than requiring to be on it</span>
+(advice-add <span style="color:#e6db74">&#39;outshine-narrow-to-subtree</span> <span style="color:#e6db74">:before</span>
+            (lambda (<span style="color:#66d9ef">&amp;rest</span> args) (unless (outline-on-heading-p <span style="color:#66d9ef">t</span>)
+                                   (outline-previous-visible-heading <span style="color:#ae81ff">1</span>))))
 
 (spacemacs/set-leader-keys
-  ;; Narrowing
-  &quot;nn&quot; 'outshine-narrow-to-subtree
-  &quot;nw&quot; 'widen
+  <span style="color:#75715e">;; Narrowing</span>
+  <span style="color:#e6db74">&#34;nn&#34;</span> <span style="color:#e6db74">&#39;outshine-narrow-to-subtree</span>
+  <span style="color:#e6db74">&#34;nw&#34;</span> <span style="color:#e6db74">&#39;widen</span>
 
-  ;; Structural edits
-  &quot;nj&quot; 'outline-move-subtree-down
-  &quot;nk&quot; 'outline-move-subtree-up
-  &quot;nh&quot; 'outline-promote
-  &quot;nl&quot; 'outline-demote)
+  <span style="color:#75715e">;; Structural edits</span>
+  <span style="color:#e6db74">&#34;nj&#34;</span> <span style="color:#e6db74">&#39;outline-move-subtree-down</span>
+  <span style="color:#e6db74">&#34;nk&#34;</span> <span style="color:#e6db74">&#39;outline-move-subtree-up</span>
+  <span style="color:#e6db74">&#34;nh&#34;</span> <span style="color:#e6db74">&#39;outline-promote</span>
+  <span style="color:#e6db74">&#34;nl&#34;</span> <span style="color:#e6db74">&#39;outline-demote</span>)
 
-(let ((kmap outline-minor-mode-map))
-  (define-key kmap (kbd &quot;M-RET&quot;) 'outshine-insert-heading)
-  (define-key kmap (kbd &quot;&lt;backtab&gt;&quot;) 'outshine-cycle-buffer)
+(<span style="color:#66d9ef">let</span> ((kmap outline-minor-mode-map))
+  (define-key kmap (kbd <span style="color:#e6db74">&#34;M-RET&#34;</span>) <span style="color:#e6db74">&#39;outshine-insert-heading</span>)
+  (define-key kmap (kbd <span style="color:#e6db74">&#34;&lt;backtab&gt;&#34;</span>) <span style="color:#e6db74">&#39;outshine-cycle-buffer</span>)
 
-  ;; Evil outline navigation keybindings
-  (evil-define-key '(normal visual motion) kmap
-    &quot;gh&quot; 'outline-up-heading
-    &quot;gj&quot; 'outline-forward-same-level
-    &quot;gk&quot; 'outline-backward-same-level
-    &quot;gl&quot; 'outline-next-visible-heading
-    &quot;gu&quot; 'outline-previous-visible-heading))
-</code></pre>
-
-<h2 id="styling">Styling</h2>
-
-<h3 id="faces">Faces</h3>
-
-<p>Outline headers fulfill a different goal than org headers. Outlines are for
+  <span style="color:#75715e">;; Evil outline navigation keybindings</span>
+  (evil-define-key <span style="color:#f92672">&#39;</span>(normal visual motion) kmap
+    <span style="color:#e6db74">&#34;gh&#34;</span> <span style="color:#e6db74">&#39;outline-up-heading</span>
+    <span style="color:#e6db74">&#34;gj&#34;</span> <span style="color:#e6db74">&#39;outline-forward-same-level</span>
+    <span style="color:#e6db74">&#34;gk&#34;</span> <span style="color:#e6db74">&#39;outline-backward-same-level</span>
+    <span style="color:#e6db74">&#34;gl&#34;</span> <span style="color:#e6db74">&#39;outline-next-visible-heading</span>
+    <span style="color:#e6db74">&#34;gu&#34;</span> <span style="color:#e6db74">&#39;outline-previous-visible-heading</span>))</code></pre></div>
+</div>
+<h2 id="headline-5">
+Styling
+</h2>
+<h3 id="headline-6">
+Faces
+</h3>
+<p>
+Outline headers fulfill a different goal than org headers. Outlines are for
 structuring semantically similar blocks of code. Org headers additionally
-incorporate todos, priorities, tags, and so on.</p>
-
-<p>Outlines are necessarily further apart than org headers, which often have no
-subtext at all.</p>
-
-<p>So I recommend setting both the <code>:background</code> and <code>:height</code> face attributes to
-highlight and make obvious the different sections.</p>
-
-<p>This can be done by updating the <code>outline-1/2/3...</code> faces.
-Org mode header faces can set separately using the <code>org-level-1/2/3...</code> faces.</p>
-
-<pre><code class="language-lisp">(setq my-black &quot;#1b1b1e&quot;)
+incorporate todos, priorities, tags, and so on.
+</p>
+<p>
+Outlines are necessarily further apart than org headers, which often have no
+subtext at all.
+</p>
+<p>
+So I recommend setting both the <code>:background</code> and <code>:height</code> face attributes to
+highlight and make obvious the different sections.
+</p>
+<p>
+This can be done by updating the <code>outline-1/2/3...</code> faces.
+Org mode header faces can set separately using the <code>org-level-1/2/3...</code> faces.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> my-black <span style="color:#e6db74">&#34;#1b1b1e&#34;</span>)
 
 (custom-theme-set-faces
- 'solarized-dark
- `(outline-1 ((t (:height 1.25 :background &quot;#268bd2&quot;
-                          :foreground ,my-black :weight bold))))
- `(outline-2 ((t (:height 1.15 :background &quot;#2aa198&quot;
-                          :foreground ,my-black :weight bold))))
- `(outline-3 ((t (:height 1.05 :background &quot;#b58900&quot;
-                          :foreground ,my-black :weight bold)))))
-</code></pre>
-
-<h3 id="bullets">Bullets</h3>
-
-<p>Now these outlines will be displayed with the comment syntax, there is no mirror
-of <code>org-bullets-bullet-list</code> for setting icons to replace the eg. ';;;'.</p>
-
-<p>We need to use <code>compose-region</code> to manually replace the headers with our custom
+ <span style="color:#e6db74">&#39;solarized-dark</span>
+ <span style="color:#f92672">`</span>(outline-1 ((<span style="color:#66d9ef">t</span> (<span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.25</span> <span style="color:#e6db74">:background</span> <span style="color:#e6db74">&#34;#268bd2&#34;</span>
+                          <span style="color:#e6db74">:foreground</span> <span style="color:#f92672">,</span>my-black <span style="color:#e6db74">:weight</span> bold))))
+ <span style="color:#f92672">`</span>(outline-2 ((<span style="color:#66d9ef">t</span> (<span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.15</span> <span style="color:#e6db74">:background</span> <span style="color:#e6db74">&#34;#2aa198&#34;</span>
+                          <span style="color:#e6db74">:foreground</span> <span style="color:#f92672">,</span>my-black <span style="color:#e6db74">:weight</span> bold))))
+ <span style="color:#f92672">`</span>(outline-3 ((<span style="color:#66d9ef">t</span> (<span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.05</span> <span style="color:#e6db74">:background</span> <span style="color:#e6db74">&#34;#b58900&#34;</span>
+                          <span style="color:#e6db74">:foreground</span> <span style="color:#f92672">,</span>my-black <span style="color:#e6db74">:weight</span> bold)))))</code></pre></div>
+</div>
+<h3 id="headline-7">
+Bullets
+</h3>
+<p>
+Now these outlines will be displayed with the comment syntax, there is no mirror
+of <code>org-bullets-bullet-list</code> for setting icons to replace the eg. &#39;;;;&#39;.
+</p>
+<p>
+We need to use <code>compose-region</code> to manually replace the headers with our custom
 bullets. Here is an image of my org-bullets replicated for outlines.
-<img src="/img/outline-bullets.png" alt="/img/outline-bullets.png" title="/img/outline-bullets.png" /></p>
-
-<p>The following code is generalized to replace symbols for possibly many modes and
+<img src="/img/outline-bullets.png" alt="/img/outline-bullets.png" title="/img/outline-bullets.png" />
+</p>
+<p>
+The following code is generalized to replace symbols for possibly many modes and
 is a bit complex. Here I implement the outline bullets for lisp-like modes and
-python.</p>
-
-<p>UPDATE: Check <a href='/post/outline-bullets/'>this post for full implementation.</a></p>
-
-<pre><code class="language-lisp">(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
+python.
+</p>
+<p>
+UPDATE: Check &lt;a href=&#39;/post/outline-bullets/&#39;&gt;this post for full implementation.&lt;/a&gt;
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun -add-font-lock-kwds (FONT-LOCK-ALIST)
   (font-lock-add-keywords
-   nil (--map (-let (((rgx uni-point) it))
-                `(,rgx (0 (progn
-                            (compose-region (match-beginning 1) (match-end 1)
-                                            ,(concat &quot;\t&quot; (list uni-point)))
-                            nil))))
+   <span style="color:#66d9ef">nil</span> (--map (-let (((rgx uni-point) it))
+                <span style="color:#f92672">`</span>(<span style="color:#f92672">,</span>rgx (<span style="color:#ae81ff">0</span> (<span style="color:#66d9ef">progn</span>
+                            (compose-region (match-beginning <span style="color:#ae81ff">1</span>) (match-end <span style="color:#ae81ff">1</span>)
+                                            <span style="color:#f92672">,</span>(concat <span style="color:#e6db74">&#34;\t&#34;</span> (<span style="color:#a6e22e">list</span> uni-point)))
+                            <span style="color:#66d9ef">nil</span>))))
               FONT-LOCK-ALIST)))
 
 (defmacro add-font-locks (FONT-LOCK-HOOKS-ALIST)
-  `(--each ,FONT-LOCK-HOOKS-ALIST
-     (-let (((font-locks . mode-hooks) it))
+  <span style="color:#f92672">`</span>(--each <span style="color:#f92672">,</span>FONT-LOCK-HOOKS-ALIST
+     (-let (((font-locks <span style="color:#f92672">.</span> mode-hooks) it))
        (--each mode-hooks
-         (add-hook it (-partial '-add-font-lock-kwds
-                                (symbol-value font-locks)))))))
+         (add-hook it (-partial <span style="color:#e6db74">&#39;-add-font-lock-kwds</span>
+                                (<span style="color:#a6e22e">symbol-value</span> font-locks)))))))
 
 (defconst emacs-outlines-font-lock-alist
-  ;; Outlines
-  '((&quot;\\(^;;;\\) &quot;          ?■)
-    (&quot;\\(^;;;;\\) &quot;         ?○)
-    (&quot;\\(^;;;;;\\) &quot;        ?✸)
-    (&quot;\\(^;;;;;;\\) &quot;       ?✿)))
+  <span style="color:#75715e">;; Outlines</span>
+  <span style="color:#f92672">&#39;</span>((<span style="color:#e6db74">&#34;\\(^;;;\\) &#34;</span>          ?<span style="color:#960050;background-color:#1e0010">■</span>)
+    (<span style="color:#e6db74">&#34;\\(^;;;;\\) &#34;</span>         ?<span style="color:#960050;background-color:#1e0010">○</span>)
+    (<span style="color:#e6db74">&#34;\\(^;;;;;\\) &#34;</span>        ?<span style="color:#960050;background-color:#1e0010">✸</span>)
+    (<span style="color:#e6db74">&#34;\\(^;;;;;;\\) &#34;</span>       ?<span style="color:#960050;background-color:#1e0010">✿</span>)))
 
 (defconst lisp-outlines-font-lock-alist
-  ;; Outlines
-  '((&quot;\\(^;; \\*\\) &quot;          ?■)
-    (&quot;\\(^;; \\*\\*\\) &quot;       ?○)
-    (&quot;\\(^;; \\*\\*\\*\\) &quot;    ?✸)
-    (&quot;\\(^;; \\*\\*\\*\\*\\) &quot; ?✿)))
+  <span style="color:#75715e">;; Outlines</span>
+  <span style="color:#f92672">&#39;</span>((<span style="color:#e6db74">&#34;\\(^;; \\*\\) &#34;</span>          ?<span style="color:#960050;background-color:#1e0010">■</span>)
+    (<span style="color:#e6db74">&#34;\\(^;; \\*\\*\\) &#34;</span>       ?<span style="color:#960050;background-color:#1e0010">○</span>)
+    (<span style="color:#e6db74">&#34;\\(^;; \\*\\*\\*\\) &#34;</span>    ?<span style="color:#960050;background-color:#1e0010">✸</span>)
+    (<span style="color:#e6db74">&#34;\\(^;; \\*\\*\\*\\*\\) &#34;</span> ?<span style="color:#960050;background-color:#1e0010">✿</span>)))
 
 (defconst python-outlines-font-lock-alist
-  '((&quot;\\(^# \\*\\) &quot;          ?■)
-    (&quot;\\(^# \\*\\*\\) &quot;       ?○)
-    (&quot;\\(^# \\*\\*\\*\\) &quot;    ?✸)
-    (&quot;\\(^# \\*\\*\\*\\*\\) &quot; ?✿)))
+  <span style="color:#f92672">&#39;</span>((<span style="color:#e6db74">&#34;\\(^# \\*\\) &#34;</span>          ?<span style="color:#960050;background-color:#1e0010">■</span>)
+    (<span style="color:#e6db74">&#34;\\(^# \\*\\*\\) &#34;</span>       ?<span style="color:#960050;background-color:#1e0010">○</span>)
+    (<span style="color:#e6db74">&#34;\\(^# \\*\\*\\*\\) &#34;</span>    ?<span style="color:#960050;background-color:#1e0010">✸</span>)
+    (<span style="color:#e6db74">&#34;\\(^# \\*\\*\\*\\*\\) &#34;</span> ?<span style="color:#960050;background-color:#1e0010">✿</span>)))
 
 (add-font-locks
- '((emacs-outlines-font-lock-alist emacs-lisp-mode-hook)
+ <span style="color:#f92672">&#39;</span>((emacs-outlines-font-lock-alist emacs-lisp-mode-hook)
    (lisp-outlines-font-lock-alist clojure-mode-hook hy-mode-hook)
-   (python-outlines-font-lock-alist python-mode-hook)))
-</code></pre>
-
-<p>This could eventually be improved to work for any number of levels and
-auto-determine the outline regex base on the comment syntax.</p>
-
-<h3 id="ellipsis">Ellipsis</h3>
-
-<p>Org-mode has the variable <code>org-ellipsis</code> for setting the trailing chars for
-collapsed headers.</p>
-
-<p>We can set our own outline ellipsis icon as follows:</p>
-
-<pre><code class="language-lisp">(defvar outline-display-table (make-display-table))
-(set-display-table-slot outline-display-table 'selective-display
-                        (vector (make-glyph-code ?▼ 'escape-glyph)))
+   (python-outlines-font-lock-alist python-mode-hook)))</code></pre></div>
+</div>
+<p>
+This could eventually be improved to work for any number of levels and
+auto-determine the outline regex base on the comment syntax.
+</p>
+<h3 id="headline-8">
+Ellipsis
+</h3>
+<p>
+Org-mode has the variable <code>org-ellipsis</code> for setting the trailing chars for
+collapsed headers.
+</p>
+<p>
+We can set our own outline ellipsis icon as follows:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defvar outline-display-table (make-display-table))
+(set-display-table-slot outline-display-table <span style="color:#e6db74">&#39;selective-display</span>
+                        (<span style="color:#a6e22e">vector</span> (make-glyph-code ?<span style="color:#960050;background-color:#1e0010">▼</span> <span style="color:#e6db74">&#39;escape-glyph</span>)))
 (defun set-outline-display-table ()
   (setf buffer-display-table outline-display-table))
 
-(add-hook 'outline-mode-hook 'set-outline-display-table)
-(add-hook 'outline-minor-mode-hook 'set-outline-display-table)
-</code></pre>
-
-<h1 id="outline-ivy">Outline-ivy</h1>
-
+(add-hook <span style="color:#e6db74">&#39;outline-mode-hook</span> <span style="color:#e6db74">&#39;set-outline-display-table</span>)
+(add-hook <span style="color:#e6db74">&#39;outline-minor-mode-hook</span> <span style="color:#e6db74">&#39;set-outline-display-table</span>)</code></pre></div>
+</div>
+<h1 id="headline-9">
+Outline-ivy
+</h1>
 <table>
 <thead>
 <tr>
@@ -414,70 +462,83 @@ collapsed headers.</p>
 </tr>
 </tbody>
 </table>
-
-<p>Current methods for jumping to outlines have significant limitations.</p>
-
-<p><a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el" title="Outline-ivy">Outline-ivy</a> makes outlines a proper navigational, not just organizational, tool
-with <code>oi-jump</code>.</p>
-
-<p>All outlines are collected, stylized, and associated with their parents.</p>
-
-<p>Parents are inserted as invisible text for child outlines. This way, searching
-for eg. "Display" catches all its children.</p>
-
-<p>The level is also inserted and hidden enabling the search "1 spacemacs" to catch
+<p>
+Current methods for jumping to outlines have significant limitations.
+</p>
+<p>
+<a href="https://github.com/ekaschalk/.spacemacs.d/blob/master/layers/personal/local/outline-ivy/outline-ivy.el">Outline-ivy</a> makes outlines a proper navigational, not just organizational, tool
+with <code>oi-jump</code>.
+</p>
+<p>
+All outlines are collected, stylized, and associated with their parents.
+</p>
+<p>
+Parents are inserted as invisible text for child outlines. This way, searching
+for eg. &#34;Display&#34; catches all its children.
+</p>
+<p>
+The level is also inserted and hidden enabling the search &#34;1 spacemacs&#34; to catch
 only top-level headings matching spacemacs. It also overrides <code>ivy-match-face</code> and
- <code>ivy-height</code> to play nice with the propertized prompt strings.</p>
-
-<p>The default configuration:</p>
-
-<pre><code class="language-lisp">(defvar oi-height 20
-  &quot;Number of outlines to display, overrides ivy-height.&quot;)
+<code>ivy-height</code> to play nice with the propertized prompt strings.
+</p>
+<p>
+The default configuration:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defvar oi-height <span style="color:#ae81ff">20</span>
+  <span style="color:#e6db74">&#34;Number of outlines to display, overrides ivy-height.&#34;</span>)
 
 (defface oi-match-face
-  '((t :height 1.10 :foreground &quot;light gray&quot;))
-  &quot;Match face for ivy outline prompt.&quot;)
+  <span style="color:#f92672">&#39;</span>((<span style="color:#66d9ef">t</span> <span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.10</span> <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;light gray&#34;</span>))
+  <span style="color:#e6db74">&#34;Match face for ivy outline prompt.&#34;</span>)
 
 (defface oi-face-1
-  '((t :foreground &quot;#268bd2&quot; :height 1.25 :underline t :weight ultra-bold))
-  &quot;Ivy outline face for level 1&quot;)
+  <span style="color:#f92672">&#39;</span>((<span style="color:#66d9ef">t</span> <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;#268bd2&#34;</span> <span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.25</span> <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">t</span> <span style="color:#e6db74">:weight</span> ultra-bold))
+  <span style="color:#e6db74">&#34;Ivy outline face for level 1&#34;</span>)
 
 (defface oi-face-2
-  '((t :foreground &quot;#2aa198&quot; :height 1.1 :weight semi-bold))
-  &quot;Ivy outline face for level 2&quot;)
+  <span style="color:#f92672">&#39;</span>((<span style="color:#66d9ef">t</span> <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;#2aa198&#34;</span> <span style="color:#e6db74">:height</span> <span style="color:#ae81ff">1.1</span> <span style="color:#e6db74">:weight</span> semi-bold))
+  <span style="color:#e6db74">&#34;Ivy outline face for level 2&#34;</span>)
 
 (defface oi-face-3
-  '((t :foreground &quot;steel blue&quot;))
-  &quot;Ivy outline face for level 3&quot;)
+  <span style="color:#f92672">&#39;</span>((<span style="color:#66d9ef">t</span> <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;steel blue&#34;</span>))
+  <span style="color:#e6db74">&#34;Ivy outline face for level 3&#34;</span>)
 
-;; My keybinding for oi-jump, unbound by default.
-(global-set-key (kbd &quot;C-j&quot;) 'oi-jump)
-</code></pre>
-
-<p>Many emacs lisp packages both intentionally and unintentionally use the outline
+<span style="color:#75715e">;; My keybinding for oi-jump, unbound by default.</span>
+(global-set-key (kbd <span style="color:#e6db74">&#34;C-j&#34;</span>) <span style="color:#e6db74">&#39;oi-jump</span>)</code></pre></div>
+</div>
+<p>
+Many emacs lisp packages both intentionally and unintentionally use the outline
 syntax for organizing their source. These changes can make understanding and
-navigating the source significantly easier.</p>
-
-<p>Below is a screenshot jumping to an outline in <code>org.el</code>, the core org source
-file.</p>
-
-<p><img src="/img/outlines-org.png" alt="/img/outlines-org.png" title="/img/outlines-org.png" /></p>
-
-<p>I'm not sure how difficult it would be to port this package to <code>helm</code>. This is
-one of many updates I'll look to add eventually, such as adding more quick
-actions to the prompt like jump-and-narrow or a projective jump version.</p>
-
-<h1 id="my-experience">My Experience</h1>
-
-<p>Perhaps the best judge of the impact of some configuration is how often you
+navigating the source significantly easier.
+</p>
+<p>
+Below is a screenshot jumping to an outline in <code>org.el</code>, the core org source
+file.
+</p>
+<p>
+<img src="/img/outlines-org.png" alt="/img/outlines-org.png" title="/img/outlines-org.png" />
+</p>
+<p>
+I&#39;m not sure how difficult it would be to port this package to <code>helm</code>. This is
+one of many updates I&#39;ll look to add eventually, such as adding more quick
+actions to the prompt like jump-and-narrow or a projective jump version.
+</p>
+<h1 id="headline-10">
+My Experience
+</h1>
+<p>
+Perhaps the best judge of the impact of some configuration is how often you
 find yourself reaching for it. For buffer-wide navigation to a specific area
 rather than some specific symbol or function, I now almost exclusively use
- <code>oi-jump</code>.</p>
-
-<p>I consider outlines to be one of the most practical features of Emacs. All
+<code>oi-jump</code>.
+</p>
+<p>
+I consider outlines to be one of the most practical features of Emacs. All
 source code, in any language, I organize with outlines. Given how unobtrusive
-the syntax is, it shouldn't be difficult to implement in a collaborative
-project.</p>
+the syntax is, it shouldn&#39;t be difficult to implement in a collaborative
+project.
+</p>
 
     </div>
   </div>

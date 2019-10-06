@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -210,295 +210,386 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>Spacemacs is referred for its evil integration, space-based bindings, and
+      
+<p>
+Spacemacs is referred for its evil integration, space-based bindings, and
 community contributed <em>layers</em> that collect, configure, and integrate groups of
-packages.</p>
-
-<p>For how much they add to Emacs, motivations for personal layers are largely
-undocumented.</p>
-
-<p>I introduce layers then discuss benefits, approaches, and gotchas with
-layer-based configurations.</p>
-
-<p>I've migrated my entire <code>dotspacemacs/user-config</code> into personal layers - now 6
-lines vs 1,500.</p>
-
-<p>See <a href="https://github.com/ekaschalk/.spacemacs.d" title="https://github.com/ekaschalk/.spacemacs.d">https://github.com/ekaschalk/.spacemacs.d</a> for my viewer-friendly configuration .</p>
-
-<h1 id="introducing-layers">Introducing Layers</h1>
-
-<p>This section is not a replacement for <a href="http://spacemacs.org/doc/LAYERS.html" title="http://spacemacs.org/doc/LAYERS.html">http://spacemacs.org/doc/LAYERS.html</a>.</p>
-
-<p>Layers are directories containing up to 5 files and possibly additional
-packages.</p>
-
-<p>In load order:</p>
-
-<h3 id="layers-el">Layers.el</h3>
-
-<p>Layer dependencies to load first.</p>
-
-<pre><code class="language-lisp">(configuration-layer/declare-layers '(theming))
-</code></pre>
-
-<h3 id="packages-el">packages.el</h3>
-
-<p>Packages added or configured by the layer.</p>
-
-<pre><code class="language-lisp">(setq my-layer-packages
-      '(a-pkg
-        (github-pkg :location (recipe :fetcher github
-                                      :repo &quot;github-user/repo-name&quot;))
-        (my-pkg :location local)))
-</code></pre>
-
+packages.
+</p>
+<p>
+For how much they add to Emacs, motivations for personal layers are largely
+undocumented.
+</p>
+<p>
+I introduce layers then discuss benefits, approaches, and gotchas with
+layer-based configurations.
+</p>
+<p>
+I&#39;ve migrated my entire <code>dotspacemacs/user-config</code> into personal layers - now 6
+lines vs 1,500.
+</p>
+<p>
+See <a href="https://github.com/ekaschalk/.spacemacs.d">https://github.com/ekaschalk/.spacemacs.d</a> for my viewer-friendly configuration .
+</p>
+<h1 id="headline-1">
+Introducing Layers
+</h1>
+<p>
+This section is not a replacement for <a href="http://spacemacs.org/doc/LAYERS.html">http://spacemacs.org/doc/LAYERS.html</a>.
+</p>
+<p>
+Layers are directories containing up to 5 files and possibly additional
+packages.
+</p>
+<p>
+In load order:
+</p>
+<h3 id="headline-2">
+Layers.el
+</h3>
+<p>
+Layer dependencies to load first.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(configuration-layer/declare-layers <span style="color:#f92672">&#39;</span>(theming))</code></pre></div>
+</div>
+<h3 id="headline-3">
+packages.el
+</h3>
+<p>
+Packages added or configured by the layer.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> my-layer-packages
+      <span style="color:#f92672">&#39;</span>(a-pkg
+        (github-pkg <span style="color:#e6db74">:location</span> (recipe <span style="color:#e6db74">:fetcher</span> github
+                                      <span style="color:#e6db74">:repo</span> <span style="color:#e6db74">&#34;github-user/repo-name&#34;</span>))
+        (my-pkg <span style="color:#e6db74">:location</span> local)))</code></pre></div>
+</div>
 <ul>
-<li><strong>Owned Packages:</strong> A layer owns a package if it defines <code>layer-name/init-pkg-name</code>. All packages not defined in <code>dotspacemacs/additional/packages</code> should have one and only one owner. It calls <code>use-package</code>. Common options are <code>:init</code> for before load config, <code>:config</code> for after, <code>:if</code> for loading if eg. a certain OS or executable is installed, <code>:after</code> for enforcing load order, and <code>:defer t</code> for deferred loading.</li>
+<li>
+<p>
+<strong>Owned Packages:</strong> A layer owns a package if it defines <code>layer-name/init-pkg-name</code>. All packages not defined in <code>dotspacemacs/additional/packages</code> should have one and only one owner. It calls <code>use-package</code>. Common options are <code>:init</code> for before load config, <code>:config</code> for after, <code>:if</code> for loading if eg. a certain OS or executable is installed, <code>:after</code> for enforcing load order, and <code>:defer t</code> for deferred loading.
+</p>
+</li>
 </ul>
-
-<pre><code class="language-lisp">(defun display/init-pretty-outlines ()
-  (use-package pretty-outlines
-    :after outshine
-    :config
-    (progn
-      (add-hook 'outline-mode-hook 'pretty-outline-set-display-table)
-      (add-hook 'outline-minor-mode-hook 'pretty-outline-set-display-table)
-      (add-hook 'emacs-lisp-mode-hook 'pretty-outline-add-bullets))))
-</code></pre>
-
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun display/init-pretty-outlines ()
+  (<span style="color:#a6e22e">use-package</span> pretty-outlines
+    <span style="color:#e6db74">:after</span> outshine
+    <span style="color:#e6db74">:config</span>
+    (<span style="color:#66d9ef">progn</span>
+      (add-hook <span style="color:#e6db74">&#39;outline-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-set-display-table</span>)
+      (add-hook <span style="color:#e6db74">&#39;outline-minor-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-set-display-table</span>)
+      (add-hook <span style="color:#e6db74">&#39;emacs-lisp-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-add-bullets</span>))))</code></pre></div>
+</div>
 <ul>
-<li><strong>Unowned Packages:</strong> A layer that does not own a package can configure it with <code>layer-name/pre-init-pkg-name</code> and <code>layer-name/post-init-pkg-name</code>.</li>
+<li>
+<p>
+<strong>Unowned Packages:</strong> A layer that does not own a package can configure it with <code>layer-name/pre-init-pkg-name</code> and <code>layer-name/post-init-pkg-name</code>.
+</p>
+</li>
 </ul>
-
-<pre><code class="language-lisp">(defun config/pre-init-neotree ()
-  (evil-global-set-key 'normal (kbd &quot;M-p&quot;)
-                       'neotree-find-project-root))
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun config/pre-init-neotree ()
+  (evil-global-set-key <span style="color:#e6db74">&#39;normal</span> (kbd <span style="color:#e6db74">&#34;M-p&#34;</span>)
+                       <span style="color:#e6db74">&#39;neotree-find-project-root</span>))
 
 (defun config/post-init-neotree ()
-  (setq neo-theme 'icons))
-</code></pre>
-
+  (<span style="color:#66d9ef">setq</span> neo-theme <span style="color:#e6db74">&#39;icons</span>))</code></pre></div>
+</div>
 <ul>
-<li><strong>Local Packages:</strong> Personal packages at <code>local/my-pkg/my-pkg.el</code>.</li>
+<li>
+<p>
+<strong>Local Packages:</strong> Personal packages at <code>local/my-pkg/my-pkg.el</code>.
+</p>
+</li>
 </ul>
+<h3 id="headline-4">
+funcs.el
+</h3>
+<p>
+Layer functions.
+</p>
+<p>
+Package agnostic functions belong here.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defmacro with-face (STR <span style="color:#66d9ef">&amp;rest</span> PROPS)
+  <span style="color:#e6db74">&#34;Return STR propertized with PROPS.&#34;</span>
+  <span style="color:#f92672">`</span>(propertize <span style="color:#f92672">,</span>STR <span style="color:#e6db74">&#39;face</span> (<span style="color:#a6e22e">list</span> <span style="color:#f92672">,@</span>PROPS)))</code></pre></div>
+</div>
+<p>
+Guarding against particular packages being installed:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(when (configuration-layer/package-usedp <span style="color:#e6db74">&#39;some-pkg</span>)
+  (defun my-func ()))</code></pre></div>
+</div>
+<h3 id="headline-5">
+config.el
+</h3>
+<p>
+Layer variables.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; python/config.el</span>
+(defvar python-tab-width <span style="color:#ae81ff">4</span>
+  <span style="color:#e6db74">&#34;Tab width value for python buffers&#34;</span>)
 
-<h3 id="funcs-el">funcs.el</h3>
+<span style="color:#75715e">;; init.el in dotspacemacs-configuration-layers</span>
+(python <span style="color:#e6db74">:variables</span> python-tab-width <span style="color:#ae81ff">2</span>)</code></pre></div>
+</div>
+<p>
+Configuration defined here will be loaded before the package init functions are
+executed. Layer dependencies are actually loaded prior to config.el.
+</p>
+<p>
+This can be used for eg. setting theme updates with the <code>theming</code> layer.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> theming-modifications
+      <span style="color:#f92672">`</span>((solarized-dark (avy-background-face <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;#586e75&#34;</span>)
+                        (font-lock-doc-face <span style="color:#e6db74">:foreground</span> <span style="color:#e6db74">&#34;#2aa198&#34;</span>))
+        (solarized-light <span style="color:#f92672">...</span>)))</code></pre></div>
+</div>
+<h3 id="headline-6">
+keybindings.el
+</h3>
+<p>
+Package-agnostic key-bindings.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(global-set-key (kbd <span style="color:#e6db74">&#34;M-d&#34;</span>) <span style="color:#e6db74">&#39;spacemacs/delete-window</span>)
 
-<p>Layer functions.</p>
-
-<p>Package agnostic functions belong here.</p>
-
-<pre><code class="language-lisp">(defmacro with-face (STR &amp;rest PROPS)
-  &quot;Return STR propertized with PROPS.&quot;
-  `(propertize ,STR 'face (list ,@PROPS)))
-</code></pre>
-
-<p>Guarding against particular packages being installed:</p>
-
-<pre><code class="language-lisp">(when (configuration-layer/package-usedp 'some-pkg)
-  (defun my-func ()))
-</code></pre>
-
-<h3 id="config-el">config.el</h3>
-
-<p>Layer variables.</p>
-
-<pre><code class="language-lisp">;; python/config.el
-(defvar python-tab-width 4
-  &quot;Tab width value for python buffers&quot;)
-
-;; init.el in dotspacemacs-configuration-layers
-(python :variables python-tab-width 2)
-</code></pre>
-
-<p>Configuration defined here will be loaded before the package init functions are
-executed. Layer dependencies are actually loaded prior to config.el.</p>
-
-<p>This can be used for eg. setting theme updates with the <code>theming</code> layer.</p>
-
-<pre><code class="language-lisp">(setq theming-modifications
-      `((solarized-dark (avy-background-face :foreground &quot;#586e75&quot;)
-                        (font-lock-doc-face :foreground &quot;#2aa198&quot;))
-        (solarized-light ...)))
-</code></pre>
-
-<h3 id="keybindings-el">keybindings.el</h3>
-
-<p>Package-agnostic key-bindings.</p>
-
-<pre><code class="language-lisp">(global-set-key (kbd &quot;M-d&quot;) 'spacemacs/delete-window)
-
-;; Evil will be loaded
-(evil-define-key '(normal visual motion) outline-minor-mode-map
-  &quot;gh&quot; 'outline-up-heading)
-</code></pre>
-
-<h1 id="personal-layers">Personal Layers</h1>
-
-<h2 id="structure">Structure</h2>
-
-<p>While any organization can be used, I recommend at most these 5 layers covering
-common needs.</p>
-
-<h3 id="a-macros-base-layer">A Macros/Base Layer</h3>
-
-<p>A base layer that all personal layers inherit packages, macros, and common
-functions from with <code>(configuration-layer/declare-layers '(base))</code>.</p>
-
-<p>I load <code>dash-functional</code> and define <code>with-dir</code>, <code>with-face</code>, and other useful
-utilities here.</p>
-
-<h3 id="config">Config</h3>
-
-<p>All packages and their configuration and key-bindings that don't fit into any
-neat grouping.</p>
-
-<p>When any package's init gets large, consider a local package. I maintain my
-org-mode setup separately in a local <code>org-config</code> package.</p>
-
-<p>Anything, excluding spacemacs toggles, can be setup here. For instance:</p>
-
-<pre><code class="language-lisp">(setq config-packages '(evil ...))
+<span style="color:#75715e">;; Evil will be loaded</span>
+(evil-define-key <span style="color:#f92672">&#39;</span>(normal visual motion) outline-minor-mode-map
+  <span style="color:#e6db74">&#34;gh&#34;</span> <span style="color:#e6db74">&#39;outline-up-heading</span>)</code></pre></div>
+</div>
+<h1 id="headline-7">
+Personal Layers
+</h1>
+<h2 id="headline-8">
+Structure
+</h2>
+<p>
+While any organization can be used, I recommend at most these 5 layers covering
+common needs.
+</p>
+<h3 id="headline-9">
+A Macros/Base Layer
+</h3>
+<p>
+A base layer that all personal layers inherit packages, macros, and common
+functions from with <code>(configuration-layer/declare-layers &#39;(base))</code>.
+</p>
+<p>
+I load <code>dash-functional</code> and define <code>with-dir</code>, <code>with-face</code>, and other useful
+utilities here.
+</p>
+<h3 id="headline-10">
+Config
+</h3>
+<p>
+All packages and their configuration and key-bindings that don&#39;t fit into any
+neat grouping.
+</p>
+<p>
+When any package&#39;s init gets large, consider a local package. I maintain my
+org-mode setup separately in a local <code>org-config</code> package.
+</p>
+<p>
+Anything, excluding spacemacs toggles, can be setup here. For instance:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> config-packages <span style="color:#f92672">&#39;</span>(evil <span style="color:#f92672">...</span>))
 
 (defun config/post-init-evil ()
-  (setq evil-escape-key-sequence &quot;jk&quot;)
-  (setq evil-escape-unordered-key-sequence &quot;true&quot;)
-  (advice-add 'evil-ex-search-next :after 'config/scroll-to-center-advice)
-  (advice-add 'evil-ex-search-previous :after 'config/scroll-to-center-advice))
-</code></pre>
-
-<p>I recommend this layer own <strong>all additional packages</strong> except themes, see gotchas.</p>
-
-<h3 id="display">Display</h3>
-
-<p>Theme updates and display packages like <code>spaceline-all-the-icons</code>.</p>
-
-<p>Due to how Spacemacs loads themes, I highly recommend declaring the
- <code>theming</code> layer a dependency for theme updates. It is much more efficient should
+  (<span style="color:#66d9ef">setq</span> evil-escape-key-sequence <span style="color:#e6db74">&#34;jk&#34;</span>)
+  (<span style="color:#66d9ef">setq</span> evil-escape-unordered-key-sequence <span style="color:#e6db74">&#34;true&#34;</span>)
+  (advice-add <span style="color:#e6db74">&#39;evil-ex-search-next</span> <span style="color:#e6db74">:after</span> <span style="color:#e6db74">&#39;config/scroll-to-center-advice</span>)
+  (advice-add <span style="color:#e6db74">&#39;evil-ex-search-previous</span> <span style="color:#e6db74">:after</span> <span style="color:#e6db74">&#39;config/scroll-to-center-advice</span>))</code></pre></div>
+</div>
+<p>
+I recommend this layer own <strong>all additional packages</strong> except themes, see gotchas.
+</p>
+<h3 id="headline-11">
+Display
+</h3>
+<p>
+Theme updates and display packages like <code>spaceline-all-the-icons</code>.
+</p>
+<p>
+Due to how Spacemacs loads themes, I highly recommend declaring the
+<code>theming</code> layer a dependency for theme updates. It is much more efficient should
 you configure multiple themes, like light and dark versions, and as it is a
-layer, it will be loaded prior to <code>config.el</code> for proper code isolation.</p>
-
-<p>I integrate and configure my local pretty packages here:</p>
-
+layer, it will be loaded prior to <code>config.el</code> for proper code isolation.
+</p>
+<p>
+I integrate and configure my local pretty packages here:
+</p>
 <ul>
-<li><em>pretty-code</em> : Program with custom ligatures and symbols, see <a href='/post/prettify-mode/'>mathematical notation in emacs</a></li>
-<li><em>pretty-eshell</em> : Customize eshell information and faces, see <a href='/post/custom-eshell/'>making eshell your own</a></li>
-<li><em>pretty-fonts</em> : All the icons and Fira Code ligature integration.</li>
-<li><em>pretty-magit</em> : Commit leaders, see <a href='/post/pretty-magit/'>pretty magit - integrating commit leaders</a></li>
-<li><em>pretty-outlines</em> : Fancy outline bullets and ellipsis, see <a href='/post/outline-bullets/'>fancy outline bullets</a></li>
+<li>
+<p>
+<em>pretty-code</em> : Program with custom ligatures and symbols, see &lt;a href=&#39;/post/prettify-mode/&#39;&gt;mathematical notation in emacs&lt;/a&gt;
+</p>
+</li>
+<li>
+<p>
+<em>pretty-eshell</em> : Customize eshell information and faces, see &lt;a href=&#39;/post/custom-eshell/&#39;&gt;making eshell your own&lt;/a&gt;
+</p>
+</li>
+<li>
+<p>
+<em>pretty-fonts</em> : All the icons and Fira Code ligature integration.
+</p>
+</li>
+<li>
+<p>
+<em>pretty-magit</em> : Commit leaders, see &lt;a href=&#39;/post/pretty-magit/&#39;&gt;pretty magit - integrating commit leaders&lt;/a&gt;
+</p>
+</li>
+<li>
+<p>
+<em>pretty-outlines</em> : Fancy outline bullets and ellipsis, see &lt;a href=&#39;/post/outline-bullets/&#39;&gt;fancy outline bullets&lt;/a&gt;
+</p>
+</li>
 </ul>
-
-<h3 id="langs-optional">Langs (optional)</h3>
-
-<p>I find it useful to separate programming language configuration out from the
-config layer, though it is not necessary.</p>
-
-<h3 id="personal-optional">Personal (optional)</h3>
-
-<p>All personal packages that aren't display related I maintain in a single
-personal layer. This is only relevant if you write your own packages.</p>
-
-<p>I setup my blogging and outline-jump packages here.</p>
-
-<h2 id="your-init-el">Your init.el</h2>
-
-<p>Layers must be declared in your <code>dotspacemacs-configuration-layers</code> to take effect.</p>
-
-<p>I've organized my layers into several sections:</p>
-
-<pre><code class="language-lisp">(defvar dotspacemacs/layers/local
-  '((macros :location local)
-    (config :location local)
-    (display :location local)
-    (langs :location local)
-    (personal :location local))
-  &quot;Local layers housed in '~/.spacemacs.d/layers'.&quot;)
+<h3 id="headline-12">
+Langs (optional)
+</h3>
+<p>
+I find it useful to separate programming language configuration out from the
+config layer, though it is not necessary.
+</p>
+<h3 id="headline-13">
+Personal (optional)
+</h3>
+<p>
+All personal packages that aren&#39;t display related I maintain in a single
+personal layer. This is only relevant if you write your own packages.
+</p>
+<p>
+I setup my blogging and outline-jump packages here.
+</p>
+<h2 id="headline-14">
+Your init.el
+</h2>
+<p>
+Layers must be declared in your <code>dotspacemacs-configuration-layers</code> to take effect.
+</p>
+<p>
+I&#39;ve organized my layers into several sections:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defvar dotspacemacs/layers/local
+  <span style="color:#f92672">&#39;</span>((macros <span style="color:#e6db74">:location</span> local)
+    (config <span style="color:#e6db74">:location</span> local)
+    (display <span style="color:#e6db74">:location</span> local)
+    (langs <span style="color:#e6db74">:location</span> local)
+    (personal <span style="color:#e6db74">:location</span> local))
+  <span style="color:#e6db74">&#34;Local layers housed in &#39;~/.spacemacs.d/layers&#39;.&#34;</span>)
 
 (defvar dotspacemacs/layers/core
-  '(better-defaults
+  <span style="color:#f92672">&#39;</span>(better-defaults
     git
     org
-    ...)
-  &quot;Layers I consider core to Spacemacs&quot;)
+    <span style="color:#f92672">...</span>)
+  <span style="color:#e6db74">&#34;Layers I consider core to Spacemacs&#34;</span>)
 
 (defvar dotspacemacs/layers/langs
-  '(emacs-lisp
-    ...)
-  &quot;Programming and markup language layers&quot;)
+  <span style="color:#f92672">&#39;</span>(emacs-lisp
+    <span style="color:#f92672">...</span>)
+  <span style="color:#e6db74">&#34;Programming and markup language layers&#34;</span>)
 
 (defvar dotspacemacs/layers/extra
-  '(gnus
+  <span style="color:#f92672">&#39;</span>(gnus
     graphviz
-    ...)
-  &quot;Miscellaneous layers&quot;)
+    <span style="color:#f92672">...</span>)
+  <span style="color:#e6db74">&#34;Miscellaneous layers&#34;</span>)
 
 (defun dotspacemacs/layers ()
-  (setq-default dotspacemacs-configuration-layer-path '(&quot;~/.spacemacs.d/layers/&quot;)
+  (setq-default dotspacemacs-configuration-layer-path <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">&#34;~/.spacemacs.d/layers/&#34;</span>)
                 dotspacemacs-configuration-layers
-                (append dotspacemacs/layers/core
+                (<span style="color:#a6e22e">append</span> dotspacemacs/layers/core
                         dotspacemacs/layers/langs
                         dotspacemacs/layers/extra
                         dotspacemacs/layers/local)
-                ...))
-</code></pre>
-
-<h2 id="gotchas">Gotchas</h2>
-
-<p>Migrating was mostly painless. However when things go wrong you lose access to
+                <span style="color:#f92672">...</span>))</code></pre></div>
+</div>
+<h2 id="headline-15">
+Gotchas
+</h2>
+<p>
+Migrating was mostly painless. However when things go wrong you lose access to
 your setup, an annoying development cycle. I encountered several Spacemacs
-idiosyncrasies to be aware of when using layers to replace my user-config.</p>
-
-<p>Non-obvious errors to avoid:</p>
-
-<h3 id="naming">Naming</h3>
-
-<p>The naming scheme of <code>setq layer-name-packages</code> and <code>defun layer-name/init-pkg-name</code> is strict.
+idiosyncrasies to be aware of when using layers to replace my user-config.
+</p>
+<p>
+Non-obvious errors to avoid:
+</p>
+<h3 id="headline-16">
+Naming
+</h3>
+<p>
+The naming scheme of <code>setq layer-name-packages</code> and <code>defun layer-name/init-pkg-name</code> is strict.
 Beware when refactoring that you adjust the layer name accordingly. Failure to
-do so will result in the package's configuration not being loaded or in the case
-of ownership, not being installed, rather than a direct error.</p>
-
-<h3 id="spacemacs-toggles">Spacemacs toggles</h3>
-
-<p>Some toggles like <code>spacemacs/toggle-highlight-long-lines-globally-on</code> do not
+do so will result in the package&#39;s configuration not being loaded or in the case
+of ownership, not being installed, rather than a direct error.
+</p>
+<h3 id="headline-17">
+Spacemacs toggles
+</h3>
+<p>
+Some toggles like <code>spacemacs/toggle-highlight-long-lines-globally-on</code> do not
 belong in any layer and should be defined in your user-config. Six toggles are
-now all that compose my <code>dotspacemacs/user-config</code>.</p>
-
-<p>This goes for some toggles not explicitly owned by Spacemacs - trying to setup
- <code>fringe-mode</code> failed for me even in a <code>config/post-init-fringe</code> block.</p>
-
-<h3 id="os-configuration">OS Configuration</h3>
-
-<p>I define <code>is-linuxp</code> and a few other OS utilities that conditionally setup
- <code>dotspacemacs/init</code> variables like font size. Layers load after these variables
+now all that compose my <code>dotspacemacs/user-config</code>.
+</p>
+<p>
+This goes for some toggles not explicitly owned by Spacemacs - trying to setup
+<code>fringe-mode</code> failed for me even in a <code>config/post-init-fringe</code> block.
+</p>
+<h3 id="headline-18">
+OS Configuration
+</h3>
+<p>
+I define <code>is-linuxp</code> and a few other OS utilities that conditionally setup
+<code>dotspacemacs/init</code> variables like font size. Layers load after these variables
 are set, so the utilities cannot be moved to a layer. Set them at the top of
-your <code>init.el</code>.</p>
-
-<h3 id="additional-themes">Additional Themes</h3>
-
-<p>Spacemacs layers load ordering causes issues for extra themes. Theme packages
-cannot be put in a layer. As a result, to use solarized I set:</p>
-
-<pre><code class="language-lisp">;; ~/.spacemacs.d/init.el
+your <code>init.el</code>.
+</p>
+<h3 id="headline-19">
+Additional Themes
+</h3>
+<p>
+Spacemacs layers load ordering causes issues for extra themes. Theme packages
+cannot be put in a layer. As a result, to use solarized I set:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; ~/.spacemacs.d/init.el</span>
 (defun dotspacemacs/layers ()
-  (setq-default dotspacemacs-additional-packages '(solarized-theme)
-                ...))
+  (setq-default dotspacemacs-additional-packages <span style="color:#f92672">&#39;</span>(solarized-theme)
+                <span style="color:#f92672">...</span>))
 (defun dotspacemacs/init ()
-  (setq-default dotspacemacs-themes '(solarized-dark solarized-light)
-                ...))
-</code></pre>
-
-<h3 id="spacemacs-core-layers">Spacemacs Core Layers</h3>
-
-<p>Without doing a deep dive into Spacemacs core, you can expect the following
+  (setq-default dotspacemacs-themes <span style="color:#f92672">&#39;</span>(solarized-dark solarized-light)
+                <span style="color:#f92672">...</span>))</code></pre></div>
+</div>
+<h3 id="headline-20">
+Spacemacs Core Layers
+</h3>
+<p>
+Without doing a deep dive into Spacemacs core, you can expect the following
 layers to always be loaded <strong>before all personal layers</strong>. This is how
- <code>dash</code> is always available and <code>evil-define-key</code> can be used in keybindings
-files.</p>
-
-<p>Call <code>g d</code> or <code>(spacemacs/jump-to-definition)</code> in emacs lisp mode to jump to
-that layer's packages.el to check out its packages and configuration.</p>
-
-<pre><code class="language-lisp">(configuration-layer/declare-layers
- '(spacemacs-base
+<code>dash</code> is always available and <code>evil-define-key</code> can be used in keybindings
+files.
+</p>
+<p>
+Call <code>g d</code> or <code>(spacemacs/jump-to-definition)</code> in emacs lisp mode to jump to
+that layer&#39;s packages.el to check out its packages and configuration.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(configuration-layer/declare-layers
+ <span style="color:#f92672">&#39;</span>(spacemacs-base
    spacemacs-completion
    spacemacs-layouts
    spacemacs-editing
@@ -510,23 +601,29 @@ that layer's packages.el to check out its packages and configuration.</p>
    spacemacs-navigation
    spacemacs-org
    spacemacs-purpose
-   spacemacs-visual))
-</code></pre>
-
-<p>These layers follow the same rules and principles as every other layer. If you
-have the curiosity, these layers make Spacemacs what it is.</p>
-
-<p>Functionality provided here can be made use of by any layer, assuming those
-packages and layers are not explicitly excluded.</p>
-
-<h1 id="benefits">Benefits</h1>
-
-<p>Those that value organization and robustness will find Spacemacs layers to
-improve on other configuration management methods.</p>
-
-<p>Following Spacemacs conventions leads to predictable, friendly configurations.</p>
-
-<p>Once you've become familiar with its conventions, there is no overhead.</p>
+   spacemacs-visual))</code></pre></div>
+</div>
+<p>
+These layers follow the same rules and principles as every other layer. If you
+have the curiosity, these layers make Spacemacs what it is.
+</p>
+<p>
+Functionality provided here can be made use of by any layer, assuming those
+packages and layers are not explicitly excluded.
+</p>
+<h1 id="headline-21">
+Benefits
+</h1>
+<p>
+Those that value organization and robustness will find Spacemacs layers to
+improve on other configuration management methods.
+</p>
+<p>
+Following Spacemacs conventions leads to predictable, friendly configurations.
+</p>
+<p>
+Once you&#39;ve become familiar with its conventions, there is no overhead.
+</p>
 
     </div>
   </div>

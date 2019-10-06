@@ -7,31 +7,13 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
-    <lastBuildDate>Tue, 15 May 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 23 May 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://ekaschalk.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>C</title>
-      <link>https://ekaschalk.github.io/categories/c/</link>
-      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/categories/c/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C&#43;&#43;</title>
-      <link>https://ekaschalk.github.io/categories/c&#43;&#43;/</link>
-      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/categories/c&#43;&#43;/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Emacs</title>
+      <title>emacs</title>
       <link>https://ekaschalk.github.io/categories/emacs/</link>
       <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
       
@@ -40,25 +22,7 @@
     </item>
     
     <item>
-      <title>Emacs Lisp</title>
-      <link>https://ekaschalk.github.io/categories/emacs-lisp/</link>
-      <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/categories/emacs-lisp/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Hy</title>
-      <link>https://ekaschalk.github.io/categories/hy/</link>
-      <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://ekaschalk.github.io/categories/hy/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Lisp</title>
+      <title>lisp</title>
       <link>https://ekaschalk.github.io/categories/lisp/</link>
       <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
       
@@ -67,25 +31,43 @@
     </item>
     
     <item>
-      <title>Math</title>
-      <link>https://ekaschalk.github.io/categories/math/</link>
-      <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
+      <title>testing</title>
+      <link>https://ekaschalk.github.io/categories/testing/</link>
+      <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://ekaschalk.github.io/categories/math/</guid>
+      <guid>https://ekaschalk.github.io/categories/testing/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Org Mode</title>
-      <link>https://ekaschalk.github.io/categories/org-mode/</link>
-      <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
+      <title>c</title>
+      <link>https://ekaschalk.github.io/categories/c/</link>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>https://ekaschalk.github.io/categories/org-mode/</guid>
+      <guid>https://ekaschalk.github.io/categories/c/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Python</title>
+      <title>c&#43;&#43;</title>
+      <link>https://ekaschalk.github.io/categories/c&#43;&#43;/</link>
+      <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/c&#43;&#43;/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hy</title>
+      <link>https://ekaschalk.github.io/categories/hy/</link>
+      <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/hy/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>python</title>
       <link>https://ekaschalk.github.io/categories/python/</link>
       <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
       
@@ -94,7 +76,7 @@
     </item>
     
     <item>
-      <title>Spacemacs</title>
+      <title>spacemacs</title>
       <link>https://ekaschalk.github.io/categories/spacemacs/</link>
       <pubDate>Fri, 14 Jul 2017 00:00:00 +0000</pubDate>
       
@@ -103,11 +85,29 @@
     </item>
     
     <item>
-      <title>Testing</title>
-      <link>https://ekaschalk.github.io/categories/testing/</link>
-      <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
+      <title>emacs-lisp</title>
+      <link>https://ekaschalk.github.io/categories/emacs-lisp/</link>
+      <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
-      <guid>https://ekaschalk.github.io/categories/testing/</guid>
+      <guid>https://ekaschalk.github.io/categories/emacs-lisp/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>org-mode</title>
+      <link>https://ekaschalk.github.io/categories/org-mode/</link>
+      <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/org-mode/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>math</title>
+      <link>https://ekaschalk.github.io/categories/math/</link>
+      <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://ekaschalk.github.io/categories/math/</guid>
       <description></description>
     </item>
     

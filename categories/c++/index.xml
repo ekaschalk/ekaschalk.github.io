@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>C&#43;&#43; on Modern Emacs</title>
+    <title>c&#43;&#43; on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/c&#43;&#43;/</link>
-    <description>Recent content in C&#43;&#43; on Modern Emacs</description>
+    <description>Recent content in c&#43;&#43; on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,10 +18,7 @@
       <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/pretty-for-loops/</guid>
-      <description>This reddit post posed a fun challenge: display for(auto&amp;amp;&amp;amp; foo : bar){...} with mathematical notation.
-In python this is trivial with prettify-symbols-mode as its syntax is simply for foo in bar:.
-Turns out is possible... whether it is a good idea or not is still questionable.
-How it works First we write a regex for the for-auto construct. Two groups are set, one for locating the for-all symbol and another for the in symbol.</description>
+      <description>Displaying C loops with math notation</description>
     </item>
     
   </channel>

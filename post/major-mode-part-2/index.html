@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -207,553 +207,659 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>In <a href='/post/major-mode-part-1/'>Part 1</a> I addressed:
-syntax tables, indentation, font locking, and context-sensitive syntax.</p>
+      
+<p>
+In &lt;a href=&#39;/post/major-mode-part-1/&#39;&gt;Part 1&lt;/a&gt; I addressed:
+syntax tables, indentation, font locking, and context-sensitive syntax.
+</p>
+<p>
+We now build out a &#34;Hyde&#34; with: shell/async process integration, Eldoc support,
+and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-at-point.
+</p>
+<p>
+<img src="/img/eldoc-auto.png" alt="/img/eldoc-auto.png" title="/img/eldoc-auto.png" />
+</p>
+<h1 id="headline-1">
+Building Inferior Hy
+</h1>
+<h2 id="headline-2">
+The basics
+</h2>
+<p>
+The easiest way to add a REPL to your major-mode is through setting the variable
+<code>inferior-lisp-program</code>, possibly adding setup code through
+<code>inferior-lisp-load-command</code>, then running the <code>inferior-lisp</code> command.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; within the define-derived-mode hy-mode setup...</span>
+(setq-local inferior-lisp-program <span style="color:#e6db74">&#34;hy&#34;</span>)
+(setq-local inferior-lisp-load-command <span style="color:#e6db74">&#34;(print \&#34;Hy there!\&#34;)&#34;</span>)</code></pre></div>
+</div>
+<p>
+This isn&#39;t sufficient for advanced shells. The custom is to create a
+function named <code>run-hy</code> (eg. there is <code>run-python</code>, <code>run-haskell</code>…)
+which starts up the shell, sets <code>inferior-hy-mode</code> , and switches to the
+shell.
+</p>
+<h2 id="headline-3">
+Comint-mode
+</h2>
+<p>
+It is a &#34;Major mode for interacting with an inferior interpreter&#34;. Most-all
+inferior modes will derive from <code>comint-mode</code>. It provides many utilities for
+interacting with shell-like processes.
+</p>
+<p>
+Hy mode&#39;s prompt is a right arrow.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(define-derived-mode inferior-hy-mode comint-mode <span style="color:#e6db74">&#34;Inferior Hy&#34;</span>
+  <span style="color:#e6db74">&#34;Major mode for Hy inferior process.&#34;</span>
+  (setq-local indent-tabs-mode <span style="color:#66d9ef">nil</span>)
 
-<p>We now build out a "Hyde" with: shell/async process integration, Eldoc support,
-and Autocompletion. Also "shift-K" documentation lookup for the symbol-at-point.</p>
+  <span style="color:#75715e">;; How to dispaly the process status in the mode-line</span>
+  (<span style="color:#66d9ef">setq</span> mode-line-process <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">&#34;:%s&#34;</span>))
+  <span style="color:#75715e">;; This disables editing and traversing the &#34;=&gt;&#34; prompts</span>
+  (setq-local comint-prompt-read-only <span style="color:#66d9ef">t</span>)
+  <span style="color:#75715e">;; Lets comint mode recognize the prompt</span>
+  (setq-local comint-prompt-regexp (rx bol <span style="color:#e6db74">&#34;=&gt;&#34;</span> space))
 
-<p><img src="/img/eldoc-auto.png" alt="/img/eldoc-auto.png" title="/img/eldoc-auto.png" /></p>
-
-<h1 id="building-inferior-hy">Building Inferior Hy</h1>
-
-<h2 id="the-basics">The basics</h2>
-
-<p>The easiest way to add a REPL to your major-mode is through setting the variable
-   <code>inferior-lisp-program</code>, possibly adding setup code through
-   <code>inferior-lisp-load-command</code>, then running the <code>inferior-lisp</code> command.</p>
-
-<pre><code class="language-lisp">;; within the define-derived-mode hy-mode setup...
-(setq-local inferior-lisp-program &quot;hy&quot;)
-(setq-local inferior-lisp-load-command &quot;(print \&quot;Hy there!\&quot;)&quot;)
-</code></pre>
-
-<p>This isn't sufficient for advanced shells. The custom is to create a
-    function named <code>run-hy</code> (eg. there is <code>run-python</code>, <code>run-haskell</code>...)
-    which starts up the shell, sets <code>inferior-hy-mode</code> , and switches to the
-    shell.</p>
-
-<h2 id="comint-mode">Comint-mode</h2>
-
-<p>It is a "Major mode for interacting with an inferior interpreter". Most-all
-   inferior modes will derive from <code>comint-mode</code>. It provides many utilities for
-   interacting with shell-like processes.</p>
-
-<p>Hy mode's prompt is a right arrow.</p>
-
-<pre><code class="language-lisp">(define-derived-mode inferior-hy-mode comint-mode &quot;Inferior Hy&quot;
-  &quot;Major mode for Hy inferior process.&quot;
-  (setq-local indent-tabs-mode nil)
-
-  ;; How to dispaly the process status in the mode-line
-  (setq mode-line-process '(&quot;:%s&quot;))
-  ;; This disables editing and traversing the &quot;=&gt;&quot; prompts
-  (setq-local comint-prompt-read-only t)
-  ;; Lets comint mode recognize the prompt
-  (setq-local comint-prompt-regexp (rx bol &quot;=&gt;&quot; space))
-
-  ;; ... other specialized config introduced later ...
-  )
-</code></pre>
-
-<p>There are several comint components we will make use of:</p>
-
+  <span style="color:#75715e">;; ... other specialized config introduced later ...</span>
+  )</code></pre></div>
+</div>
+<p>
+There are several comint components we will make use of:
+</p>
 <ol>
-<li><code>comint-last-prompt</code> - a cons cell of begin/end markers of last prompt.</li>
-<li><code>comint-send-string</code> - perform <code>process-send-string</code> with comint</li>
-      bookkeeping.
-<li><code>comint-redirect-send-command-to-process</code> and <code>comint-redirect-completed</code> - for sending strings asynchronously.</li>
-<li><code>comint-(pre)output-filter-functions</code> - entry points into capturing and</li>
-      cleaning process output.
-<li><code>make-comint-in-buffer</code> - entry point into comint mode.</li>
+<li>
+<p>
+<code>comint-last-prompt</code> - a cons cell of begin/end markers of last prompt.
+</p>
+</li>
+<li>
+<p>
+<code>comint-send-string</code> - perform <code>process-send-string</code> with comint
+bookkeeping.
+</p>
+</li>
+<li>
+<p>
+<code>comint-redirect-send-command-to-process</code> and <code>comint-redirect-completed</code> - for sending strings asynchronously.
+</p>
+</li>
+<li>
+<p>
+<code>comint-(pre)output-filter-functions</code> - entry points into capturing and
+cleaning process output.
+</p>
+</li>
+<li>
+<p>
+<code>make-comint-in-buffer</code> - entry point into comint mode.
+</p>
+</li>
 </ol>
+<h2 id="headline-4">
+Managing buffers and processes
+</h2>
+<p>
+We must manage: the standard hy shell process, the internal hy process used
+for autocompletion and eldoc, and temporal buffers for more advanced buffer
+transformations of the standard hy shell process.
+</p>
+<p>
+The configuration required of <code>inferior-hy-mode</code> :
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;;; Configuration</span>
 
-<h2 id="managing-buffers-and-processes">Managing buffers and processes</h2>
+(defconst hy-shell-interpreter <span style="color:#e6db74">&#34;hy&#34;</span>
+  <span style="color:#e6db74">&#34;Default Hy interpreter name.&#34;</span>)
 
-<p>We must manage: the standard hy shell process, the internal hy process used
-   for autocompletion and eldoc, and temporal buffers for more advanced buffer
-   transformations of the standard hy shell process.</p>
+(defvar hy-shell-interpreter-args <span style="color:#e6db74">&#34;--spy&#34;</span>
+  <span style="color:#e6db74">&#34;Default arguments for Hy interpreter.&#34;</span>)
 
-<p>The configuration required of <code>inferior-hy-mode</code> :</p>
+<span style="color:#75715e">;;; Internal</span>
 
-<pre><code class="language-lisp">;;; Configuration
+(defconst hy-shell-buffer-name <span style="color:#e6db74">&#34;Hy&#34;</span>
+  <span style="color:#e6db74">&#34;Default buffer name for Hy interpreter.&#34;</span>)
 
-(defconst hy-shell-interpreter &quot;hy&quot;
-  &quot;Default Hy interpreter name.&quot;)
+(defconst hy-shell-internal-buffer-name <span style="color:#e6db74">&#34;Hy Internal&#34;</span>
+  <span style="color:#e6db74">&#34;Default buffer name for the internal Hy process.&#34;</span>)
 
-(defvar hy-shell-interpreter-args &quot;--spy&quot;
-  &quot;Default arguments for Hy interpreter.&quot;)
+(defvar hy-shell-buffer <span style="color:#66d9ef">nil</span>
+  <span style="color:#e6db74">&#34;The current shell buffer for Hy.&#34;</span>)
 
-;;; Internal
+(defvar hy--shell-output-filter-in-progress <span style="color:#66d9ef">nil</span>
+  <span style="color:#e6db74">&#34;Whether we are waiting for output in `hy-shell-send-string-no-output&#39;.&#34;</span>)
 
-(defconst hy-shell-buffer-name &quot;Hy&quot;
-  &quot;Default buffer name for Hy interpreter.&quot;)
+(defvar hy--shell-font-lock-enable <span style="color:#66d9ef">t</span>
+  <span style="color:#e6db74">&#34;Whether the shell should font-lock the current line.&#34;</span>)</code></pre></div>
+</div>
+<p>
+Now the building blocks of the shell can be defined.
+</p>
+<p>
+The implementations are rather straightforward. To keep space down, only
+name and docstring are provided:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--shell-format-process-name (proc-name)
+  <span style="color:#e6db74">&#34;Format a PROC-NAME with closing astericks.&#34;</span>)
 
-(defconst hy-shell-internal-buffer-name &quot;Hy Internal&quot;
-  &quot;Default buffer name for the internal Hy process.&quot;)
-
-(defvar hy-shell-buffer nil
-  &quot;The current shell buffer for Hy.&quot;)
-
-(defvar hy--shell-output-filter-in-progress nil
-  &quot;Whether we are waiting for output in `hy-shell-send-string-no-output'.&quot;)
-
-(defvar hy--shell-font-lock-enable t
-  &quot;Whether the shell should font-lock the current line.&quot;)
-</code></pre>
-
-<p>Now the building blocks of the shell can be defined.</p>
-
-<p>The implementations are rather straightforward. To keep space down, only
-    name and docstring are provided:</p>
-
-<pre><code class="language-lisp">(defun hy--shell-format-process-name (proc-name)
-  &quot;Format a PROC-NAME with closing astericks.&quot;)
-
-(defun hy-shell-get-process (&amp;optional internal)
-  &quot;Get process corr. to `hy-shell-buffer-name'/`hy-shell-internal-buffer-name'.&quot;)
+(defun hy-shell-get-process (<span style="color:#66d9ef">&amp;optional</span> internal)
+  <span style="color:#e6db74">&#34;Get process corr. to `hy-shell-buffer-name&#39;/`hy-shell-internal-buffer-name&#39;.&#34;</span>)
 
 (defun hy--shell-current-buffer-process ()
-  &quot;Get process associated with current buffer.&quot;)
+  <span style="color:#e6db74">&#34;Get process associated with current buffer.&#34;</span>)
 
 (defun hy--shell-current-buffer-a-process? ()
-  &quot;Is `current-buffer' a live process?&quot;)
+  <span style="color:#e6db74">&#34;Is `current-buffer&#39; a live process?&#34;</span>)
 
 (defun hy--shell-get-or-create-buffer ()
-  &quot;Get or create `hy-shell-buffer' buffer for current hy shell process.&quot;)
+  <span style="color:#e6db74">&#34;Get or create `hy-shell-buffer&#39; buffer for current hy shell process.&#34;</span>)
 
 (defun hy--shell-buffer? ()
-  &quot;Is `hy-shell-buffer' set and does it exist?&quot;)
+  <span style="color:#e6db74">&#34;Is `hy-shell-buffer&#39; set and does it exist?&#34;</span>)
 
 (defun hy--shell-kill-buffer ()
-  &quot;Kill `hy-shell-buffer'.&quot;)
+  <span style="color:#e6db74">&#34;Kill `hy-shell-buffer&#39;.&#34;</span>)
 
-(defun hy--shell-calculate-command (&amp;optional internal)
-  &quot;Calculate the string used to execute the inferior Hy process.&quot;)
-  ;; Straightforward string formatting - see: `shell-quote-argument'
-</code></pre>
-
-<h2 id="starting-up-the-shell">Starting up the shell</h2>
-
-<p>The commands above are enough to build out some basic shell support. Lets
-   look at <code>run-hy</code> :</p>
-
-<pre><code class="language-lisp">(defun run-hy (&amp;optional cmd)
-  &quot;Run an inferior Hy process.
-
-CMD defaults to the result of `hy--shell-calculate-command'.&quot;
+(defun hy--shell-calculate-command (<span style="color:#66d9ef">&amp;optional</span> internal)
+  <span style="color:#e6db74">&#34;Calculate the string used to execute the inferior Hy process.&#34;</span>)
+  <span style="color:#75715e">;; Straightforward string formatting - see: `shell-quote-argument&#39;</span></code></pre></div>
+</div>
+<h2 id="headline-5">
+Starting up the shell
+</h2>
+<p>
+The commands above are enough to build out some basic shell support. Lets
+look at <code>run-hy</code> :
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun run-hy (<span style="color:#66d9ef">&amp;optional</span> cmd)
+  <span style="color:#e6db74">&#34;Run an inferior Hy process.
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">CMD defaults to the result of `hy--shell-calculate-command&#39;.&#34;</span>
   (interactive)
-  (unless (executable-find &quot;hy&quot;)
-    (message &quot;Hy not found, activate a virtual environment with Hy.&quot;))
+  (unless (executable-find <span style="color:#e6db74">&#34;hy&#34;</span>)
+    (message <span style="color:#e6db74">&#34;Hy not found, activate a virtual environment with Hy.&#34;</span>))
 
   (-&gt; (or cmd (hy--shell-calculate-command))
-     (hy--shell-make-comint hy-shell-buffer-name 'show)
-     get-buffer-process))
-</code></pre>
-
-<p>Most of the work is delegated to <code>hy--shell-make-comint</code> as we also must
-    have the internal variant:</p>
-
-<pre><code class="language-lisp">(defun run-hy-internal ()
-  &quot;Start an inferior hy process in the background for autocompletion.&quot;
+     (hy--shell-make-comint hy-shell-buffer-name <span style="color:#e6db74">&#39;show</span>)
+     get-buffer-process))</code></pre></div>
+</div>
+<p>
+Most of the work is delegated to <code>hy--shell-make-comint</code> as we also must
+have the internal variant:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun run-hy-internal ()
+  <span style="color:#e6db74">&#34;Start an inferior hy process in the background for autocompletion.&#34;</span>
   (interactive)
-  (unless (executable-find &quot;hy&quot;)
-    (message &quot;Hy not found, activate a virtual environment containing Hy to use
-Eldoc, Anaconda, and other hy-mode features.&quot;))
+  (unless (executable-find <span style="color:#e6db74">&#34;hy&#34;</span>)
+    (message <span style="color:#e6db74">&#34;Hy not found, activate a virtual environment containing Hy to use
+</span><span style="color:#e6db74">Eldoc, Anaconda, and other hy-mode features.&#34;</span>))
 
-  (when (and (not (hy-shell-get-process 'internal))
-             (executable-find &quot;hy&quot;))
+  (when (and (<span style="color:#a6e22e">not</span> (hy-shell-get-process <span style="color:#e6db74">&#39;internal</span>))
+             (executable-find <span style="color:#e6db74">&#34;hy&#34;</span>))
     (-let [hy--shell-font-lock-enable
            nil]
       (prog1
-          (-&gt; (hy--shell-calculate-command 'internal)
-             (hy--shell-make-comint hy-shell-internal-buffer-name nil 'internal)
+          (-&gt; (hy--shell-calculate-command <span style="color:#e6db74">&#39;internal</span>)
+             (hy--shell-make-comint hy-shell-internal-buffer-name <span style="color:#66d9ef">nil</span> <span style="color:#e6db74">&#39;internal</span>)
              get-buffer-process)
         (hy--shell-send-internal-setup-code)
-        (message &quot;Hy internal process successfully started&quot;)))))
-</code></pre>
-
-<p>This is a simple variation of <code>run-hy</code> that passes the internal argument
-    through the hy shell building blocks and also sends setup code for
-    <code>eldoc-mode</code> and <code>company-mode</code>.</p>
-
-<p>Now we are ready to startup our <code>inferior-hy-mode</code> :</p>
-
-<pre><code class="language-lisp">(defun hy--shell-make-comint (cmd proc-name &amp;optional show internal)
-  &quot;Create and return comint process PROC-NAME with CMD, opt. INTERNAL and SHOW.&quot;
+        (message <span style="color:#e6db74">&#34;Hy internal process successfully started&#34;</span>)))))</code></pre></div>
+</div>
+<p>
+This is a simple variation of <code>run-hy</code> that passes the internal argument
+through the hy shell building blocks and also sends setup code for
+<code>eldoc-mode</code> and <code>company-mode</code>.
+</p>
+<p>
+Now we are ready to startup our <code>inferior-hy-mode</code> :
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--shell-make-comint (cmd proc-name <span style="color:#66d9ef">&amp;optional</span> show internal)
+  <span style="color:#e6db74">&#34;Create and return comint process PROC-NAME with CMD, opt. INTERNAL and SHOW.&#34;</span>
   (-when-let* ((proc-buffer-name
                 (hy--shell-format-process-name proc-name))
                (_
-                (not (comint-check-proc proc-buffer-name)))
+                (<span style="color:#a6e22e">not</span> (comint-check-proc proc-buffer-name)))
                (cmdlist
                 (split-string-and-unquote cmd))
                (buffer
-                (apply 'make-comint-in-buffer proc-name proc-buffer-name
-                       (car cmdlist) nil (cdr cmdlist)))
+                (<span style="color:#a6e22e">apply</span> <span style="color:#e6db74">&#39;make-comint-in-buffer</span> proc-name proc-buffer-name
+                       (<span style="color:#a6e22e">car</span> cmdlist) <span style="color:#66d9ef">nil</span> (<span style="color:#a6e22e">cdr</span> cmdlist)))
                (process
                 (get-buffer-process buffer)))
     (with-current-buffer buffer
       (inferior-hy-mode))
     (when show
       (display-buffer buffer))
-    (if internal
-        (set-process-query-on-exit-flag process nil)
-      (setq hy-shell-buffer buffer))
-    proc-buffer-name))
-</code></pre>
-
-<p>All the work is once again delegated to our shell building blocks. There are
-    several things to notice:</p>
-
+    (<span style="color:#66d9ef">if</span> internal
+        (set-process-query-on-exit-flag process <span style="color:#66d9ef">nil</span>)
+      (<span style="color:#66d9ef">setq</span> hy-shell-buffer buffer))
+    proc-buffer-name))</code></pre></div>
+</div>
+<p>
+All the work is once again delegated to our shell building blocks. There are
+several things to notice:
+</p>
 <ol>
-<li>If the process is meant to be autostarted/quited, make sure to use <code>set-process-query-on-exit-flag</code> to nil.</li>
-<li>The <code>cmdlist</code> car is "hy" and cdr is the hy interpreter arguments.</li>
-<li>Further accessing of the shell is done with the <code>hy-shell-buffer</code> variable.</li>
+<li>
+<p>
+If the process is meant to be autostarted/quited, make sure to use <code>set-process-query-on-exit-flag</code> to nil.
+</p>
+</li>
+<li>
+<p>
+The <code>cmdlist</code> car is &#34;hy&#34; and cdr is the hy interpreter arguments.
+</p>
+</li>
+<li>
+<p>
+Further accessing of the shell is done with the <code>hy-shell-buffer</code> variable.
+</p>
+</li>
 </ol>
+<h2 id="headline-6">
+Working with the shell
+</h2>
+<p>
+The shell is now functional, but we still don&#39;t have methods to send strings
+to the shell (for instance, sending the current-form or the buffer for
+evaluation). Nor do we have any support for asynchronously sending and
+extracting information from our internal process.
+</p>
+<p>
+Like always, lets define some utilities:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--shell-end-of-output? (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;Return non-nil if STRING ends with the prompt.&#34;</span>
+  (s-matches? comint-prompt-regexp <span style="color:#a6e22e">string</span>))
 
-<h2 id="working-with-the-shell">Working with the shell</h2>
-
-<p>The shell is now functional, but we still don't have methods to send strings
-   to the shell (for instance, sending the current-form or the buffer for
-   evaluation). Nor do we have any support for asynchronously sending and
-   extracting information from our internal process.</p>
-
-<p>Like always, lets define some utilities:</p>
-
-<pre><code class="language-lisp">(defun hy--shell-end-of-output? (string)
-  &quot;Return non-nil if STRING ends with the prompt.&quot;
-  (s-matches? comint-prompt-regexp string))
-
-(defun hy--shell-output-filter (string)
-  &quot;If STRING ends with input prompt then set filter in progress done.&quot;
-  (when (hy--shell-end-of-output? string)
-    (setq hy--shell-output-filter-in-progress nil))
-  &quot;\n=&gt; &quot;)
-</code></pre>
-
-<p><code>hy--shell-output-filter-in-progress</code> is the critical component. Lets see how
-    it is used:</p>
-
-<pre><code class="language-lisp">(defun hy--shell-send-string (string &amp;optional process internal)
-  &quot;Internal implementation of shell send string functionality.&quot;
-  (let ((process (or process (hy-shell-get-process internal)))
-        (hy--shell-output-filter-in-progress t))
-    (comint-send-string process string)
+(defun hy--shell-output-filter (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;If STRING ends with input prompt then set filter in progress done.&#34;</span>
+  (when (hy--shell-end-of-output? <span style="color:#a6e22e">string</span>)
+    (<span style="color:#66d9ef">setq</span> hy--shell-output-filter-in-progress <span style="color:#66d9ef">nil</span>))
+  <span style="color:#e6db74">&#34;\n=&gt; &#34;</span>)</code></pre></div>
+</div>
+<p>
+<code>hy--shell-output-filter-in-progress</code> is the critical component. Lets see how
+it is used:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--shell-send-string (<span style="color:#a6e22e">string</span> <span style="color:#66d9ef">&amp;optional</span> process internal)
+  <span style="color:#e6db74">&#34;Internal implementation of shell send string functionality.&#34;</span>
+  (<span style="color:#66d9ef">let</span> ((process (or process (hy-shell-get-process internal)))
+        (hy--shell-output-filter-in-progress <span style="color:#66d9ef">t</span>))
+    (comint-send-string process <span style="color:#a6e22e">string</span>)
     (while hy--shell-output-filter-in-progress
-      (accept-process-output process))))
-</code></pre>
-
-<p>The shell process is obtained, we set it to be in progress, and send it off
-    to comint. But how and when is the filter reset?</p>
-
-<p>We come back to the <code>comint-(pre)output-filter-functions</code>. When we send the
-    string via <code>comint-send-string</code>, part of its bookkeeping is to apply these
-    filter functions to the output. However, the output can come in chunks, so
-    simply accepting the process output is not sufficient. We must recognize
-    when the last of the expected process output is retrieved and signal to stop
-    accepting output.</p>
-
-<p>The difference between the pre and standard filters is when they are
-    applied. The pre variation is executed before the process output is inserted
-    into the buffer.</p>
-
-<p>Looking back to <code>hy--shell-output-filter</code>, what are the outcomes of using it
-    as a pre or standard filter? Lets look at the exposed send strings:</p>
-
-<pre><code class="language-lisp">(defun hy-shell-send-string-no-output (string &amp;optional process internal)
-  &quot;Send STRING to hy PROCESS and inhibit printing output.&quot;
+      (accept-process-output process))))</code></pre></div>
+</div>
+<p>
+The shell process is obtained, we set it to be in progress, and send it off
+to comint. But how and when is the filter reset?
+</p>
+<p>
+We come back to the <code>comint-(pre)output-filter-functions</code>. When we send the
+string via <code>comint-send-string</code>, part of its bookkeeping is to apply these
+filter functions to the output. However, the output can come in chunks, so
+simply accepting the process output is not sufficient. We must recognize
+when the last of the expected process output is retrieved and signal to stop
+accepting output.
+</p>
+<p>
+The difference between the pre and standard filters is when they are
+applied. The pre variation is executed before the process output is inserted
+into the buffer.
+</p>
+<p>
+Looking back to <code>hy--shell-output-filter</code>, what are the outcomes of using it
+as a pre or standard filter? Lets look at the exposed send strings:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy-shell-send-string-no-output (<span style="color:#a6e22e">string</span> <span style="color:#66d9ef">&amp;optional</span> process internal)
+  <span style="color:#e6db74">&#34;Send STRING to hy PROCESS and inhibit printing output.&#34;</span>
   (-let [comint-preoutput-filter-functions
-         '(hy--shell-output-filter)]
-    (hy--shell-send-string string process internal)))
+         <span style="color:#f92672">&#39;</span>(hy--shell-output-filter)]
+    (hy--shell-send-string <span style="color:#a6e22e">string</span> process internal)))
 
-(defun hy-shell-send-string (string &amp;optional process)
-  &quot;Send STRING to hy PROCESS.&quot;
+(defun hy-shell-send-string (<span style="color:#a6e22e">string</span> <span style="color:#66d9ef">&amp;optional</span> process)
+  <span style="color:#e6db74">&#34;Send STRING to hy PROCESS.&#34;</span>
   (-let [comint-output-filter-functions
-         '(hy--shell-output-filter)]
-    (hy--shell-send-string string process)))
-</code></pre>
-
-<p>Lastly, these functions won't work for asynchronous ops like Eldoc and
-    Autocompletion. You will see a <code>Blocking call inhibiting process output</code> error messaged in the minibuffer.</p>
-
-<p>The asynchronous version is different. We redirect the process output to a
-    temporary buffer and capture its output.</p>
-
-<p>The key is the 100ms <code>timeout</code> argument passed to <code>accept-process-output</code>.</p>
-
-<pre><code class="language-lisp">(defun hy--shell-send-async (string)
-  &quot;Send STRING to internal hy process asynchronously.&quot;
-  (let ((output-buffer &quot; *Comint Hy Redirect Work Buffer*&quot;)
-        (proc (hy-shell-get-process 'internal)))
+         <span style="color:#f92672">&#39;</span>(hy--shell-output-filter)]
+    (hy--shell-send-string <span style="color:#a6e22e">string</span> process)))</code></pre></div>
+</div>
+<p>
+Lastly, these functions won&#39;t work for asynchronous ops like Eldoc and
+Autocompletion. You will see a <code>Blocking call inhibiting process output</code> error messaged in the minibuffer.
+</p>
+<p>
+The asynchronous version is different. We redirect the process output to a
+temporary buffer and capture its output.
+</p>
+<p>
+The key is the 100ms <code>timeout</code> argument passed to <code>accept-process-output</code>.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--shell-send-async (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;Send STRING to internal hy process asynchronously.&#34;</span>
+  (<span style="color:#66d9ef">let</span> ((output-buffer <span style="color:#e6db74">&#34; *Comint Hy Redirect Work Buffer*&#34;</span>)
+        (proc (hy-shell-get-process <span style="color:#e6db74">&#39;internal</span>)))
     (with-current-buffer (get-buffer-create output-buffer)
       (erase-buffer)
-      (comint-redirect-send-command-to-process string output-buffer proc nil t)
+      (comint-redirect-send-command-to-process <span style="color:#a6e22e">string</span> output-buffer proc <span style="color:#66d9ef">nil</span> <span style="color:#66d9ef">t</span>)
 
       (set-buffer (process-buffer proc))
-      (while (and (null comint-redirect-completed)
-                  (accept-process-output proc nil 100 t)))
+      (while (and (<span style="color:#a6e22e">null</span> comint-redirect-completed)
+                  (accept-process-output proc <span style="color:#66d9ef">nil</span> <span style="color:#ae81ff">100</span> <span style="color:#66d9ef">t</span>)))
       (set-buffer output-buffer)
-      (buffer-string))))
-</code></pre>
-
-<p>Our shell is now ready for autocompletion, eldoc, and other awesome IDE features.</p>
-
-<p>I originally planned to go into font-locking the prompt input (highly
-    non-trivial), but given the length of this post I will provide and link to
-    it as a separate future post.</p>
-
-<h1 id="autocompletion">Autocompletion</h1>
-
-<p>All the work for autocompletion was in setting up the asynchronous process
-  support. Lets see how easy autocompletion becomes:</p>
-
-<pre><code class="language-lisp">(defconst hy-company-setup-code
-  &quot;(import [hy.completer [Completer]])
-(setv --HYCOMPANY (Completer))&quot;
-  &quot;Autocompletion setup code to send to the internal process.&quot;)
+      (buffer-string))))</code></pre></div>
+</div>
+<p>
+Our shell is now ready for autocompletion, eldoc, and other awesome IDE features.
+</p>
+<p>
+I originally planned to go into font-locking the prompt input (highly
+non-trivial), but given the length of this post I will provide and link to
+it as a separate future post.
+</p>
+<h1 id="headline-7">
+Autocompletion
+</h1>
+<p>
+All the work for autocompletion was in setting up the asynchronous process
+support. Lets see how easy autocompletion becomes:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defconst hy-company-setup-code
+  <span style="color:#e6db74">&#34;(import [hy.completer [Completer]])
+</span><span style="color:#e6db74">(setv --HYCOMPANY (Completer))&#34;</span>
+  <span style="color:#e6db74">&#34;Autocompletion setup code to send to the internal process.&#34;</span>)
 
 (defconst hy--company-regexp
-  (rx &quot;'&quot;
-      (group (1+ (not (any &quot;,]&quot;))))
-      &quot;'&quot;
-      (any &quot;,&quot; &quot;]&quot;))
-  &quot;Regex to extra candidates from --HYCOMPANY.&quot;)
+  (rx <span style="color:#e6db74">&#34;&#39;&#34;</span>
+      (group (<span style="color:#a6e22e">1+</span> (<span style="color:#a6e22e">not</span> (any <span style="color:#e6db74">&#34;,]&#34;</span>))))
+      <span style="color:#e6db74">&#34;&#39;&#34;</span>
+      (any <span style="color:#e6db74">&#34;,&#34;</span> <span style="color:#e6db74">&#34;]&#34;</span>))
+  <span style="color:#e6db74">&#34;Regex to extra candidates from --HYCOMPANY.&#34;</span>)
 
-(defun hy--company-format-str (string)
-  &quot;Format STRING to send to hy for completion candidates.&quot;
-  (when string
-    (format &quot;(.%s --HYCOMPANY \&quot;%s\&quot;)&quot;
-            (cond ((s-starts-with? &quot;#&quot; string)  ; Tag matches broken in Hy atm
-                   &quot;tag-matches&quot;)
-                  ((s-contains? &quot;.&quot; string)
-                   &quot;attr-matches&quot;)
-                  (t
-                   &quot;global-matches&quot;))
-            string)))
+(defun hy--company-format-str (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;Format STRING to send to hy for completion candidates.&#34;</span>
+  (when <span style="color:#a6e22e">string</span>
+    (<span style="color:#a6e22e">format</span> <span style="color:#e6db74">&#34;(.%s --HYCOMPANY \&#34;%s\&#34;)&#34;</span>
+            (cond ((s-starts-with? <span style="color:#e6db74">&#34;#&#34;</span> <span style="color:#a6e22e">string</span>)  <span style="color:#75715e">; Tag matches broken in Hy atm</span>
+                   <span style="color:#e6db74">&#34;tag-matches&#34;</span>)
+                  ((s-contains? <span style="color:#e6db74">&#34;.&#34;</span> <span style="color:#a6e22e">string</span>)
+                   <span style="color:#e6db74">&#34;attr-matches&#34;</span>)
+                  (<span style="color:#66d9ef">t</span>
+                   <span style="color:#e6db74">&#34;global-matches&#34;</span>))
+            <span style="color:#a6e22e">string</span>)))
 
-(defun hy--company-candidates (string)
-  &quot;Get candidates for completion of STRING.&quot;
-  (-when-let* ((command (hy--company-format-str string))
+(defun hy--company-candidates (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;Get candidates for completion of STRING.&#34;</span>
+  (-when-let* ((command (hy--company-format-str <span style="color:#a6e22e">string</span>))
                (candidates (hy--shell-send-async command))
                (matches (s-match-strings-all hy--company-regexp candidates)))
-    (-select-column 1 matches)))  ; Get match-data-1 for each match
+    (-select-column <span style="color:#ae81ff">1</span> matches)))  <span style="color:#75715e">; Get match-data-1 for each match</span>
 
-(defun company-hy (command &amp;optional arg &amp;rest ignored)
-  (interactive (list 'interactive))
+(defun company-hy (command <span style="color:#66d9ef">&amp;optional</span> arg <span style="color:#66d9ef">&amp;rest</span> ignored)
+  (interactive (<span style="color:#a6e22e">list</span> <span style="color:#e6db74">&#39;interactive</span>))
   (cl-case command
     (prefix (company-grab-symbol))
     (candidates (hy--company-candidates arg))
-    (meta (-&gt; arg hy--eldoc-get-docs hy--str-or-empty))))
-</code></pre>
-
-<p><code>Completer</code> is a hy builtin that completes a given string and does all the
-    work here. We simply call it's appropriate method, extract the items in the
-    retrieved list, and hand it off to company.</p>
-
-<p><code>company-grab-symbol</code> gets the current symbol which is handed off as <code>arg</code> in
-    the subsequent call.</p>
-
-<p>The <code>meta</code> argument shows the eldoc output for the current selected company
-    candidate in the minibuffer, as seen in this post's initial image.</p>
-
-<p><code>company-hy</code> can then be enabled either through adding to <code>company-backends</code> or
-    for Spacemacs users adding:</p>
-
-<pre><code class="language-lisp">;; Technically this should be within a hy layer, but this still works uncaptured
-(spacemacs|add-company-backends
-  :backends company-hy
-  :modes hy-mode inferior-hy-mode)
-</code></pre>
-
-<p>Developing a major-mode that accommodates Spacemacs users will be touched on
-    in future posts.</p>
-
-<h1 id="eldoc">Eldoc</h1>
-
-<p>For those unfamiliar, in the initial image <code>eldoc-mode</code> provides the formatted
-  docstring and arguments in the minibuffer for the symbol-at-point (or
-  completion candidate).</p>
-
-<p>Perhaps surprisingly, Eldoc is <em>a lot</em> more challenging than autocompletion.</p>
-
-<p>For starters, your language won't provide Eldoc like strings (formatted
-  argument list + first line of docstring) by default. How difficult inspecting
-  language constructs is entirely dependent on the language. Hy in particular is
-  difficult due to how macros are implemented and namespaced. I won't provide
-  the <code>hy-eldoc-setup-code</code> here, it can be found within the source.</p>
-
-<p>Next, your implementation must mirror any relevant DSLs. For lisps, Eldoc
-  inspects the form opener. It is hydiomatic to:</p>
-
-<pre><code class="language-lisp">(setv x &quot;hi&quot;)
-(.format &quot;{} there&quot; x)
+    (meta (-&gt; arg hy--eldoc-get-docs hy--str-or-empty))))</code></pre></div>
+</div>
+<p>
+<code>Completer</code> is a hy builtin that completes a given string and does all the
+work here. We simply call it&#39;s appropriate method, extract the items in the
+retrieved list, and hand it off to company.
+</p>
+<p>
+<code>company-grab-symbol</code> gets the current symbol which is handed off as <code>arg</code> in
+the subsequent call.
+</p>
+<p>
+The <code>meta</code> argument shows the eldoc output for the current selected company
+candidate in the minibuffer, as seen in this post&#39;s initial image.
+</p>
+<p>
+<code>company-hy</code> can then be enabled either through adding to <code>company-backends</code> or
+for Spacemacs users adding:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="color:#75715e">;; Technically this should be within a hy layer, but this still works uncaptured</span>
+(spacemacs<span style="color:#960050;background-color:#1e0010">|</span>add-company-backends
+  <span style="color:#e6db74">:backends</span> company-hy
+  <span style="color:#e6db74">:modes</span> hy-mode inferior-hy-mode)</code></pre></div>
+</div>
+<p>
+Developing a major-mode that accommodates Spacemacs users will be touched on
+in future posts.
+</p>
+<h1 id="headline-8">
+Eldoc
+</h1>
+<p>
+For those unfamiliar, in the initial image <code>eldoc-mode</code> provides the formatted
+docstring and arguments in the minibuffer for the symbol-at-point (or
+completion candidate).
+</p>
+<p>
+Perhaps surprisingly, Eldoc is <em>a lot</em> more challenging than autocompletion.
+</p>
+<p>
+For starters, your language won&#39;t provide Eldoc like strings (formatted
+argument list + first line of docstring) by default. How difficult inspecting
+language constructs is entirely dependent on the language. Hy in particular is
+difficult due to how macros are implemented and namespaced. I won&#39;t provide
+the <code>hy-eldoc-setup-code</code> here, it can be found within the source.
+</p>
+<p>
+Next, your implementation must mirror any relevant DSLs. For lisps, Eldoc
+inspects the form opener. It is hydiomatic to:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(setv x <span style="color:#e6db74">&#34;hi&#34;</span>)
+(<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span> <span style="color:#e6db74">&#34;{} there&#34;</span> x)
 (setv a-list [])
-(.append a-list &quot;friend&quot;)
-</code></pre>
-
-<p>We need to send <code>str.format</code> and <code>a-list.append</code> - the form opener alone is
-  insufficient.</p>
-
-<h2 id="implementation">Implementation</h2>
-
-<p>Eldoc is setup via the <code>eldoc-documentation-function</code> :</p>
-
-<pre><code class="language-lisp">(defun hy-eldoc-documentation-function ()
-  &quot;Drives `eldoc-mode', retrieves eldoc msg string for inner-most symbol.&quot;
+(<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span> a-list <span style="color:#e6db74">&#34;friend&#34;</span>)</code></pre></div>
+</div>
+<p>
+We need to send <code>str.format</code> and <code>a-list.append</code> - the form opener alone is
+insufficient.
+</p>
+<h2 id="headline-9">
+Implementation
+</h2>
+<p>
+Eldoc is setup via the <code>eldoc-documentation-function</code> :
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy-eldoc-documentation-function ()
+  <span style="color:#e6db74">&#34;Drives `eldoc-mode&#39;, retrieves eldoc msg string for inner-most symbol.&#34;</span>
   (-&gt; (hy--eldoc-get-inner-symbol)
      hy--eldoc-get-docs))
 
 (defun hy--mode-setup-eldoc ()
-  (make-local-variable 'eldoc-documentation-function)
-  (setq-local eldoc-documentation-function 'hy-eldoc-documentation-function)
-  (eldoc-mode +1))
-</code></pre>
-
-<p>There are three core components:</p>
-
+  (make-local-variable <span style="color:#e6db74">&#39;eldoc-documentation-function</span>)
+  (setq-local eldoc-documentation-function <span style="color:#e6db74">&#39;hy-eldoc-documentation-function</span>)
+  (eldoc-mode <span style="color:#ae81ff">+1</span>))</code></pre></div>
+</div>
+<p>
+There are three core components:
+</p>
 <ol>
-<li><code>hy--eldoc-send</code> for sending a formatted string and cleaning its output.</li>
-<li><code>hy--eldoc-get-inner-symbol</code> getting opening form and completing the dot DSL.</li>
-<li><code>hy--eldoc-fontify-text</code> for highlighting the final text string like in the image.</li>
+<li>
+<p>
+<code>hy--eldoc-send</code> for sending a formatted string and cleaning its output.
+</p>
+</li>
+<li>
+<p>
+<code>hy--eldoc-get-inner-symbol</code> getting opening form and completing the dot DSL.
+</p>
+</li>
+<li>
+<p>
+<code>hy--eldoc-fontify-text</code> for highlighting the final text string like in the image.
+</p>
+</li>
 </ol>
-
-<p>Lets look at fontifying first. We can't blindly apply Hy's font-locks as the
-   docstring isn't captured in quotes. Since the text is static, we just add the
-   faces to the string ourselves.</p>
-
-<pre><code class="language-lisp">(defun hy--fontify-text (text regexp &amp;rest faces)
-  &quot;Fontify portions of TEXT matching REGEXP with FACES.&quot;
+<p>
+Lets look at fontifying first. We can&#39;t blindly apply Hy&#39;s font-locks as the
+docstring isn&#39;t captured in quotes. Since the text is static, we just add the
+faces to the string ourselves.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--fontify-text (text regexp <span style="color:#66d9ef">&amp;rest</span> faces)
+  <span style="color:#e6db74">&#34;Fontify portions of TEXT matching REGEXP with FACES.&#34;</span>
   (when text
     (-each
         (s-matched-positions-all regexp text)
-      (-lambda ((beg . end))
+      (-lambda ((beg <span style="color:#f92672">.</span> end))
         (--each faces
-          (add-face-text-property beg end it nil text))))))
+          (add-face-text-property beg end it <span style="color:#66d9ef">nil</span> text))))))
 
 (defun hy--eldoc-fontify-text (text)
-  &quot;Fontify eldoc TEXT.&quot;
-  (let ((kwd-rx
-         (rx string-start (1+ (not (any space &quot;:&quot;))) &quot;:&quot;))
+  <span style="color:#e6db74">&#34;Fontify eldoc TEXT.&#34;</span>
+  (<span style="color:#66d9ef">let</span> ((kwd-rx
+         (rx string-start (<span style="color:#a6e22e">1+</span> (<span style="color:#a6e22e">not</span> (any space <span style="color:#e6db74">&#34;:&#34;</span>))) <span style="color:#e6db74">&#34;:&#34;</span>))
         (kwargs-rx
-         (rx symbol-start &quot;&amp;&quot; (1+ word)))
+         (rx symbol-start <span style="color:#e6db74">&#34;&amp;&#34;</span> (<span style="color:#a6e22e">1+</span> word)))
         (quoted-args-rx
-         (rx &quot;`&quot; (1+ (not space)) &quot;`&quot;)))
+         (rx <span style="color:#e6db74">&#34;`&#34;</span> (<span style="color:#a6e22e">1+</span> (<span style="color:#a6e22e">not</span> space)) <span style="color:#e6db74">&#34;`&#34;</span>)))
     (hy--fontify-text
-     text kwd-rx 'font-lock-keyword-face)
+     text kwd-rx <span style="color:#e6db74">&#39;font-lock-keyword-face</span>)
     (hy--fontify-text
-     text kwargs-rx 'font-lock-type-face)
+     text kwargs-rx <span style="color:#e6db74">&#39;font-lock-type-face</span>)
     (hy--fontify-text
-     text quoted-args-rx 'font-lock-constant-face 'bold-italic))
-  text)
-</code></pre>
-
-<p>Next lets see the sending and formatting of the shell's raw eldoc output.</p>
-
-<pre><code class="language-lisp">(defun hy--eldoc-send (string)
-  &quot;Send STRING for eldoc to internal process returning output.&quot;
-  (-&gt; string
+     text quoted-args-rx <span style="color:#e6db74">&#39;font-lock-constant-face</span> <span style="color:#e6db74">&#39;bold-italic</span>))
+  text)</code></pre></div>
+</div>
+<p>
+Next lets see the sending and formatting of the shell&#39;s raw eldoc output.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--eldoc-send (<span style="color:#a6e22e">string</span>)
+  <span style="color:#e6db74">&#34;Send STRING for eldoc to internal process returning output.&#34;</span>
+  (-&gt; <span style="color:#a6e22e">string</span>
      hy--shell-send-async
      hy--eldoc-chomp-output
      hy--eldoc-remove-syntax-errors
-     hy--str-or-nil))
-</code></pre>
-
-<p>The string/output formatting are implementation details specific to Hy and so
-   won't be detailed. If we are dealing with an empty string, we return nil
-   rather than the empty string to pass-by parent <code>when</code> clauses.</p>
-
-<p>The meat of Eldoc is in extracting the innermost symbol of the current point</p>
-
-<pre><code class="language-lisp">(defun hy--eldoc-get-inner-symbol ()
-  &quot;Traverse and inspect innermost sexp and return formatted string for eldoc.&quot;
+     hy--str-or-nil))</code></pre></div>
+</div>
+<p>
+The string/output formatting are implementation details specific to Hy and so
+won&#39;t be detailed. If we are dealing with an empty string, we return nil
+rather than the empty string to pass-by parent <code>when</code> clauses.
+</p>
+<p>
+The meat of Eldoc is in extracting the innermost symbol of the current point
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--eldoc-get-inner-symbol ()
+  <span style="color:#e6db74">&#34;Traverse and inspect innermost sexp and return formatted string for eldoc.&#34;</span>
   (save-excursion
-    (-when-let* ((_ (hy-shell-get-process 'internal))
+    (-when-let* ((_ (hy-shell-get-process <span style="color:#e6db74">&#39;internal</span>))
                  (state (syntax-ppss))
                  (start-pos (hy--sexp-inermost-char state))
-                 (_ (progn (goto-char start-pos)
-                           (not (hy--not-function-form-p))))
-                 (function (progn (forward-char)
-                                  (thing-at-point 'symbol))))
+                 (_ (<span style="color:#66d9ef">progn</span> (goto-char start-pos)
+                           (<span style="color:#a6e22e">not</span> (hy--not-function-form-p))))
+                 (<span style="color:#a6e22e">function</span> (<span style="color:#66d9ef">progn</span> (forward-char)
+                                  (thing-at-point <span style="color:#e6db74">&#39;symbol</span>))))
 
-      ;; Attribute method call (eg. &quot;.format str&quot;) needs following sexp
-      (if (s-starts-with? &quot;.&quot; function)
-          (when (ignore-errors (forward-sexp) (forward-char) t)
+      <span style="color:#75715e">;; Attribute method call (eg. &#34;.format str&#34;) needs following sexp</span>
+      (<span style="color:#66d9ef">if</span> (s-starts-with? <span style="color:#e6db74">&#34;.&#34;</span> <span style="color:#a6e22e">function</span>)
+          (when (ignore-errors (forward-sexp) (forward-char) <span style="color:#66d9ef">t</span>)
             (pcase (char-after)
-              ;; Can't send just .method to eldoc
-              (?\) (setq function nil))
-              (?\s (setq function nil))
-              (?\C-j (setq function nil))  ; newline
+              <span style="color:#75715e">;; Can&#39;t send just .method to eldoc</span>
+              (?\) (<span style="color:#66d9ef">setq</span> <span style="color:#a6e22e">function</span> <span style="color:#66d9ef">nil</span>))
+              (?\s (<span style="color:#66d9ef">setq</span> <span style="color:#a6e22e">function</span> <span style="color:#66d9ef">nil</span>))
+              (?\C-j (<span style="color:#66d9ef">setq</span> <span style="color:#a6e22e">function</span> <span style="color:#66d9ef">nil</span>))  <span style="color:#75715e">; newline</span>
 
-              ;; Dot dsl doesn't work on literals
-              (?\[ (concat &quot;list&quot; function))
-              (?\{ (concat &quot;dict&quot; function))
-              (?\  (concat &quot;str&quot; function))  ; the &quot; is deleted in blog as breaks rainbow.js
+              <span style="color:#75715e">;; Dot dsl doesn&#39;t work on literals</span>
+              (?\[ (concat <span style="color:#e6db74">&#34;list&#34;</span> <span style="color:#a6e22e">function</span>))
+              (?\{ (concat <span style="color:#e6db74">&#34;dict&#34;</span> <span style="color:#a6e22e">function</span>))
+              (?\  (concat <span style="color:#e6db74">&#34;str&#34;</span> <span style="color:#a6e22e">function</span>))  <span style="color:#75715e">; the &#34; is deleted in blog as breaks rainbow.js</span>
 
-              ;; Otherwise complete the dot dsl
-              (_ (progn
+              <span style="color:#75715e">;; Otherwise complete the dot dsl</span>
+              (_ (<span style="color:#66d9ef">progn</span>
                    (forward-char)
-                   (concat (thing-at-point 'symbol) function)))))
-        function))))
-</code></pre>
-
-<p>So Eldoc's path is to call <code>hy--eldoc-get-inner-symbol</code> if an internal process
-   is active, <code>syntax-ppss</code> indicates we are within a form, and that the
-   innermost form is a symbol. The completed string is sent off to the internal
-   process we've built up, the output is chomped of quote characters and the
-   prompt and syntax errors (eg. completing "str." while we are still typing)
-   are ignored. The result is fontified and returned by the documentation function.</p>
-
-<h2 id="spacemacs-shift-k-documentation-lookup">Spacemacs shift-k documentation lookup</h2>
-
-<p>A feature of Spacemacs is typing "K" to perform
-   <code>spacemacs/evil-smart-doc-lookup</code> to get the full documentation of the
-   symbol-at-point in a separate buffer.</p>
-
-<p>Using Eldoc's documentation functions, with slightly different formatting, we
-   already have most of shift-K implemented.</p>
-
-<p>We moved most of <code>hy-eldoc-documentation-function</code> into <code>hy--eldoc-get-docs</code> which
-   distinctly accepts an optional argument for buffer-style rather than
-   eldoc-style formatting.</p>
-
-<p>We then create a mirror of the documentation function as
-   <code>hy--docs-for-thing-at-point</code>. We format the text to account for newlines
-   (newlines from process output are escaped so we must trim one backslash from
-   each newline).</p>
-
-<pre><code class="language-lisp">(defun hy--docs-for-thing-at-point ()
-  &quot;Mirrors `hy-eldoc-documentation-function' formatted for a buffer, not a msg.&quot;
-  (-&gt; (thing-at-point 'symbol)
-     (hy--eldoc-get-docs t)
+                   (concat (thing-at-point <span style="color:#e6db74">&#39;symbol</span>) <span style="color:#a6e22e">function</span>)))))
+        <span style="color:#a6e22e">function</span>))))</code></pre></div>
+</div>
+<p>
+So Eldoc&#39;s path is to call <code>hy--eldoc-get-inner-symbol</code> if an internal process
+is active, <code>syntax-ppss</code> indicates we are within a form, and that the
+innermost form is a symbol. The completed string is sent off to the internal
+process we&#39;ve built up, the output is chomped of quote characters and the
+prompt and syntax errors (eg. completing &#34;str.&#34; while we are still typing)
+are ignored. The result is fontified and returned by the documentation function.
+</p>
+<h2 id="headline-10">
+Spacemacs shift-k documentation lookup
+</h2>
+<p>
+A feature of Spacemacs is typing &#34;K&#34; to perform
+<code>spacemacs/evil-smart-doc-lookup</code> to get the full documentation of the
+symbol-at-point in a separate buffer.
+</p>
+<p>
+Using Eldoc&#39;s documentation functions, with slightly different formatting, we
+already have most of shift-K implemented.
+</p>
+<p>
+We moved most of <code>hy-eldoc-documentation-function</code> into <code>hy--eldoc-get-docs</code> which
+distinctly accepts an optional argument for buffer-style rather than
+eldoc-style formatting.
+</p>
+<p>
+We then create a mirror of the documentation function as
+<code>hy--docs-for-thing-at-point</code>. We format the text to account for newlines
+(newlines from process output are escaped so we must trim one backslash from
+each newline).
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy--docs-for-thing-at-point ()
+  <span style="color:#e6db74">&#34;Mirrors `hy-eldoc-documentation-function&#39; formatted for a buffer, not a msg.&#34;</span>
+  (-&gt; (thing-at-point <span style="color:#e6db74">&#39;symbol</span>)
+     (hy--eldoc-get-docs <span style="color:#66d9ef">t</span>)
      hy--format-docs-for-buffer))
 
 (defun hy--format-docs-for-buffer (text)
-  &quot;Format raw hydoc TEXT for inserting into hyconda buffer.&quot;
+  <span style="color:#e6db74">&#34;Format raw hydoc TEXT for inserting into hyconda buffer.&#34;</span>
   (when text
     (-let [kwarg-newline-regexp
-           (rx &quot;,&quot;
-               (1+ (not (any &quot;,&quot; &quot;)&quot;)))
-               (group-n 1 &quot;\\\n&quot;)
-               (1+ (not (any &quot;,&quot; &quot;)&quot;))))]
+           (rx <span style="color:#e6db74">&#34;,&#34;</span>
+               (<span style="color:#a6e22e">1+</span> (<span style="color:#a6e22e">not</span> (any <span style="color:#e6db74">&#34;,&#34;</span> <span style="color:#e6db74">&#34;)&#34;</span>)))
+               (group-n <span style="color:#ae81ff">1</span> <span style="color:#e6db74">&#34;\\\n&#34;</span>)
+               (<span style="color:#a6e22e">1+</span> (<span style="color:#a6e22e">not</span> (any <span style="color:#e6db74">&#34;,&#34;</span> <span style="color:#e6db74">&#34;)&#34;</span>))))]
       (--&gt; text
-         (s-replace &quot;\\n&quot; &quot;\n&quot; it)
-         (replace-regexp-in-string kwarg-newline-regexp &quot;newline&quot; it nil t 1)))))
-</code></pre>
-
-<p>It is interesting how "K" is actually called, I'm not sure if any other
-   function operates quite the same. "K" calls the function bound to "SPC m h h".</p>
-
-<pre><code class="language-lisp">(spacemacs/set-leader-keys-for-major-mode 'hy-mode
-  &quot;hh&quot; 'hy-describe-thing-at-point)
-</code></pre>
-
-<p>Lastly we need to create, switch-to, and insert the retrieved docs as <code>hy-describe-thing-at-point</code>.</p>
-
-<pre><code class="language-lisp">(defun hy-describe-thing-at-point ()
-  &quot;Implement shift-k docs lookup for `spacemacs/evil-smart-doc-lookup'.&quot;
+         (s-replace <span style="color:#e6db74">&#34;\\n&#34;</span> <span style="color:#e6db74">&#34;\n&#34;</span> it)
+         (replace-regexp-in-string kwarg-newline-regexp <span style="color:#e6db74">&#34;newline&#34;</span> it <span style="color:#66d9ef">nil</span> <span style="color:#66d9ef">t</span> <span style="color:#ae81ff">1</span>)))))</code></pre></div>
+</div>
+<p>
+It is interesting how &#34;K&#34; is actually called, I&#39;m not sure if any other
+function operates quite the same. &#34;K&#34; calls the function bound to &#34;SPC m h h&#34;.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(spacemacs/set-leader-keys-for-major-mode <span style="color:#e6db74">&#39;hy-mode</span>
+  <span style="color:#e6db74">&#34;hh&#34;</span> <span style="color:#e6db74">&#39;hy-describe-thing-at-point</span>)</code></pre></div>
+</div>
+<p>
+Lastly we need to create, switch-to, and insert the retrieved docs as <code>hy-describe-thing-at-point</code>.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun hy-describe-thing-at-point ()
+  <span style="color:#e6db74">&#34;Implement shift-k docs lookup for `spacemacs/evil-smart-doc-lookup&#39;.&#34;</span>
   (interactive)
   (-when-let* ((text (hy--docs-for-thing-at-point))
-               (doc-buffer &quot;*Hyconda*&quot;))
+               (doc-buffer <span style="color:#e6db74">&#34;*Hyconda*&#34;</span>))
     (with-current-buffer (get-buffer-create doc-buffer)
       (erase-buffer)
       (switch-to-buffer-other-window doc-buffer)
@@ -762,28 +868,32 @@ Eldoc, Anaconda, and other hy-mode features.&quot;))
       (goto-char (point-min))
       (forward-line)
 
-      (insert &quot;------\n&quot;)
+      (insert <span style="color:#e6db74">&#34;------\n&#34;</span>)
       (fill-region (point) (point-max))
 
-      ;; Eventually make hyconda-view-minor-mode, atm this is sufficient
-      (local-set-key &quot;q&quot; 'quit-window)
-      (when (fboundp 'evil-local-set-key)
-        (evil-local-set-key 'normal &quot;q&quot; 'quit-window)))))
-</code></pre>
-
-<h1 id="closing">Closing</h1>
-
-<p>There are several other features worth discussion like font-locking the
-  shell prompt input and the <code>send-(form/region/buffer)-to-shell</code> that are
-  sizable enough to warrant their own posts later. With this post, the series is
-  caught up to the current featureset. Linting would be the next big problem to
-  attack. I'd also like to integrate <code>ert</code>.</p>
-
-<p>Going without Company and Eldoc has helped me appreciate the value in IDEs.
-  Hy is quickly becoming a pleasant development experience.</p>
-
-<p>My only guidance was source code. I hope this series make the problem more
-  tractable for prospective major mode authors.</p>
+      <span style="color:#75715e">;; Eventually make hyconda-view-minor-mode, atm this is sufficient</span>
+      (local-set-key <span style="color:#e6db74">&#34;q&#34;</span> <span style="color:#e6db74">&#39;quit-window</span>)
+      (when (<span style="color:#a6e22e">fboundp</span> <span style="color:#e6db74">&#39;evil-local-set-key</span>)
+        (evil-local-set-key <span style="color:#e6db74">&#39;normal</span> <span style="color:#e6db74">&#34;q&#34;</span> <span style="color:#e6db74">&#39;quit-window</span>)))))</code></pre></div>
+</div>
+<h1 id="headline-11">
+Closing
+</h1>
+<p>
+There are several other features worth discussion like font-locking the
+shell prompt input and the <code>send-(form/region/buffer)-to-shell</code> that are
+sizable enough to warrant their own posts later. With this post, the series is
+caught up to the current featureset. Linting would be the next big problem to
+attack. I&#39;d also like to integrate <code>ert</code>.
+</p>
+<p>
+Going without Company and Eldoc has helped me appreciate the value in IDEs.
+Hy is quickly becoming a pleasant development experience.
+</p>
+<p>
+My only guidance was source code. I hope this series make the problem more
+tractable for prospective major mode authors.
+</p>
 
     </div>
   </div>

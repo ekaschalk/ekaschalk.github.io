@@ -1,5 +1,14 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/</loc>
+      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
   
     
     
@@ -7,6 +16,36 @@
     
       <loc>https://ekaschalk.github.io/post/comint-highlighting/</loc>
       <lastmod>2019-05-23T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/</loc>
+      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/emacs/</loc>
+      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/lisp/</loc>
+      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
     </url>
     
   
@@ -23,8 +62,38 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/categories/testing/</loc>
+      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/pretty-for-loops/</loc>
       <lastmod>2018-05-15T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/c/</loc>
+      <lastmod>2018-05-15T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/c&#43;&#43;/</loc>
+      <lastmod>2018-05-15T00:00:00+00:00</lastmod>
+      <priority>0</priority>
     </url>
     
   
@@ -77,8 +146,38 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/categories/hy/</loc>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/python/</loc>
+      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/migrate-layers/</loc>
       <lastmod>2017-07-14T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/spacemacs/</loc>
+      <lastmod>2017-07-14T00:00:00+00:00</lastmod>
+      <priority>0</priority>
     </url>
     
   
@@ -131,6 +230,16 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/categories/emacs-lisp/</loc>
+      <lastmod>2017-06-23T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/org-mode-blogging/</loc>
       <lastmod>2017-06-20T00:00:00+00:00</lastmod>
     </url>
@@ -140,8 +249,28 @@
     
     <url>
     
+      <loc>https://ekaschalk.github.io/categories/org-mode/</loc>
+      <lastmod>2017-06-20T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://ekaschalk.github.io/post/python-infix/</loc>
       <lastmod>2017-06-19T00:00:00+00:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://ekaschalk.github.io/categories/math/</loc>
+      <lastmod>2017-06-19T00:00:00+00:00</lastmod>
+      <priority>0</priority>
     </url>
     
   
@@ -177,125 +306,6 @@
     <url>
     
       <loc>https://ekaschalk.github.io/post/shell-font-lock/</loc>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/c/</loc>
-      <lastmod>2018-05-15T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/c&#43;&#43;/</loc>
-      <lastmod>2018-05-15T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/</loc>
-      <lastmod>2018-05-15T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/emacs/</loc>
-      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/emacs-lisp/</loc>
-      <lastmod>2017-06-23T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/hy/</loc>
-      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/lisp/</loc>
-      <lastmod>2019-05-23T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/math/</loc>
-      <lastmod>2017-06-19T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/</loc>
-      <lastmod>2016-04-20T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/org-mode/</loc>
-      <lastmod>2017-06-20T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/python/</loc>
-      <lastmod>2017-08-17T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/spacemacs/</loc>
-      <lastmod>2017-07-14T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     
@@ -305,17 +315,6 @@
     <url>
     
       <loc>https://ekaschalk.github.io/tags/</loc>
-      <lastmod>2017-01-01T00:00:00+00:00</lastmod>
-      <priority>0</priority>
-    </url>
-    
-  
-    
-    
-    <url>
-    
-      <loc>https://ekaschalk.github.io/categories/testing/</loc>
-      <lastmod>2019-05-13T00:00:00+00:00</lastmod>
       <priority>0</priority>
     </url>
     

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -207,8 +207,9 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>We improve upon the outline bullets presented in the previous post <a href='/post/outline-ivy/'>Managing code with Outlines</a>.</p>
-
+      <p>
+We improve upon the outline bullets presented in the previous post &lt;a href=&#39;/post/outline-ivy/&#39;&gt;Managing code with Outlines&lt;/a&gt;.
+</p>
 <table>
 <thead>
 <tr>
@@ -223,80 +224,97 @@
 </tr>
 </tbody>
 </table>
-
-<p>This solution:</p>
-
+<p>
+This solution:
+</p>
 <ol>
-<li>Allows for face application to the bullet. The default faces <code>outline-1/2/3...</code></li>
-   only apply to the text, not the bullet.
-<li>Adds spaces for higher level bullets. So not every outline-level needs to</li>
-   have its text start at the same column.
-<li>Works for any number of outline levels.</li>
-<li>Generalized - uses outline regexes, all that is required to add the bullets</li>
-   to a mode is adding to its hook.
+<li>
+<p>
+Allows for face application to the bullet. The default faces <code>outline-1/2/3...</code>
+only apply to the text, not the bullet.
+</p>
+</li>
+<li>
+<p>
+Adds spaces for higher level bullets. So not every outline-level needs to
+have its text start at the same column.
+</p>
+</li>
+<li>
+<p>
+Works for any number of outline levels.
+</p>
+</li>
+<li>
+<p>
+Generalized - uses outline regexes, all that is required to add the bullets
+to a mode is adding to its hook.
+</p>
+</li>
 </ol>
+<p>
+The package can be found at: <a href="https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines">https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines</a>
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;dash</span>)
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;outshine</span>)
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;s</span>)
 
-<p>The package can be found at: <a href="https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines" title="https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines">https://github.com/ekaschalk/.spacemacs.d/tree/master/layers/display/local/pretty-outlines</a></p>
+(<span style="color:#a6e22e">provide</span> <span style="color:#e6db74">&#39;pretty-outlines</span>)
 
-<pre><code class="language-lisp">(require 'dash)
-(require 'outshine)
-(require 's)
+<span style="color:#75715e">;;; Config</span>
 
-(provide 'pretty-outlines)
+(defvar pretty-outline-bullets-bullet-list <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">&#34;&#34;</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#e6db74">&#34;&#34;</span>)
+  <span style="color:#e6db74">&#34;An implemention of `org-bullets-bullet-list&#39; for outlines&#34;</span>)
 
-;;; Config
-
-(defvar pretty-outline-bullets-bullet-list '(&quot;&quot; &quot;&quot; &quot;&quot; &quot;&quot;)
-  &quot;An implemention of `org-bullets-bullet-list' for outlines&quot;)
-
-;;; Outline-bullets
+<span style="color:#75715e">;;; Outline-bullets</span>
 
 (defun pretty-outline--add-font-locks (FONT-LOCK-ALIST)
-  &quot;Put text property for FONT-LOCK-ALIST for var-width replacements.&quot;
+  <span style="color:#e6db74">&#34;Put text property for FONT-LOCK-ALIST for var-width replacements.&#34;</span>
   (font-lock-add-keywords
-   nil (--map (-let (((rgx uni-point) it))
-             `(,rgx (0 (progn
+   <span style="color:#66d9ef">nil</span> (--map (-let (((rgx uni-point) it))
+             <span style="color:#f92672">`</span>(<span style="color:#f92672">,</span>rgx (<span style="color:#ae81ff">0</span> (<span style="color:#66d9ef">progn</span>
                          (put-text-property
-                          (match-beginning 1) (match-end 1)
-                          'display
-                          ,uni-point)
-                         nil))))
+                          (match-beginning <span style="color:#ae81ff">1</span>) (match-end <span style="color:#ae81ff">1</span>)
+                          <span style="color:#e6db74">&#39;display</span>
+                          <span style="color:#f92672">,</span>uni-point)
+                         <span style="color:#66d9ef">nil</span>))))
            FONT-LOCK-ALIST)))
 
 (defun pretty-outline--bullets-rgx-at-level (LEVEL)
-  &quot;Calculate regex or outline-bullets at LEVEL.&quot;
-  (concat &quot;\\(^&quot;
+  <span style="color:#e6db74">&#34;Calculate regex or outline-bullets at LEVEL.&#34;</span>
+  (concat <span style="color:#e6db74">&#34;\\(^&#34;</span>
           (-&gt;&gt; LEVEL
              outshine-calc-outline-string-at-level
              s-trim-right
-             (s-replace &quot;*&quot; &quot;\\*&quot;))
-          &quot;\\) &quot;))
+             (s-replace <span style="color:#e6db74">&#34;*&#34;</span> <span style="color:#e6db74">&#34;\\*&#34;</span>))
+          <span style="color:#e6db74">&#34;\\) &#34;</span>))
 
 (defun pretty-outline--propertize-bullet (LEVEL BULLET)
-  &quot;Add LEVEL-dependent face to BULLET.&quot;
+  <span style="color:#e6db74">&#34;Add LEVEL-dependent face to BULLET.&#34;</span>
   (with-face BULLET
              (pcase LEVEL
-               (0 '(:inherit outline-1 :underline nil))
-               (1 '(:inherit outline-2 :underline nil))
-               (2 '(:inherit outline-3 :underline nil))
-               (3 '(:inherit outline-4 :underline nil))
-               (_ nil))))
+               (<span style="color:#ae81ff">0</span> <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:inherit</span> outline-1 <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">nil</span>))
+               (<span style="color:#ae81ff">1</span> <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:inherit</span> outline-2 <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">nil</span>))
+               (<span style="color:#ae81ff">2</span> <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:inherit</span> outline-3 <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">nil</span>))
+               (<span style="color:#ae81ff">3</span> <span style="color:#f92672">&#39;</span>(<span style="color:#e6db74">:inherit</span> outline-4 <span style="color:#e6db74">:underline</span> <span style="color:#66d9ef">nil</span>))
+               (_ <span style="color:#66d9ef">nil</span>))))
 
 (defun pretty-outline-add-bullets ()
-  &quot;Use with `add-hook' to enable pretty-outline-bullets-bullet-list for mode.&quot;
+  <span style="color:#e6db74">&#34;Use with `add-hook&#39; to enable pretty-outline-bullets-bullet-list for mode.&#34;</span>
   (pretty-outline--add-font-locks
    (--map-indexed
-    (list
-     (pretty-outline--bullets-rgx-at-level (+ 1 it-index))
+    (<span style="color:#a6e22e">list</span>
+     (pretty-outline--bullets-rgx-at-level (<span style="color:#a6e22e">+</span> <span style="color:#ae81ff">1</span> it-index))
      (concat
-      (s-repeat it-index &quot; &quot;)
+      (s-repeat it-index <span style="color:#e6db74">&#34; &#34;</span>)
       (pretty-outline--propertize-bullet it-index it)))
-    (-take 8 (-cycle pretty-outline-bullets-bullet-list)))))
+    (-take <span style="color:#ae81ff">8</span> (-cycle pretty-outline-bullets-bullet-list)))))
 
-(add-hook 'emacs-lisp-mode-hook 'pretty-outline-add-bullets)
-(add-hook 'hy-mode-hook 'pretty-outline-add-bullets)
-(add-hook 'python-mode-hook 'pretty-outline-add-bullets)
-</code></pre>
+(add-hook <span style="color:#e6db74">&#39;emacs-lisp-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-add-bullets</span>)
+(add-hook <span style="color:#e6db74">&#39;hy-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-add-bullets</span>)
+(add-hook <span style="color:#e6db74">&#39;python-mode-hook</span> <span style="color:#e6db74">&#39;pretty-outline-add-bullets</span>)</code></pre></div>
+</div>
 
     </div>
   </div>

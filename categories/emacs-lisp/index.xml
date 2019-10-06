@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Emacs Lisp on Modern Emacs</title>
+    <title>emacs-lisp on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/emacs-lisp/</link>
-    <description>Recent content in Emacs Lisp on Modern Emacs</description>
+    <description>Recent content in emacs-lisp on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,10 +18,7 @@
       <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/xi-macro/</guid>
-      <description>Clojure has anonymous functions with the reader macro #(
-(#(print %2 %1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)  Emacs Lisp doesn&#39;t have reader macros, but we can take direction from Hylang, a lisp dialect similar to Clojure inter-oping with Python.
-It implements the anonymous functions as the aptly named xi macro, where the lambda has arguments determined by presence of x1 ... xi .
-((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)  We can implement the xi macro in Emacs Lisp roughly as:</description>
+      <description>Porting clojures #( reader macro to elisp.</description>
     </item>
     
   </channel>

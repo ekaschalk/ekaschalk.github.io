@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Spacemacs on Modern Emacs</title>
+    <title>spacemacs on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/spacemacs/</link>
-    <description>Recent content in Spacemacs on Modern Emacs</description>
+    <description>Recent content in spacemacs on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,12 +18,7 @@
       <pubDate>Fri, 14 Jul 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/migrate-layers/</guid>
-      <description>Spacemacs is referred for its evil integration, space-based bindings, and community contributed layers that collect, configure, and integrate groups of packages.
-For how much they add to Emacs, motivations for personal layers are largely undocumented.
-I introduce layers then discuss benefits, approaches, and gotchas with layer-based configurations.
-I&#39;ve migrated my entire dotspacemacs/user-config into personal layers - now 6 lines vs 1,500.
-See https://github.com/ekaschalk/.spacemacs.d for my viewer-friendly configuration .
-Introducing Layers This section is not a replacement for http://spacemacs.</description>
+      <description>Manage your Spacemacs with personal layers.</description>
     </item>
     
   </channel>

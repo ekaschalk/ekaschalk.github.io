@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Hy on Modern Emacs</title>
+    <title>hy on Modern Emacs</title>
     <link>https://ekaschalk.github.io/categories/hy/</link>
-    <description>Recent content in Hy on Modern Emacs</description>
+    <description>Recent content in hy on Modern Emacs</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2017 Eric Kaschalk</copyright>
@@ -18,9 +18,7 @@
       <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/mile-hy/</guid>
-      <description>Roughly, Hy is to Python as Clojure is to Java. Hy completely inter-ops with Python.
-I&#39;ve hit commit 1,500 in my Hy project at work. I wanted to share my experience working with Hy, where I feel it shines and where it falls short.
-Intro to Hy Basic syntax Hy is a lisp and so uses hyphens as its delimiter. Hy unmangles all hyphens as underscores and mangles all incoming underscores to hyphens.</description>
+      <description>Maintaining a large hy codebase.</description>
     </item>
     
   </channel>

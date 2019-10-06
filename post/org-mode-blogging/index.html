@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -210,85 +210,95 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p><a href="https://gohugo.io/" title="Hugo">Hugo</a> is a static site generator. It natively supports org-mode, builds fast, and
-has live reloading.</p>
+      <p>
+<a href="https://gohugo.io/">Hugo</a> is a static site generator. It natively supports org-mode, builds fast, and
+has live reloading.
+</p>
+<p>
+I have two repos for <a href="https://github.com/ekaschalk/blog">blog content and settings</a> and <a href="https://github.com/ekaschalk/ekaschalk.github.io">hugo output</a>.
+</p>
+<p>
+I have defined some emacs lisp utilities to make interacting with Hugo easier.
+</p>
+<p>
+<code>deploy-blog</code> will goto your blog content, run <code>hugo</code>, cleanup old html, and
+push the updates.
+</p>
+<p>
+<code>start-blog-server</code> will run <code>hugo server</code> if not already running, and open the
+webpage in your browser.
+</p>
+<p>
+My blog workflow is then to startup the server (SPC a a), write some content in
+org-mode and see it reflected in the browser on each save, and deploy (SPC a b).
+</p>
+<p>
+All the code:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;cl</span>)
+(<span style="color:#a6e22e">require</span> <span style="color:#e6db74">&#39;dash</span>)
 
-<p>I have two repos for <a href="https://github.com/ekaschalk/blog" title="blog content and settings">blog content and settings</a> and <a href="https://github.com/ekaschalk/ekaschalk.github.io" title="hugo output">hugo output</a>.</p>
+(<span style="color:#66d9ef">setq</span> blog-dir <span style="color:#e6db74">&#34;~/dev/blog&#34;</span>
+      public-blog-dir <span style="color:#e6db74">&#34;~/dev/public-blog&#34;</span>
+      hugo-process <span style="color:#e6db74">&#34;Hugo Server&#34;</span>
+      hugo-server-site <span style="color:#e6db74">&#34;http://localhost:1313/&#34;</span>)
 
-<p>I have defined some emacs lisp utilities to make interacting with Hugo easier.</p>
-
-<p><code>deploy-blog</code> will goto your blog content, run <code>hugo</code>, cleanup old html, and
-push the updates.</p>
-
-<p><code>start-blog-server</code> will run <code>hugo server</code> if not already running, and open the
-webpage in your browser.</p>
-
-<p>My blog workflow is then to startup the server (SPC a a), write some content in
-org-mode and see it reflected in the browser on each save, and deploy (SPC a b).</p>
-
-<p>All the code:</p>
-
-<pre><code class="language-lisp">(require 'cl)
-(require 'dash)
-
-(setq blog-dir &quot;~/dev/blog&quot;
-      public-blog-dir &quot;~/dev/public-blog&quot;
-      hugo-process &quot;Hugo Server&quot;
-      hugo-server-site &quot;http://localhost:1313/&quot;)
-
-(defmacro with-dir (DIR &amp;rest FORMS)
-  &quot;Execute FORMS in DIR.&quot;
-  (let ((orig-dir (gensym)))
-    `(progn (setq ,orig-dir default-directory)
-            (cd ,DIR) ,@FORMS (cd ,orig-dir))))
+(defmacro with-dir (DIR <span style="color:#66d9ef">&amp;rest</span> FORMS)
+  <span style="color:#e6db74">&#34;Execute FORMS in DIR.&#34;</span>
+  (<span style="color:#66d9ef">let</span> ((orig-dir (<span style="color:#a6e22e">gensym</span>)))
+    <span style="color:#f92672">`</span>(<span style="color:#66d9ef">progn</span> (<span style="color:#66d9ef">setq</span> <span style="color:#f92672">,</span>orig-dir default-directory)
+            (cd <span style="color:#f92672">,</span>DIR) <span style="color:#f92672">,@</span>FORMS (cd <span style="color:#f92672">,</span>orig-dir))))
 
 (defun deploy-blog ()
-  &quot;Run hugo and push changes upstream.&quot;
+  <span style="color:#e6db74">&#34;Run hugo and push changes upstream.&#34;</span>
   (interactive)
   (with-dir public-blog-dir
-            (shell-command &quot;git rm -rf .&quot;)
-            (shell-command &quot;git clean -fxd&quot;)
+            (shell-command <span style="color:#e6db74">&#34;git rm -rf .&#34;</span>)
+            (shell-command <span style="color:#e6db74">&#34;git clean -fxd&#34;</span>)
 
             (with-dir blog-dir (-&gt;&gt; public-blog-dir
-                                    (concat &quot;hugo -d &quot;)
+                                    (concat <span style="color:#e6db74">&#34;hugo -d &#34;</span>)
                                     shell-command))
 
-            (shell-command &quot;git add .&quot;)
+            (shell-command <span style="color:#e6db74">&#34;git add .&#34;</span>)
             (--&gt; (current-time-string)
-                 (concat &quot;git commit -m \&quot;&quot; it &quot;\&quot;&quot;)
+                 (concat <span style="color:#e6db74">&#34;git commit -m \&#34;&#34;</span> it <span style="color:#e6db74">&#34;\&#34;&#34;</span>)
                  (shell-command it))
-            (magit-push-current-to-upstream nil)))
+            (magit-push-current-to-upstream <span style="color:#66d9ef">nil</span>)))
 
 (defun start-blog-server ()
-  &quot;Run hugo server if not already running and open its webpage.&quot;
+  <span style="color:#e6db74">&#34;Run hugo server if not already running and open its webpage.&#34;</span>
   (interactive)
   (with-dir blog-dir
             (unless (get-process hugo-process)
-              (start-process hugo-process nil &quot;hugo&quot; &quot;server&quot;))
+              (start-process hugo-process <span style="color:#66d9ef">nil</span> <span style="color:#e6db74">&#34;hugo&#34;</span> <span style="color:#e6db74">&#34;server&#34;</span>))
             (browse-url hugo-server-site)))
 
 (defun end-blog-server ()
-  &quot;End hugo server process if running.&quot;
+  <span style="color:#e6db74">&#34;End hugo server process if running.&#34;</span>
   (interactive)
   (--when-let (get-process hugo-process)
     (delete-process it)))
 
-(spacemacs/set-leader-keys (kbd &quot;ab&quot;) 'deploy-blog)
-(spacemacs/set-leader-keys (kbd &quot;aa&quot;) 'start-blog-server)
-(spacemacs/set-leader-keys (kbd &quot;ae&quot;) 'end-blog-server)
-</code></pre>
-
-<p>For reference, this blog post is an ordinary org file with just the headers:</p>
-
-<pre><code class="language-org">#+TITLE: An Emacs Blogging Workflow
-#+SLUG: org-mode-blogging
-#+DATE: 2017-06-20
-#+CATEGORIES: emacs org-mode
-#+SUMMARY: Easy org-mode blogging with Hugo
-#+DRAFT: false
-</code></pre>
-
-<p>And hugo takes care of the rest.</p>
+(spacemacs/set-leader-keys (kbd <span style="color:#e6db74">&#34;ab&#34;</span>) <span style="color:#e6db74">&#39;deploy-blog</span>)
+(spacemacs/set-leader-keys (kbd <span style="color:#e6db74">&#34;aa&#34;</span>) <span style="color:#e6db74">&#39;start-blog-server</span>)
+(spacemacs/set-leader-keys (kbd <span style="color:#e6db74">&#34;ae&#34;</span>) <span style="color:#e6db74">&#39;end-blog-server</span>)</code></pre></div>
+</div>
+<p>
+For reference, this blog post is an ordinary org file with just the headers:
+</p>
+<div class="src src-org">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-org" data-lang="org"><span style="color:#75715e">#+TITLE</span><span style="color:#75715e">: An Emacs Blogging Workflow</span>
+<span style="color:#75715e">#+SLUG</span><span style="color:#75715e">: org-mode-blogging</span>
+<span style="color:#75715e">#+DATE</span><span style="color:#75715e">: 2017-06-20</span>
+<span style="color:#75715e">#+CATEGORIES</span><span style="color:#75715e">: emacs org-mode</span>
+<span style="color:#75715e">#+SUMMARY</span><span style="color:#75715e">: Easy org-mode blogging with Hugo</span>
+<span style="color:#75715e">#+DRAFT</span><span style="color:#75715e">: false</span></code></pre></div>
+</div>
+<p>
+And hugo takes care of the rest.
+</p>
 
     </div>
   </div>

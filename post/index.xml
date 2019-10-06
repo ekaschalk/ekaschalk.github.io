@@ -18,11 +18,7 @@
       <pubDate>Thu, 23 May 2019 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/comint-highlighting/</guid>
-      <description>If you ever used ielm, or other comint-mode derivatives, you will notice that the text you input is not highlighted according to the major-mode.
-If I type (setq foo bar) into ielm, the setq won&#39;t be highlighted.
-Why is this? And how do we change this?
-Naive solution Look at font-lock-keywords in ielm and it is suspiciously near-empty. We could copy over emacs-lisp&#39;s keywords:
-(setq-local font-lock-keywords `(,@lisp-el-font-lock-keywords-2 ,@lisp-cl-font-lock-keywords-2))  But what if I type in (princ &amp;quot;(setq foo bar)&amp;quot;)?</description>
+      <description>More advanced usage of font-lock mode.</description>
     </item>
     
     <item>
@@ -31,10 +27,7 @@ Naive solution Look at font-lock-keywords in ielm and it is suspiciously near-em
       <pubDate>Mon, 13 May 2019 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/testing-emacs/</guid>
-      <description>Buttercup is a testing framework for emacs-lisp. It is used by large projects like Clojure&#39;s CIDER to write clean, concise, and descriptive tests.
-I introduce Buttercup and build up to advanced usages with the faint, unlikely dream that some Emacs programmer decides to add tests to their library...
-What is Buttercup? Introduction Buttercup&#39;s entry points are: describe, it, and expect.
-We describe a test suite with a name. Test cases within the possibly nested suites are done with it and assertions as expect blocks within.</description>
+      <description>Being emacs-lisp isn&amp;#39;t an excuse to not test</description>
     </item>
     
     <item>
@@ -43,10 +36,7 @@ We describe a test suite with a name. Test cases within the possibly nested suit
       <pubDate>Tue, 15 May 2018 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/pretty-for-loops/</guid>
-      <description>This reddit post posed a fun challenge: display for(auto&amp;amp;&amp;amp; foo : bar){...} with mathematical notation.
-In python this is trivial with prettify-symbols-mode as its syntax is simply for foo in bar:.
-Turns out is possible... whether it is a good idea or not is still questionable.
-How it works First we write a regex for the for-auto construct. Two groups are set, one for locating the for-all symbol and another for the in symbol.</description>
+      <description>Displaying C loops with math notation</description>
     </item>
     
     <item>
@@ -55,12 +45,7 @@ How it works First we write a regex for the for-auto construct. Two groups are s
       <pubDate>Fri, 13 Apr 2018 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/advanced-syntax/</guid>
-      <description>Variable assignments in Emacs lisp are not highlighted.
-That is, (setq foo bar) will not apply font-lock-variable-name-face to foo. This case is easy enough to implement via regex.
-But in Emacs lisp, assignment is variadic, accepting alternating name-value pairs.
-(setq foo bar foo (more stuff) foo bar)  How can we hope to highlight all the foo?
-In this post I demonstrate syntax-traversing highlighting, as applied to variable assignments.
-Plus and minus denote the name/value pairs.</description>
+      <description>Syntax-traversing highlighting.</description>
     </item>
     
     <item>
@@ -69,10 +54,7 @@ Plus and minus denote the name/value pairs.</description>
       <pubDate>Sun, 29 Oct 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/major-mode-part-2/</guid>
-      <description>In Part 1 I addressed: syntax tables, indentation, font locking, and context-sensitive syntax.
-We now build out a &#34;Hyde&#34; with: shell/async process integration, Eldoc support, and Autocompletion. Also &#34;shift-K&#34; documentation lookup for the symbol-at-point.
-Building Inferior Hy The basics The easiest way to add a REPL to your major-mode is through setting the variable inferior-lisp-program, possibly adding setup code through inferior-lisp-load-command, then running the inferior-lisp command.
-;; within the define-derived-mode hy-mode setup.</description>
+      <description>Adding IDE features to hy-mode.</description>
     </item>
     
     <item>
@@ -81,8 +63,7 @@ Building Inferior Hy The basics The easiest way to add a REPL to your major-mode
       <pubDate>Thu, 05 Oct 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/lig-spacing/</guid>
-      <description>Ligatures are single-character replacements of strings. Examples of ligatures: replacing &#34;alpha&#34; with the alpha symbol and &#34;!=&#34; with the a slashed equal sign. See Coding with Mathematical Notation for details and pictures.
-There is a serious flaw with ligatures - either the indentation you see with ligatures or without ligatures is correct, not both. So if someone that does not use ligatures works on your code, your indentation&#39;s will not match.</description>
+      <description>Making ligatures group-friendly.</description>
     </item>
     
     <item>
@@ -91,12 +72,7 @@ There is a serious flaw with ligatures - either the indentation you see with lig
       <pubDate>Tue, 03 Oct 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/major-mode-part-1/</guid>
-      <description>I&#39;ve taken up maintaining hy-mode - a major mode for lispy python.
-I narrate working through specific problems in auto-completion, indentation, shell integration, and so on.
-This post touches on: syntax, indentation, font-locking, and context-sensitive syntax.
-All code snippets require the Emacs packages dash and s.
-Syntax Tables The first step in a major mode is the syntax table.
-In any major mode run describe-syntax to see its syntax table. As we are working with a lisp, we copy its syntax-table to start with.</description>
+      <description>Lessons learned writing hy-mode.</description>
     </item>
     
     <item>
@@ -105,9 +81,7 @@ In any major mode run describe-syntax to see its syntax table. As we are working
       <pubDate>Thu, 17 Aug 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/mile-hy/</guid>
-      <description>Roughly, Hy is to Python as Clojure is to Java. Hy completely inter-ops with Python.
-I&#39;ve hit commit 1,500 in my Hy project at work. I wanted to share my experience working with Hy, where I feel it shines and where it falls short.
-Intro to Hy Basic syntax Hy is a lisp and so uses hyphens as its delimiter. Hy unmangles all hyphens as underscores and mangles all incoming underscores to hyphens.</description>
+      <description>Maintaining a large hy codebase.</description>
     </item>
     
     <item>
@@ -116,12 +90,7 @@ Intro to Hy Basic syntax Hy is a lisp and so uses hyphens as its delimiter. Hy u
       <pubDate>Fri, 14 Jul 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/migrate-layers/</guid>
-      <description>Spacemacs is referred for its evil integration, space-based bindings, and community contributed layers that collect, configure, and integrate groups of packages.
-For how much they add to Emacs, motivations for personal layers are largely undocumented.
-I introduce layers then discuss benefits, approaches, and gotchas with layer-based configurations.
-I&#39;ve migrated my entire dotspacemacs/user-config into personal layers - now 6 lines vs 1,500.
-See https://github.com/ekaschalk/.spacemacs.d for my viewer-friendly configuration .
-Introducing Layers This section is not a replacement for http://spacemacs.</description>
+      <description>Manage your Spacemacs with personal layers.</description>
     </item>
     
     <item>
@@ -130,9 +99,7 @@ Introducing Layers This section is not a replacement for http://spacemacs.</desc
       <pubDate>Mon, 03 Jul 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/outline-bullets/</guid>
-      <description>We improve upon the outline bullets presented in the previous post Managing code with Outlines.
-   My Headings Editing my config          This solution:
- Allows for face application to the bullet. The default faces outline-1/2/3... only apply to the text, not the bullet. Adds spaces for higher level bullets. So not every outline-level needs to have its text start at the same column.</description>
+      <description>Improving the display of outline mode.</description>
     </item>
     
     <item>
@@ -141,11 +108,7 @@ Introducing Layers This section is not a replacement for http://spacemacs.</desc
       <pubDate>Fri, 30 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/outline-ivy/</guid>
-      <description>I consider outlines an under-utilized yet killer feature of Emacs.
-This post is split into two parts:
- Introducing and customizing outline-mode and outshine-mode. My package outline-ivy for jumping to outlines.  Intro to Outlines Background Outline-mode is a general framework for headers. Org-mode itself uses outline-mode.
-Headers are demarcated by the current major-mode&#39;s comment syntax, typically with levels determined by the proceeding number of *.
- Python: # * is a level 1 header, # ** a level 2 header.</description>
+      <description>Programming the org-mode way.</description>
     </item>
     
     <item>
@@ -154,9 +117,7 @@ Headers are demarcated by the current major-mode&#39;s comment syntax, typically
       <pubDate>Sun, 25 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/pretty-magit/</guid>
-      <description>A comparison of how I see my commit logs and how they truly are:
-        Typically this would be accomplished with Emacs font-lock-mode. However Magit is magic, even trivial uses of font-lock-add-keywords will break fontification for the entire buffer.
-This post addresses adding faces to Magit to achieve in particular icon and colored commit leaders. I also integrate Ivy/Helm to prompt a leader when committing so you need not remember or type out completely every leader you choose.</description>
+      <description>Using icons in your commits without the downsides.</description>
     </item>
     
     <item>
@@ -165,10 +126,7 @@ This post addresses adding faces to Magit to achieve in particular icon and colo
       <pubDate>Sat, 24 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/custom-eshell/</guid>
-      <description>I have written utilities for choosing what information, icons, and faces your eshell prompt presents.
-Example eshell prompts:
-Eshell prompt customization takes place in eshell-prompt-function and eshell-prompt-regexp. The former determines the content of your prompt while the latter distinguishes your commands.
-I define a macro esh-section taking a name, an icon, a form or variable to be evaluated, and optionally face properties. They create anonymous functions which will be evaluated and concatenated at prompt-time.</description>
+      <description>Customizing the eshell prompt with your own icons and faces.</description>
     </item>
     
     <item>
@@ -177,10 +135,7 @@ I define a macro esh-section taking a name, an icon, a form or variable to be ev
       <pubDate>Fri, 23 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/xi-macro/</guid>
-      <description>Clojure has anonymous functions with the reader macro #(
-(#(print %2 %1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)  Emacs Lisp doesn&#39;t have reader macros, but we can take direction from Hylang, a lisp dialect similar to Clojure inter-oping with Python.
-It implements the anonymous functions as the aptly named xi macro, where the lambda has arguments determined by presence of x1 ... xi .
-((xi print x2 x1) &amp;quot;there&amp;quot; &amp;quot;hi&amp;quot;)  We can implement the xi macro in Emacs Lisp roughly as:</description>
+      <description>Porting clojures #( reader macro to elisp.</description>
     </item>
     
     <item>
@@ -189,11 +144,7 @@ It implements the anonymous functions as the aptly named xi macro, where the lam
       <pubDate>Tue, 20 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/org-mode-blogging/</guid>
-      <description>Hugo is a static site generator. It natively supports org-mode, builds fast, and has live reloading.
-I have two repos for blog content and settings and hugo output.
-I have defined some emacs lisp utilities to make interacting with Hugo easier.
-deploy-blog will goto your blog content, run hugo, cleanup old html, and push the updates.
-start-blog-server will run hugo server if not already running, and open the webpage in your browser.</description>
+      <description>Easy org-mode blogging with Hugo.</description>
     </item>
     
     <item>
@@ -202,11 +153,7 @@ start-blog-server will run hugo server if not already running, and open the webp
       <pubDate>Mon, 19 Jun 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/python-infix/</guid>
-      <description>Custom infix operators can be emulated in Python using prettify-symbols-mode.
-In your emacs config include:
-(global-prettify-symbols-mode 1) (add-hook &#39;python-mode-hook (lambda () (mapc (lambda (pair) (push pair prettify-symbols-alist)) &#39;((&amp;quot;@compose@&amp;quot; . #X2218) (&amp;quot;@pipe@&amp;quot; . #Xe135)))))  Now pip install infix.
-Optionally pip install toolz, a functional programming library, otherwise you can define the infix operations yourself.
-import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;__rmatmul__&#39;, &#39;__matmul__&#39;) def compose(a, b): return tz.</description>
+      <description>Mimicking custom python unicode infix operators in Emacs.</description>
     </item>
     
     <item>
@@ -215,8 +162,7 @@ import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;_
       <pubDate>Sun, 19 Feb 2017 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/prettify-mode/</guid>
-      <description>Sequences of characters are represented as a single token using:
- Pretty-mode Pretty-mode provides Greeks, subscripts, and more symbols. Prettify-symbols-mode Prettify Symbols ships with Emacs as of 24.4 and adds support for custom Unicode replacement of symbols. Ligatures Unicode replacements of common operators (see Fira Code, the font I use, and Pragmata Pro fonts)  Any combination of these tools may be chosen; Fira Code is not required to utilize prettify-symbols or pretty-mode.</description>
+      <description>Programming with unicode replacements that only you see.</description>
     </item>
     
     <item>
@@ -225,11 +171,7 @@ import toolz.curried as tz from infix import custom_infix as infix @infix(&#39;_
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/post/shell-font-lock/</guid>
-      <description>** Font locking the Shell Prompt
-This simple-sounding feature is involved and perhaps worth a post all its own.
-I&amp;rsquo;m not sure if any shells besides python implement this feature. For example, type ~(let &amp;hellip;)~ in ~ielm~ and the let won&amp;rsquo;t be highlighted.
-Buffers taking from ~comint-mode~ will not highlight the current prompt. Once entered, the prompt output will switch to the ~comint-highlight-input~ face.
-We can&amp;rsquo;t enable ~font-lock-mode~ for ~inferior-hy-mode~ as otherwise the highlight input face will be overwritten, output will be colored (undesirable), and colors outputted by the shell (like for errors) will be overwritten.</description>
+      <description>Font locking the Shell Prompt   This simple-sounding feature is involved and perhaps worth a post all its own.  I&amp;#39;m not sure if any shells besides python implement this feature. For example, type (let ...) in ielm and the let won&amp;#39;t be highlighted.  Buffers taking from comint-mode will not highlight the current prompt. Once entered, the prompt output will switch to the comint-highlight-input face.  We can&amp;#39;t enable font-lock-mode for inferior-hy-mode as otherwise the highlight input face will be overwritten, output will be colored (undesirable), and colors outputted by the shell (like for errors) will be overwritten.</description>
     </item>
     
   </channel>

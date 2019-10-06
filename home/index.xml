@@ -27,7 +27,7 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/home/spacemacs/</guid>
-      <description>    Coding with Mathematical Notation            Eshell Improvements            Pretty Magit Commits            Fancy Outlines Outline-based Navigation          </description>
+      <description>   &amp;lt;a href=&amp;#39;/post/prettify-mode/&amp;#39;&amp;gt;Coding with Mathematical Notation&amp;lt;/a&amp;gt;            &amp;lt;a href=&amp;#39;/post/custom-eshell/&amp;#39;&amp;gt;Eshell Improvements&amp;lt;/a&amp;gt;            &amp;lt;a href=&amp;#39;/post/pretty-magit/&amp;#39;&amp;gt;Pretty Magit Commits&amp;lt;/a&amp;gt;            &amp;lt;a href=&amp;#39;/post/outline-bullets/&amp;#39;&amp;gt;Fancy Outlines&amp;lt;/a&amp;gt; &amp;lt;a href=&amp;#39;/post/outline-ivy/&amp;#39;&amp;gt;Outline-based Navigation&amp;lt;/a&amp;gt;          </description>
     </item>
     
     <item>
@@ -36,7 +36,7 @@
       <pubDate>Wed, 20 Apr 2016 00:00:00 +0000</pubDate>
       
       <guid>https://ekaschalk.github.io/home/about/</guid>
-      <description>Software Engineer practicing scientific computing, previously full time lisper.
+      <description>@google Software Engineer in Mountain View.
 Modern Emacs details my journey learning and hacking on Emacs.
 I hope to inspire creativity and personalization in your own Emacs.</description>
     </item>

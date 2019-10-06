@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="theme" content="hugo-academic">
-  <meta name="generator" content="Hugo 0.54.0" />
+  <meta name="generator" content="Hugo 0.56.3" />
   <meta name="author" content="Eric Kaschalk">
   
 
@@ -210,210 +210,258 @@
 </div>
 
     <div class="article-style" itemprop="articleBody">
-      <p>Variable assignments in Emacs lisp are not highlighted.</p>
-
-<p>That is, <code>(setq foo bar)</code> will not apply <code>font-lock-variable-name-face</code> to <code>foo</code>.
-This case is easy enough to implement via regex.</p>
-
-<p>But in Emacs lisp, assignment is variadic, accepting alternating name-value pairs.</p>
-
-<pre><code class="language-lisp">(setq foo bar
-      foo (more stuff) foo bar)
-</code></pre>
-
-<p>How can we hope to highlight all the <code>foo</code>?</p>
-
-<p>In this post I demonstrate syntax-traversing highlighting, as applied to variable
-assignments.</p>
-
-<p><img src="/img/setv-highlighting-example.png" alt="/img/setv-highlighting-example.png" title="/img/setv-highlighting-example.png" /></p>
-
-<p>Plus and minus denote the name/value pairs. Names that are forms are not
-highlighted, as desired.</p>
-
-<p>In this post I reference a <code>setv</code> instead of <code>setq</code>. Snippets depend on <code>dash</code> and <code>smartparens</code>.</p>
-
-<h1 id="syntax-highlighting">Syntax Highlighting</h1>
-
-<h2 id="intro">Intro</h2>
-
-<p>Font locks are widely used in Emacs, responsible for most syntax highlighting.</p>
-
-<p>Typically regexes and faces are paired together. The single pair case can be
-handled by adding the following list to <code>font-lock-keywords</code>.</p>
-
-<pre><code class="language-lisp">(setq setv-rgx
-      (rx symbol-start &quot;setv&quot; symbol-end (1+ space) (group (1+ word))))
-(setq setv-font-lock-kwd
-      (list setv-rgx '(1 font-lock-variable-name-face)))
-</code></pre>
-
-<p>See <a href='/post/major-mode-part-1/'>my post on writing a major
-mode</a> for more examples of font-locking.</p>
-
-<p>For most all cases, regexes are sufficient.</p>
-
-<h2 id="recursive-highlighting">Recursive Highlighting</h2>
-
-<p>Lets look at the smaller case of highlighting every other word occuring after <code>setv</code> in:</p>
-
-<pre><code class="language-lisp">(setv foo bar foo bar foo bar)
-</code></pre>
-
-<p>We have an indeterminate number of alternating pairs.</p>
-
-<p>For this usecase, <code>font-lock-keywords</code> exposes something called "match anchors".
+      
+<p>
+Variable assignments in Emacs lisp are not highlighted.
+</p>
+<p>
+That is, <code>(setq foo bar)</code> will not apply <code>font-lock-variable-name-face</code> to <code>foo</code>.
+This case is easy enough to implement via regex.
+</p>
+<p>
+But in Emacs lisp, assignment is variadic, accepting alternating name-value pairs.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> foo bar
+      foo (more stuff) foo bar)</code></pre></div>
+</div>
+<p>
+How can we hope to highlight all the <code>foo</code>?
+</p>
+<p>
+In this post I demonstrate syntax-traversing highlighting, as applied to variable
+assignments.
+</p>
+<p>
+<img src="/img/setv-highlighting-example.png" alt="/img/setv-highlighting-example.png" title="/img/setv-highlighting-example.png" />
+</p>
+<p>
+Plus and minus denote the name/value pairs. Names that are forms are not
+highlighted, as desired.
+</p>
+<p>
+In this post I reference a <code>setv</code> instead of <code>setq</code>. Snippets depend on <code>dash</code> and <code>smartparens</code>.
+</p>
+<h1 id="headline-1">
+Syntax Highlighting
+</h1>
+<h2 id="headline-2">
+Intro
+</h2>
+<p>
+Font locks are widely used in Emacs, responsible for most syntax highlighting.
+</p>
+<p>
+Typically regexes and faces are paired together. The single pair case can be
+handled by adding the following list to <code>font-lock-keywords</code>.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> setv-rgx
+      (rx symbol-start <span style="color:#e6db74">&#34;setv&#34;</span> symbol-end (<span style="color:#a6e22e">1+</span> space) (group (<span style="color:#a6e22e">1+</span> word))))
+(<span style="color:#66d9ef">setq</span> setv-font-lock-kwd
+      (<span style="color:#a6e22e">list</span> setv-rgx <span style="color:#f92672">&#39;</span>(<span style="color:#ae81ff">1</span> font-lock-variable-name-face)))</code></pre></div>
+</div>
+<p>
+See &lt;a href=&#39;/post/major-mode-part-1/&#39;&gt;my post on writing a major
+mode&lt;/a&gt; for more examples of font-locking.
+</p>
+<p>
+For most all cases, regexes are sufficient.
+</p>
+<h2 id="headline-3">
+Recursive Highlighting
+</h2>
+<p>
+Lets look at the smaller case of highlighting every other word occuring after <code>setv</code> in:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(setv foo bar foo bar foo bar)</code></pre></div>
+</div>
+<p>
+We have an indeterminate number of alternating pairs.
+</p>
+<p>
+For this usecase, <code>font-lock-keywords</code> exposes something called &#34;match anchors&#34;.
 That is, we anchor on some initial match, the <code>setv</code>, and then repeatedly
-try another match.</p>
+try another match.
+</p>
+<p>
+Lets update our font lock keyword to match every other word:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> every-other-word-rgx
+      (rx (<span style="color:#a6e22e">1+</span> word) (<span style="color:#a6e22e">1+</span> not-wordchar) (group (<span style="color:#a6e22e">1+</span> word))))
 
-<p>Lets update our font lock keyword to match every other word:</p>
-
-<pre><code class="language-lisp">(setq every-other-word-rgx
-      (rx (1+ word) (1+ not-wordchar) (group (1+ word))))
-
-(add-to-list 'setv-font-lock-kwd
-             (list every-other-word-rgx
-                   nil nil
-                   '(1 font-lock-variable-name-face)))
-</code></pre>
-
-<p>Now we have every other word highlighting.</p>
-
-<h2 id="multiline-highlighting">Multiline Highlighting</h2>
-
-<p>Lets extend our example to span multiple lines:</p>
-
-<pre><code class="language-lisp">(setv foo bar foo bar foo bar
-      foo bar)
-</code></pre>
-
-<p>Font lock mode doesn't run over multiple lines by default. We can tell font lock
-mode to allow line-spanning highlights by setting <code>font-lock-multiline</code> to true.</p>
-
-<p>But this isn't enough. How would it know when to stop finding every other word?</p>
-
-<p>The two <code>nil</code> values in our keyword were for the <code>PRE-MATCH-FORM</code> and <code>POST-MATCH-FORM</code>. These allow extra flexibility over regexes for moving the point around during the traversal. Additionally, the <code>PRE-MATCH-FORM</code> can return a point, which is used as the limit to the anchor.</p>
-
-<p>So lets define a trivial pre-match function that tells font lock mode to check
-the next line when the anchor <code>setv</code> is encountered.</p>
-
-<pre><code class="language-lisp">(defun setv-pre-match-form ()
+(add-to-list <span style="color:#e6db74">&#39;setv-font-lock-kwd</span>
+             (<span style="color:#a6e22e">list</span> every-other-word-rgx
+                   <span style="color:#66d9ef">nil</span> <span style="color:#66d9ef">nil</span>
+                   <span style="color:#f92672">&#39;</span>(<span style="color:#ae81ff">1</span> font-lock-variable-name-face)))</code></pre></div>
+</div>
+<p>
+Now we have every other word highlighting.
+</p>
+<h2 id="headline-4">
+Multiline Highlighting
+</h2>
+<p>
+Lets extend our example to span multiple lines:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(setv foo bar foo bar foo bar
+      foo bar)</code></pre></div>
+</div>
+<p>
+Font lock mode doesn&#39;t run over multiple lines by default. We can tell font lock
+mode to allow line-spanning highlights by setting <code>font-lock-multiline</code> to true.
+</p>
+<p>
+But this isn&#39;t enough. How would it know when to stop finding every other word?
+</p>
+<p>
+The two <code>nil</code> values in our keyword were for the <code>PRE-MATCH-FORM</code> and <code>POST-MATCH-FORM</code>. These allow extra flexibility over regexes for moving the point around during the traversal. Additionally, the <code>PRE-MATCH-FORM</code> can return a point, which is used as the limit to the anchor.
+</p>
+<p>
+So lets define a trivial pre-match function that tells font lock mode to check
+the next line when the anchor <code>setv</code> is encountered.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun setv-pre-match-form ()
   (forward-line))
 
-(add-to-list 'setv-font-lock-kwd
-             (list every-other-word-rgx
-                   '(setv-pre-match-form) nil
-                   '(1 font-lock-variable-name-face)))
-</code></pre>
-
-<p>Closer now, the example works and can be adjusted quite easily to determine the
-right number of lines to move forward.</p>
-
-<p>But, performing edits on one line can cause inconsistent changes or even lose
-highlighting entirely on other lines.</p>
-
-<p>What is going wrong?</p>
-
-<h2 id="font-lock-regions">Font Lock Regions</h2>
-
-<p>Editing within an assignment can cause the search for the anchored <code>setv</code> to
-occur from any point within the form. So finding the anchor will be unreliable.</p>
-
-<p>Naturally the thought is: what if we traverse to the beginning of the form in
-the <code>setv-pre-match-form</code> so we always catch the match?</p>
-
-<p>This turns out to fail as we might encounter multiple start/end combinations
+(add-to-list <span style="color:#e6db74">&#39;setv-font-lock-kwd</span>
+             (<span style="color:#a6e22e">list</span> every-other-word-rgx
+                   <span style="color:#f92672">&#39;</span>(setv-pre-match-form) <span style="color:#66d9ef">nil</span>
+                   <span style="color:#f92672">&#39;</span>(<span style="color:#ae81ff">1</span> font-lock-variable-name-face)))</code></pre></div>
+</div>
+<p>
+Closer now, the example works and can be adjusted quite easily to determine the
+right number of lines to move forward.
+</p>
+<p>
+But, performing edits on one line can cause inconsistent changes or even lose
+highlighting entirely on other lines.
+</p>
+<p>
+What is going wrong?
+</p>
+<h2 id="headline-5">
+Font Lock Regions
+</h2>
+<p>
+Editing within an assignment can cause the search for the anchored <code>setv</code> to
+occur from any point within the form. So finding the anchor will be unreliable.
+</p>
+<p>
+Naturally the thought is: what if we traverse to the beginning of the form in
+the <code>setv-pre-match-form</code> so we always catch the match?
+</p>
+<p>
+This turns out to fail as we might encounter multiple start/end combinations
 each within the same <code>setv</code> form, whom will buggily interact, overwrite, and
-possibly miss names entirely.</p>
-
-<p>The arcane <code>font-lock-extend-region-functions</code> is responsible for setting the
-begin and end search regions of multiline fontifications.</p>
-
-<p>Its documentation puts it well:</p>
-
+possibly miss names entirely.
+</p>
+<p>
+The arcane <code>font-lock-extend-region-functions</code> is responsible for setting the
+begin and end search regions of multiline fontifications.
+</p>
+<p>
+Its documentation puts it well:
+</p>
 <blockquote>
 <p>
 Its most common use is to solve the problem of <em>identification</em> of multiline elements by providing a function that tries to find such elements and move the boundaries such that they do not fall in the middle of one.
 </p>
 </blockquote>
-
-<p>Promising!</p>
-
-<p>Before we dive into it, lets understand the other remaining highlighting methods.</p>
-
-<h2 id="font-locking-with-functions">Font Locking with Functions</h2>
-
-<p>The <code>MATCHER</code> is the first form in a font lock keyword. The previous examples
-have it taking the value of a regex.</p>
-
-<p>It can also be a function of one argument, a limiting point, that sets the <code>match-data</code> just as a regexp would, returning true if a match occurred.</p>
-
-<p>The following would be equivalent to having <code>setv-rgx</code> as the <code>MATCHER</code>.</p>
-
-<pre><code class="language-lisp">(defun match-setv (limit)
-  (re-search-forward setv-rgx limit t))
-</code></pre>
-
-<p>But now we can do a lot more.</p>
-
-<p>Lets restrict to matching <code>setv</code> that are only one parenthesis deep.</p>
-
-<pre><code class="language-lisp">(defun match-setv (limit)
-  (and (re-search-forward setv-rgx limit t)
-       (= 1 (nth 0 (syntax-ppss)))))
-</code></pre>
-
-<p>This matcher performs highlighting conditional on the syntax!</p>
-
-<p>We now have the building blocks of syntax-traversing highlighting.</p>
-
-<h1 id="solution">Solution</h1>
-
-<p>A fully self-contained <code>setv-mode</code> to try out:</p>
-
-<pre><code class="language-lisp">(setq setv-rgx (rx symbol-start &quot;setv&quot; symbol-end (1+ space) (group (1+ word))))
-(setq setv-current-depth nil)
+<p>
+Promising!
+</p>
+<p>
+Before we dive into it, lets understand the other remaining highlighting methods.
+</p>
+<h2 id="headline-6">
+Font Locking with Functions
+</h2>
+<p>
+The <code>MATCHER</code> is the first form in a font lock keyword. The previous examples
+have it taking the value of a regex.
+</p>
+<p>
+It can also be a function of one argument, a limiting point, that sets the <code>match-data</code> just as a regexp would, returning true if a match occurred.
+</p>
+<p>
+The following would be equivalent to having <code>setv-rgx</code> as the <code>MATCHER</code>.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun match-setv (limit)
+  (re-search-forward setv-rgx limit <span style="color:#66d9ef">t</span>))</code></pre></div>
+</div>
+<p>
+But now we can do a lot more.
+</p>
+<p>
+Lets restrict to matching <code>setv</code> that are only one parenthesis deep.
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(defun match-setv (limit)
+  (and (re-search-forward setv-rgx limit <span style="color:#66d9ef">t</span>)
+       (<span style="color:#a6e22e">=</span> <span style="color:#ae81ff">1</span> (<span style="color:#a6e22e">nth</span> <span style="color:#ae81ff">0</span> (syntax-ppss)))))</code></pre></div>
+</div>
+<p>
+This matcher performs highlighting conditional on the syntax!
+</p>
+<p>
+We now have the building blocks of syntax-traversing highlighting.
+</p>
+<h1 id="headline-7">
+Solution
+</h1>
+<p>
+A fully self-contained <code>setv-mode</code> to try out:
+</p>
+<div class="src src-lisp">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#66d9ef">setq</span> setv-rgx (rx symbol-start <span style="color:#e6db74">&#34;setv&#34;</span> symbol-end (<span style="color:#a6e22e">1+</span> space) (group (<span style="color:#a6e22e">1+</span> word))))
+(<span style="color:#66d9ef">setq</span> setv-current-depth <span style="color:#66d9ef">nil</span>)
 
 (defun setv-font-lock-extend-region ()
-  &quot;Extend assignment forms' regions, see `font-lock-extend-region-functions'.&quot;
+  <span style="color:#e6db74">&#34;Extend assignment forms&#39; regions, see `font-lock-extend-region-functions&#39;.&#34;</span>
   (save-excursion
-    (let ((start-beg font-lock-beg)
+    (<span style="color:#66d9ef">let</span> ((start-beg font-lock-beg)
           (start-end font-lock-end)
-          (depth (nth 0 (syntax-ppss))))
-      (when (and (&lt; 0 depth)
+          (depth (<span style="color:#a6e22e">nth</span> <span style="color:#ae81ff">0</span> (syntax-ppss))))
+      (when (and (<span style="color:#a6e22e">&lt;</span> <span style="color:#ae81ff">0</span> depth)
                  (sp-beginning-of-sexp)
-                 (string= &quot;setv&quot; (thing-at-point 'symbol)))
+                 (<span style="color:#a6e22e">string=</span> <span style="color:#e6db74">&#34;setv&#34;</span> (thing-at-point <span style="color:#e6db74">&#39;symbol</span>)))
 
-        (setq setv-current-depth depth)
+        (<span style="color:#66d9ef">setq</span> setv-current-depth depth)
 
-        (setq font-lock-beg (1- (point)))
+        (<span style="color:#66d9ef">setq</span> font-lock-beg (<span style="color:#a6e22e">1-</span> (point)))
         (sp-end-of-sexp)
-        (setq font-lock-end (1+ (point)))
+        (<span style="color:#66d9ef">setq</span> font-lock-end (<span style="color:#a6e22e">1+</span> (point)))
 
-        (or (/= start-beg font-lock-beg)  ; Signal possible changes to font-lock
-            (/= start-end font-lock-end))))))
+        (or (<span style="color:#a6e22e">/=</span> start-beg font-lock-beg)  <span style="color:#75715e">; Signal possible changes to font-lock</span>
+            (<span style="color:#a6e22e">/=</span> start-end font-lock-end))))))
 
 (defun setv-match-assignments (limit)
-  &quot;Recursively set `match-data' assignment names containing point until LIMIT.
-
-`setv-font-lock-extend-region' prepares this function to:
-1. Not traverse the same assignment form twice.
-2. Have the initial call at form's start and passed limit at form's end.
-
-The first name in each assignment is highlighted via a standard regex, so as to
-keep the initial condition simple.&quot;
+  <span style="color:#e6db74">&#34;Recursively set `match-data&#39; assignment names containing point until LIMIT.
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">`setv-font-lock-extend-region&#39; prepares this function to:
+</span><span style="color:#e6db74">1. Not traverse the same assignment form twice.
+</span><span style="color:#e6db74">2. Have the initial call at form&#39;s start and passed limit at form&#39;s end.
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">The first name in each assignment is highlighted via a standard regex, so as to
+</span><span style="color:#e6db74">keep the initial condition simple.&#34;</span>
   (-when-let* ((start (point))
                (_ (sp-beginning-of-sexp))
-               (_ (re-search-forward setv-rgx limit t)))
-    (when (&gt; start (point))  ; Resume traversal at last symbol
+               (_ (re-search-forward setv-rgx limit <span style="color:#66d9ef">t</span>)))
+    (when (<span style="color:#a6e22e">&gt;</span> start (point))  <span style="color:#75715e">; Resume traversal at last symbol</span>
       (goto-char start))
 
     (sp-forward-sexp)
 
-    (when (&lt; (point) limit)
-      (setq matched-word? (re-search-forward (rx (group (1+ word))) limit t))
-      (setq descended? (and setv-current-depth
-                            (&gt; (nth 0 (syntax-ppss))
+    (when (<span style="color:#a6e22e">&lt;</span> (point) limit)
+      (<span style="color:#66d9ef">setq</span> matched-word? (re-search-forward (rx (group (<span style="color:#a6e22e">1+</span> word))) limit <span style="color:#66d9ef">t</span>))
+      (<span style="color:#66d9ef">setq</span> descended? (and setv-current-depth
+                            (<span style="color:#a6e22e">&gt;</span> (<span style="color:#a6e22e">nth</span> <span style="color:#ae81ff">0</span> (syntax-ppss))
                                setv-current-depth)))
 
       (or (and matched-word? descended?
@@ -422,74 +470,106 @@ keep the initial condition simple.&quot;
           matched-word?
           (setv-match-assignments limit)))))
 
-(define-derived-mode setv-mode lisp-mode &quot;Setv&quot;
-  (setq font-lock-multiline t)
-  (add-to-list 'font-lock-extend-region-functions
-               'setv-font-lock-extend-region)
+(define-derived-mode setv-mode lisp-mode <span style="color:#e6db74">&#34;Setv&#34;</span>
+  (<span style="color:#66d9ef">setq</span> font-lock-multiline <span style="color:#66d9ef">t</span>)
+  (add-to-list <span style="color:#e6db74">&#39;font-lock-extend-region-functions</span>
+               <span style="color:#e6db74">&#39;setv-font-lock-extend-region</span>)
 
-  (setq setv-font-lock-kwds
-        `((setv-match-assignments 1 font-lock-variable-name-face)
-          (,setv-rgx 1 font-lock-variable-name-face)))
+  (<span style="color:#66d9ef">setq</span> setv-font-lock-kwds
+        <span style="color:#f92672">`</span>((setv-match-assignments <span style="color:#ae81ff">1</span> font-lock-variable-name-face)
+          (<span style="color:#f92672">,</span>setv-rgx <span style="color:#ae81ff">1</span> font-lock-variable-name-face)))
 
-  (setq font-lock-defaults
-        '(setv-font-lock-kwds
-          nil nil
-          ((&quot;+-*/.&lt;&gt;=!?$%_&amp;~^:@&quot; . &quot;w&quot;))
-          nil nil
-          (font-lock-mark-block-function . mark-defun))))
-</code></pre>
-
-<p>I collapsed it into a major mode to allow for <code>M-x setv-mode</code> to try out the highlighting yourself.</p>
-
-<p>Lets break down what is occurring in each step:</p>
-
-<h3 id="extending-the-region">Extending the region</h3>
-
-<p>We check if the form-opener containing point is an assignment.</p>
-
-<p>If it is we must conform to font-lock-mode's bookkeeping by:</p>
-
+  (<span style="color:#66d9ef">setq</span> font-lock-defaults
+        <span style="color:#f92672">&#39;</span>(setv-font-lock-kwds
+          <span style="color:#66d9ef">nil</span> <span style="color:#66d9ef">nil</span>
+          ((<span style="color:#e6db74">&#34;+-*/.&lt;&gt;=!?$%_&amp;~^:@&#34;</span> <span style="color:#f92672">.</span> <span style="color:#e6db74">&#34;w&#34;</span>))
+          <span style="color:#66d9ef">nil</span> <span style="color:#66d9ef">nil</span>
+          (font-lock-mark-block-function <span style="color:#f92672">.</span> mark-defun))))</code></pre></div>
+</div>
+<p>
+I collapsed it into a major mode to allow for <code>M-x setv-mode</code> to try out the highlighting yourself.
+</p>
+<p>
+Lets break down what is occurring in each step:
+</p>
+<h3 id="headline-8">
+Extending the region
+</h3>
+<p>
+We check if the form-opener containing point is an assignment.
+</p>
+<p>
+If it is we must conform to font-lock-mode&#39;s bookkeeping by:
+</p>
 <ol>
-<li>Setting the dynamically bound <code>font-lock-beg</code> and <code>font-lock-end</code> to the</li>
-   desired start/end of the form, for only assignment forms.
-<li>Tracking the depth of the assignment. The region expansion occurs once per</li>
-   assignment while the searching is recursive, so we set the depth at
-   expansion-time.
-<li>Return whether the start or end changed during the region expansion.</li>
+<li>
+<p>
+Setting the dynamically bound <code>font-lock-beg</code> and <code>font-lock-end</code> to the
+desired start/end of the form, for only assignment forms.
+</p>
+</li>
+<li>
+<p>
+Tracking the depth of the assignment. The region expansion occurs once per
+assignment while the searching is recursive, so we set the depth at
+expansion-time.
+</p>
+</li>
+<li>
+<p>
+Return whether the start or end changed during the region expansion.
+</p>
+</li>
 </ol>
-
-<h3 id="searching-for-assignments">Searching for assignments</h3>
-
-<p>Extending the region leaves us with the current point at the assignment form's
+<h3 id="headline-9">
+Searching for assignments
+</h3>
+<p>
+Extending the region leaves us with the current point at the assignment form&#39;s
 opening and the limit at its close, and we will not restart the search from
-somewhere else within the form.</p>
-
-<p>But we don't know whether the form is an assignment, we only know that the
-bounds are correct in the case that it is.</p>
-
-<p>So first we check that the region we are considering is an assignment.
+somewhere else within the form.
+</p>
+<p>
+But we don&#39;t know whether the form is an assignment, we only know that the
+bounds are correct in the case that it is.
+</p>
+<p>
+So first we check that the region we are considering is an assignment.
 We jump past one sexp, namely the value, and set match-data to the following
-with a regex search, as required by font-lock internals.</p>
-
-<p>Now this match doesn't consider syntax, unlike the first jump. We check that we
-didn't just move forward into an embedded form. If we did, we need to skip this
+with a regex search, as required by font-lock internals.
+</p>
+<p>
+Now this match doesn&#39;t consider syntax, unlike the first jump. We check that we
+didn&#39;t just move forward into an embedded form. If we did, we need to skip this
 pair as we both do not want to highlight the form, and it would interfere with
-the <code>sp-beginning-of-sexp</code> on future calls. So we jump out and recurse.</p>
-
-<h1 id="conclusions">Conclusions</h1>
-
-<p>The example mode demonstrates a particularly difficult form of
-syntax-highlighting and pulls together many more advanced features of Emac's <code>font-lock-mode</code>.</p>
-
-<p>However there are still issues:</p>
-
+the <code>sp-beginning-of-sexp</code> on future calls. So we jump out and recurse.
+</p>
+<h1 id="headline-10">
+Conclusions
+</h1>
+<p>
+The example mode demonstrates a particularly difficult form of
+syntax-highlighting and pulls together many more advanced features of Emac&#39;s <code>font-lock-mode</code>.
+</p>
+<p>
+However there are still issues:
+</p>
 <ol>
-<li>There is a performance cost to multiline highlighting, as noted in its documentation. How significant the impact is something I do not understand well yet.</li>
-<li>While the names that are highlighted appear to be correct, application of highlighting to every name at all times is still inconsistent and might require edits on nearby parts of the buffer to take effect. My hunch is to investigate the other two region extension functions.</li>
+<li>
+<p>
+There is a performance cost to multiline highlighting, as noted in its documentation. How significant the impact is something I do not understand well yet.
+</p>
+</li>
+<li>
+<p>
+While the names that are highlighted appear to be correct, application of highlighting to every name at all times is still inconsistent and might require edits on nearby parts of the buffer to take effect. My hunch is to investigate the other two region extension functions.
+</p>
+</li>
 </ol>
-
-<p>Altogether I'm once again impressed at the flexibility Emacs offers to tailor
-the display of text to your liking.</p>
+<p>
+Altogether I&#39;m once again impressed at the flexibility Emacs offers to tailor
+the display of text to your liking.
+</p>
 
     </div>
   </div>
